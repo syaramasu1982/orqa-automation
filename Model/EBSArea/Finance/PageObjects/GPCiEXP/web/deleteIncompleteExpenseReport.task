@@ -1,0 +1,51 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = expenseTemplate ) 
+@param ( name = expensesForPeriodEnded ) 
+@param ( name = receiptDate ) 
+@param ( name = receiptAmount ) 
+@param ( name = expenseType ) 
+@param ( name = justification ) 
+@param ( name = receiptCurrency ) 
+web.switch ( session = session ) 
+@name ( 'Delete Incomplete Expense Report' ) try {
+	@name ( 'Define report number' ) reportNumber = control.evaluate ( expression = 'return null' ) 
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Click Create Expense Report button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create Expense Report' , scenario = scenario ) 
+	@name ( 'Select Expense Template' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Template' , xPath = 'ExpTemplate' , value = expenseTemplate ) 
+	@name ( 'Enter Expenses for Period Ended' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Expenses for Period Ended' , xPath = 'Purpose' , value = expensesForPeriodEnded ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Enter Receipt Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Date' , xPath = 'N50:Date:0' , value = receiptDate ) 
+	@name ( 'Enter Receipt Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Receipt Amount' , xPath = 'N50:ReceiptCurrencyAmount:0' , value = receiptAmount ) 
+	@name ( 'Select Expense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Type' , xPath = 'N50:WebParameterId:0' , value = expenseType ) 
+	@name ( 'Enter Justification' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'N50:Justification:0' , value = justification ) 
+	@name ( 'Click Show Receipt Currency button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Show Receipt Currency' , scenario = scenario ) 
+	@name ( 'Select Receipt Currency' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Receipt Currency' , xPath = 'N50:ReceiptCurrencyCode:0' , value = receiptCurrency ) 
+	@name ( 'Click Update button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Update' , scenario = scenario ) 
+	@name ( 'Click Details icon' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'N50:RBDetails:0' ) 
+	@name ( 'Click Return button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Return' , scenario = scenario ) 
+	@name ( 'Click Save button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+	@name ( 'Read Receipt Information' ) isInformation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Information' , xPath = 'click Submit on the Review page to submit the report for approval' ) 
+	@name ( 'Return requisition number' ) reportNumber = control.evaluate ( expression = 'String s1 = isInformation ;
+String[] sp =  s1.split(" ");
+reportNumber = sp[2];' ) 
+	control.retry ( maxAttempts = 3 ) {
+		@name ( 'Click on Expenses Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'OIEHOMEPAGE' ) 
+		@name ( 'Click OK on Alert' ) /EBSArea/lib/web/presskey/press_enter.task ( scenario = scenario , session = session , xPath = '/alert' ) 
+	} 
+	@name ( 'Delete XPath Build' ) reportNo = control.evaluate ( expression = 'def reportNo =  "//a[contains(text(),''"+reportNumber+"'')]//ancestor::tr[1]//a[contains(@id,''DeleteLink'')]"' ) 
+	@name ( 'Check Report Number Exists' ) isReportNumberExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = "*[@id='ActiveReportsRN']" , xPath = reportNo ) 
+	@name ( 'Is Report Number Not Exist' ) while ^!isReportNumberExist^ {
+		@name ( 'Click on Next icon' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = '//*[@id=''ActiveReportsRN'']//span[@title="Update Expense Reports table."]//img[@title="Select to view next set"]' ) 
+		@name ( 'Check Report Number Exists' ) isReportNumberExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = "*[@id='ActiveReportsRN']" , xPath = reportNo ) 
+	} 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'before_delete_incomplete_expense_report' ) 
+	@name ( 'Click Delete icon' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = reportNo ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'delete_incomplete_expense_report_success' ) 
+	@name ( 'Click Yes button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'delete_incomplete_exp_report_fail' ) 
+	error ^"Failed to perform delete incomplete expense report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

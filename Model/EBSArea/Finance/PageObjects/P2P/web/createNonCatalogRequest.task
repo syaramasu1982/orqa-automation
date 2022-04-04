@@ -1,0 +1,87 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requestType ) 
+@param ( name = itemType ) 
+@param ( name = itemDescription ) 
+@param ( name = category ) 
+@param ( name = quantity ) 
+@param ( name = unitPrice ) 
+@param ( name = amount ) 
+@param ( name = unitOfMeasure ) 
+@param ( name = ratePerUnit ) 
+@param ( name = currency ) 
+@param ( name = supplierName ) 
+@param ( name = needByDate ) 
+@param ( name = deliverToLocation ) 
+@param ( name = project ) 
+@param ( name = task ) 
+@param ( name = clickChargeAccount ) 
+@param ( name = site ) 
+@param ( name = costCentre ) 
+web.switch ( session = session ) 
+@name ( 'Define requisition number' ) requestId = control.evaluate ( expression = 'return null' ) 
+@name ( 'Create Non-Catalog Request' ) try {
+	'Navigate to iProcurement Home' {
+		@name ( 'Navigate to Non catalog request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Non-Catalog Request' ) 
+		@name ( 'Select Request Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'RequestType' , xPath = 'RequestType' , value = requestType ) 
+		@name ( 'Select Item Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Item Type' , xPath = 'ItemType' , value = itemType ) 
+		@name ( 'Wait for item type selection' ) sleep 2 
+		@name ( 'Add Item Description' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'ItemDescription' , xPath = 'ItemDescription' , value = itemDescription ) 
+		@name ( 'Select Category' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Category' , value = category , xPath = 'Category' , scenario = scenario ) 
+		@name ( 'Add Quantity' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = quantity , field = 'Quantity' , xPath = 'Quantity' ) 
+		@name ( 'Select Unit Of Measure' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Unit Of Measure' , value = unitOfMeasure , xPath = 'UnitOfMeasureTl' , scenario = scenario ) 
+		@name ( 'Add Unit Price' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = unitPrice , field = 'UnitPrice' , xPath = 'UnitPrice' ) 
+		@name ( 'Add Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = amount , field = 'Amount' , xPath = 'Amount' ) 
+		@name ( 'Add Rate Per Unit' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = ratePerUnit , field = 'Rate Per Unit' , xPath = 'RatePerUnit' ) 
+		@name ( 'Select Currency ' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Currency' , value = currency , xPath = 'Currency' ) 
+		@name ( 'Select Supplier Name' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Supplier Name' , value = supplierName , xPath = 'SupplierOnNonCat' , scenario = scenario , searchBy = 'Site' , searchByValue = site ) 
+		@name ( 'Verify add to cart button exists' ) isButtonExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='AddToCart']" ) 
+		while isButtonExist {
+			@name ( 'Add to cart' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddToCart' , scenario = scenario ) 
+			@name ( 'Verify add to cart button exists' ) isButtonExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[text()='AddToCart']" ) 
+		} 
+		@name ( 'Click View Cart and Checkout' ) /EBSArea/lib/web/button/press_enter_button.task ( scenario = scenario , session = session , name = 'View Cart and Checkout' ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Checkout' ) 
+		@name ( 'Verify need by date input exists' ) isInputExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'input' , xPath = "[contains(@id,'NeedByDate')]" ) 
+		if isInputExists {
+			@name ( 'SelectDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Date' , value = needByDate , name = 'NeedByDate' ) 
+		} 
+		@name ( 'Is Delivery To Location not Default' ) if ^!deliverToLocation.equals("Default") && deliverToLocation != null && String.valueOf(deliverToLocation).trim().length() > 0^ {
+			@name ( 'Select Deliver To Location' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Deliver To Location' , value = deliverToLocation , xPath = 'DeliverToLocation' , scenario = scenario ) 
+		} 
+		@name ( 'Select Project' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Project' , value = project , xPath = 'ProjectOnSummaryExpense' , scenario = scenario ) 
+		@name ( 'Select Task' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Task' , value = task , xPath = 'TaskExpense' , scenario = scenario ) 
+		@name ( 'Click Charge Account' ) if ^clickChargeAccount != null && String.valueOf(clickChargeAccount).trim().length() > 0^ {
+			web.runjs ( javaScript = "document.getElementById('ChargeAccount').click();" ) 
+			@name ( 'Click Charge Account' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Charge Account' ) 
+			@name ( 'Click Accounts Dist Adv Table' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'AccountsDistsAdvTable:N39:0' ) 
+			@name ( 'Switch browser to update cost centre' ) /EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = 'Search and Select*' ) 
+			@name ( 'Click Clear button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Clear' , scenario = scenario ) 
+			@name ( 'Select Cost Centre' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Cost Centre' , id = '_LOVResFrm' , xPath = 'kff_container2' , value = costCentre ) 
+			@name ( 'Click Search button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Search' , scenario = scenario ) 
+			@name ( 'Select result' ) /EBSArea/lib/web/radiobutton/click_input_radio_button.task ( id = '_LOVResFrm' , xPath = 'lovTable:N34:0' , scenario = scenario , session = session , field = 'Select' ) 
+			@name ( 'Click Select button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Select' , scenario = scenario ) 
+			@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+			@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+		} 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	} 
+	@name ( 'Read Requisition' ) requestMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Request' , xPath = 'ApproverText' ) 
+	@name ( 'Calculate requisition number' ) requestID = control.evaluate ( expression = 'String s1 = requestMessage ;
+String[] sp =  s1.split(" ");
+requestID = sp[1];' ) 
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "create_catlog_request_success_"+requestID^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "create_non_catlog_req_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform create non catalog request for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Print Request Number' ) console.write ( data = ^="Non catalogue request [" + requestID + "] created for test case [" + scenario +"]"^ ) 
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Request ID to Map' ) map.add ( map = result , key = 'REQUESTID' , value = ^=requestID^ ) 
+	@name ( 'Return requisition number' ) result = control.evaluate ( expression = 'return result' ) 
+} 

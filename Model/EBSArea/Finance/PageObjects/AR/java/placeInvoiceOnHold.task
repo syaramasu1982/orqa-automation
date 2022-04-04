@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = number ) 
+@param ( name = disputeAmount ) 
+@param ( name = disputeDate ) 
+@param ( name = placeInvoiceHold ) 
+@param ( name = takeOffInvoiceHold ) 
+@name ( 'Place Invoice On Hold' ) try {
+	@name ( 'Click More Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'More' ) 
+	@name ( 'Enter Dispute Amount' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Dispute Amount' , title = 'Transactions' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[9]' , value = disputeAmount ) 
+	@name ( 'Enter Dispute Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Dispute Date' , title = 'Transactions' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[10]' , value = disputeDate ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	if ^placeInvoiceHold != null && String.valueOf(placeInvoiceHold).trim().length() > 0^ {
+		@name ( 'Capture Place Invoice Hold' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'place_invoice_hold' ) 
+	} 
+	if ^takeOffInvoiceHold != null && String.valueOf(takeOffInvoiceHold).trim().length() > 0^ {
+		@name ( 'Capture TakeOff  Invoice Hold' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'take_off_invoice_hold' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_place_invoice_on_hold_fail"^ ) 
+	error ^"Failed to perform place invoice on hold for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

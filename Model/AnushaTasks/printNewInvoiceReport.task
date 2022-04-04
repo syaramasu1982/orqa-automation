@@ -1,0 +1,73 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = reports ) 
+@param ( name = reportsOperatingUnit ) 
+@param ( name = orderBy ) 
+@param ( name = transactionClass ) 
+@param ( name = transactionType ) 
+@param ( name = printDateLow ) 
+@param ( name = printDateHigh ) 
+@param ( name = openInvoicesOnly ) 
+@name ( 'Print New Invoice Report' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField6' , value = name ) 
+	sleep 2 
+	'Enter Reports' {
+		@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+		@name ( 'Enter Report Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = '%' , value = reports ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@disabled @name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@disabled 'Enter Reports Operating Unit' {
+		@disabled @name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+		@disabled @name ( 'Enter Report Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = '%' , value = reportsOperatingUnit ) 
+		@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@disabled @name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@disabled @name ( 'Enter Reporting Context' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Order By' , value = orderBy , xPathPosition = '1' ) 
+	@disabled 'Enter Transaction Class' {
+		@disabled @name ( 'Click on Transaction Class iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Transaction Class' , xPathPosition = '2' ) 
+		@disabled @name ( 'Wait For  Transaction Class Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Class' ) 
+		@disabled @name ( 'Enter Transaction Class' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Transaction Class' , xPath = '%' , value = transactionClass ) 
+		@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@disabled 'Enter Transaction Type' {
+		@disabled @name ( 'Click on Transaction Type iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Transaction Type' , xPathPosition = '3' ) 
+		@disabled @name ( 'Wait For  Transaction Type Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Type' ) 
+		@disabled @name ( 'Enter Transaction Type' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Transaction Type' , xPath = '%' , value = transactionType ) 
+		@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter Print Date Low' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Print Date Low' , xPathPosition = '4' , value = printDateLow ) 
+	@name ( 'Enter Print Date High' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Print Date High' , xPathPosition = '5' , value = printDateHigh ) 
+	@name ( 'Enter Open Invoices Only' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Open Invoices Only' , value = openInvoicesOnly , xPathPosition = '7' ) 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"print_new_invoice_report_"+reports+"_"+timeStamp^ ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Read Request ID' ) readRequestID = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '2' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	} 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"print_newInvoices_Report_"+reports+"_"+timeStamp^ ) 
+	@disabled @name ( 'Read Parent' ) isParent = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Parent' , row = '1' , column = '4' ) 
+	@disabled @name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	@disabled while ^isPhase !="Completed"^ {
+		@disabled @name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		@disabled sleep 5 
+		@disabled @name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	} 
+	@disabled @name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	@disabled assert.true ( expression = 'isParent == isRequestId' ) 
+	/EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"print_new_invoice_report_fail"^ ) 
+} 

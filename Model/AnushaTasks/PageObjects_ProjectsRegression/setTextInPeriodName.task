@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+java.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			java.waitforcomponent ( target = ^"//ExtendedFrame[@name='ExtendedFrame1']/LWComponent/EwtComponent/FScrollBox/ScrollBox-1/DrawnPanel/FScrollBox/ScrollBox-1/DrawnPanel/VTextField[@name='"+ xPath +"']"^ , timeout = 15 ) 
+			sleep 0.25 
+			@disabled web.click ( target = ^"//ExtendedFrame[@name='ExtendedFrame2']/LWComponent/EwtComponent/FScrollBox/ScrollBox-1/DrawnPanel/FScrollBox/ScrollBox-1/DrawnPanel/VTextField[@name='"+ xPath +"']"^ ) 
+			java.setvalue ( text = value , target = ^"//ExtendedFrame[@name='ExtendedFrame1']/LWComponent/EwtComponent/FScrollBox/ScrollBox-1/DrawnPanel/FScrollBox/ScrollBox-1/DrawnPanel/VTextField[@name='"+ xPath +"']"^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'TAB' , target = ^"//ExtendedFrame[@name='ExtendedFrame1']/LWComponent/EwtComponent/FScrollBox/ScrollBox-1/DrawnPanel/FScrollBox/ScrollBox-1/DrawnPanel/VTextField[@name='"+ xPath +"']"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/captureScreen.task ( scenario = scenario , session = session , name = ^ "field_"+field+"_fail"^ ) 
+	error ^"Failed to click button [" + field + "] on session [" + session + "]"^ 
+} 

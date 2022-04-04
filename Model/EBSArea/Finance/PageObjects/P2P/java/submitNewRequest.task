@@ -1,0 +1,34 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = operatingUnit ) 
+@param ( name = option ) 
+@param ( name = fromInvoiceDate ) 
+@param ( name = toInvoiceDate ) 
+@name ( 'Submit New Request' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait for submit request' ) sleep 3 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	@name ( 'Wait for parameters' ) sleep 2 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPathPosition = '1' , value = operatingUnit ) 
+	'Enter Option' {
+		@name ( 'Click on Option iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Option' , xPathPosition = '2' ) 
+		@name ( 'Wait For Option Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Option' ) 
+		@name ( 'Enter Option Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Option' , xPath = '%' , value = option ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter From Invoice Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'From Invoice Date' , xPathPosition = '4' , value = fromInvoiceDate ) 
+	@name ( 'Enter To Invoice Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'To Invoice Date' , xPathPosition = '5' , value = toInvoiceDate ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'run_invoice_validation' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Wait For Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Requests' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'submit_new_request_fail' ) 
+} 

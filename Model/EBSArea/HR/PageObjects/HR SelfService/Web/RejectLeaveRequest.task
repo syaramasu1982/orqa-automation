@@ -1,0 +1,41 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = approveruser ) 
+@param ( name = empname ) 
+@param ( name = empuser ) 
+@param ( name = empID ) 
+@param ( name = today ) 
+/EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=approveruser' , password #= '="Welcome123"' ) 
+@name ( 'LM rejects annualleave' ) try {
+	action = control.evaluate ( expression = 'def action = "//*[text()=''"+empID+"'']//parent::td//following-sibling::td/a"
+
+return action' ) 
+	@name ( 'ClickAction' ) /EBSArea/lib/web/click/click.task ( xPath = action , scenario = scenario , session = session ) 
+	@name ( 'Click Entitlement Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Entitlement Balances' ) 
+	@name ( 'Click Show Accural Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show Accrual Balances' ) 
+	@name ( 'Read Remaining Annual Leaves' ) readRemainingAnnualLeaves = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Annual leave remaining' , xPath = "//*[contains(text(),'Annual leave remaining')]//ancestor::tr[2]/td[3]//span" ) 
+	remainingAnnualLeaves = control.evaluate ( expression = 'def remainingAnnualLeaves = readRemainingAnnualLeaves as int
+
+return remainingAnnualLeaves' ) 
+	if ^remainingAnnualLeaves > 1^ {
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+	@name ( 'Click FullList' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+	emp = control.evaluate ( expression = 'def action = "//*[text()=''"+today+"'']//parent::td//preceding-sibling::td/a"
+
+return action' ) 
+	@name ( 'Click EmpreqLink' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = emp ) 
+	@name ( 'ClickReject' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Reject' ) 
+	@disabled @name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+	@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+	@disabled @name ( 'ClickReject' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'rejected' ) 
+	@disabled @name ( 'Clickok' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@disabled @name ( 'Navigate to Approve Home Page' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Manager"' , itemId #= '="RCUK Self-Service ManagerAll Actions Awaiting Your AttentionMy Employee Information"' , itemName #= '="Attendance Management"' ) 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'CreateAbsense' ) 
+	error ^"Failed to perform LMRejectsAnnualleaverequest[" + scenario +"] with session ["+ session +"]"^ 
+} 

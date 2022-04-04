@@ -1,0 +1,53 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = label ) 
+@param ( name = alternateLabel ) 
+@param ( name = index ) 
+@param ( name = xPath ) 
+@param ( name = title ) 
+java.switch ( session = session ) 
+@name ( 'Press ctrl f11 [${name}]' ) try {
+	if ^label != null && String.valueOf(label).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			label = /EBSArea/lib/java/basic/check_label_exist.task ( scenario = scenario , session = session , name = label , alternateName = alternateLabel , index = index ) 
+			java.waitforcomponent ( target = ^"//VTextField[@label='" + label + "']["+index+"]"^ , timeout = 5 ) 
+			sleep 0.5 
+			java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+			sleep 0.5 
+			java.sendkey ( key = 'F11' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ , ctrl = true ) 
+		} 
+	} 
+	if ^name != null && String.valueOf(name).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//FolderPrompt[contains(text(),'"+ name +"')]/following-sibling::"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.5 
+			java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//FolderPrompt[contains(text(),'"+ name +"')]/following-sibling::"+ xPath +""^ ) 
+			sleep 0.5 
+			java.sendkey ( key = 'F11' , target = ^"//FolderPrompt[contains(text(),'"+ name +"')]/following-sibling::"+ xPath +""^ , ctrl = true ) 
+		} 
+	} 
+	if ^title != null && String.valueOf(title).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.5 
+			java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 0.5 
+			java.sendkey ( key = 'F11' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , ctrl = true ) 
+		} 
+	} 
+	@disabled switch ^ xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@disabled @name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			@disabled java.waitforcomponent ( target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ , timeout = 10 ) 
+			@disabled sleep 0.5 
+			@disabled java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ ) 
+			@disabled sleep 0.5 
+			@disabled java.sendkey ( key = 'F11' , target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ , ctrl = true ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "press_ctrl_f11_"+name+"_fail"^ ) 
+	error ^"Failed to press ctrl f11 [" + name + "] on session [" + session + "]"^ 
+} 

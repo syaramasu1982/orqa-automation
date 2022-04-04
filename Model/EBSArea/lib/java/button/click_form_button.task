@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+@name ( 'Click button [${name}]' ) try {
+	@name ( 'Perform action' ) if ^name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//FormButton[contains(@text,'"+ name +"')]"^ , timeout = 5 ) 
+			java.click ( target = ^"//FormButton[contains(@text,'"+ name +"')]"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_button_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

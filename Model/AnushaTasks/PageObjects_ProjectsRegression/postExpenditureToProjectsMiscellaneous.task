@@ -1,0 +1,63 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = batchName ) 
+@param ( name = classValue ) 
+@param ( name = organization ) 
+@param ( name = taskNumber ) 
+@param ( name = projectNumber ) 
+@param ( name = operatingUnit ) 
+@param ( name = expndType ) 
+@param ( name = quantity ) 
+@param ( name = launchOraApp ) 
+@name ( 'Post Expenditure To Projects' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchOraApp != null && String.valueOf(launchOraApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@disabled @name ( 'IsNotePopupExists' ) isNotePopupExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' ) 
+	@disabled @name ( 'Note Popup' ) if isNotePopupExists {
+		@disabled @name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		@disabled @name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@disabled @name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Note_"+timeStamp^ ) 
+		@disabled @name ( 'Click Ok button' ) '/EBSArea/lib/java/lib/button/Click Cancel' ( scenario #= '=scenario' , session #= '=session' , name #= '="OK"' ) 
+	} 
+	@name ( 'Wait For Expenditure Batches' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Expenditure ' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'VTextField18' , value = operatingUnit ) 
+	@name ( 'Enter Batch' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Batch' , xPath = 'VTextField19' , value = batchName ) 
+	@name ( 'Calculate Ending Date' ) endingDate = control.evaluate ( expression = 'def endingDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+endingDate = today
+}
+endingDate =endingDate.format("dd-MMM-yyy").toUpperCase()
+return endingDate' ) 
+	@name ( 'Enter Ending Date' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Ending Date' , xPath = 'VTextField20' , value = endingDate ) 
+	@name ( 'Select Class value' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Class' , title = 'Expenditure Batches' , xPath = 'FScrollBox//VPopList[@name="VPopList0"]' , value = classValue ) 
+	@name ( 'Click on Expenditures' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Expenditures' ) 
+	@name ( 'Wait For Expenditures' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Expenditures' ) 
+	@name ( 'Enter Organization' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Organization' , xPath = 'VTextField79' , value = organization ) 
+	@name ( 'Enter Project Number' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Project Number' , xPath = 'VTextField109' , value = projectNumber ) 
+	@name ( 'Enter Task Number' ) /EBSArea/lib/java/text/set_text_copy_paste.task ( scenario = scenario , session = session , field = 'Task Number' , title = 'Expenditures' , value = taskNumber , xPath = 'VTextField[@name="VTextField116"]' ) 
+	@disabled 'Enter Task Number' {
+		@disabled @name ( 'Wait For Tasks' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Tasks' ) 
+		@disabled @name ( 'Enter Task Value' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Find' , xPath = '%' , value = taskNumber ) 
+		@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@disabled @name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Enter Expnd Type' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Expnd Type' , xPath = 'VTextField123' , value = expndType ) 
+	@name ( 'Enter Quantity' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Quantity' , xPath = 'VTextField137' , value = quantity ) 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Expenditure_Miscellaneous_"+operatingUnit+"_"+timeStamp^ ) 
+	@name ( 'Click Find Project Events Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Expenditures' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Expenditure_Miscellaneous_Before_Submit"+operatingUnit+"_"+timeStamp^ ) 
+	@name ( 'Click on Submit button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' , fullName = 'Submit' ) 
+	@name ( 'Click on Release button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Release' , fullName = 'Release' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Expenditure_Miscellaneous_"+operatingUnit+"_"+timeStamp^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

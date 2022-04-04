@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = filePath ) 
+@param ( name = confirmation ) 
+@name ( 'Auto Invoicing Program' ) try {
+	@name ( 'Upload File' ) /EBSArea/lib/web/upload/upload.task ( scenario = scenario , session = session , id = 'file1_oafileUpload' , filePath = filePath ) 
+	@name ( 'Click Upload File' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'submitButton' , scenario = scenario ) 
+	@name ( 'Read Confirmation Message' ) isConfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = confirmation ) 
+	assert.true ( expression = 'isConfirmation == confirmation' ) 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= '=session' , name #= '="Upload_External_AR_Invoices_"+timeStamp' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= '=session' , name #= '=scenario+ "_upload_AR_external_invoice_fail"' ) 
+} 

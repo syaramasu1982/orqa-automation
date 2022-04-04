@@ -1,0 +1,25 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = element ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Read text [${field}]' ) try {
+	if ^element != null && String.valueOf(element).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//" + element +"[contains(text(),'" + xPath + "')]"^ , timeout = 5 ) 
+			valueRead = web.getvalue ( target = ^"//" + element +"[contains(text(),'" + xPath + "')]"^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^""+ xPath +""^ , timeout = 3 ) 
+			valueRead = web.getvalue ( target = ^""+ xPath +""^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "read_text_"+ field +"_fail"^ ) 
+	error ^"Failed to read [" + field + "] on session [" + session + "]"^ 
+} 

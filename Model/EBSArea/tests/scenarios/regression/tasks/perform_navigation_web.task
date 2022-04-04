@@ -1,0 +1,36 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = isJavaApp ) 
+checkMenuItems = control.evaluate ( expression = 'return false' ) 
+@name ( 'Process Navigation' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		menuItems = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'menuItems.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate menu items' ) control.evaluate ( expression = 'menuItems' ) 
+		menuItems = transform.columnrename ( columns = headers ) 
+		@name ( 'Check if the sheet have menu items to navigate' ) if ^!checkMenuItems^ {
+			@name ( 'Initiate menu items' ) control.evaluate ( expression = 'menuItems' ) 
+			menuItems = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+			menuItems = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+			@name ( 'Raise test case not found error' ) if ^menuItems.size() < 2^ {
+				error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+			} 
+			@name ( 'Initiate menu items' ) control.evaluate ( expression = 'menuItems' ) 
+			@name ( 'Navigate menu items' ) for menuItem in ^=menuItems^ {
+				@testcase @name ( 'Navigate Menu Item [${sheet}-${menuItem.itemName}-${menuItem.ID}]' ) try {
+					@name ( 'Navigate menu items' ) /EBSArea/Finance/PageObjects/Common/navigate_web_menu_items.task ( scenario = scenario , session = session , mainMenu = ^menuItem['MAIN MENU']^ , subMenu1 = ^menuItem['SUB MENU1']^ , subMenu2 = ^menuItem['SUB MENU2']^ , subMenu3 = ^menuItem['SUB MENU3']^ , subMenu4 = ^menuItem['SUB MENU4']^ , itemId = ^menuItem['ITEM ID']^ , itemName = ^menuItem['ITEM NAME']^ , isJavaApp = isJavaApp ) 
+				} 
+				@name ( 'Report failure' ) catch {
+					error ^"Failed to navigate for test case [" + testCase + "] "^ 
+				} 
+			} 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 

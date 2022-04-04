@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+java.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.25 
+			clipboard.write ( data = value ) 
+			java.sendkey ( key = 'V' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , ctrl = true ) 
+			sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "set_text_"+ field +"_fail"^ ) 
+	error ^"Failed to set text [" + field + "] on session [" + session + "]"^ 
+} 

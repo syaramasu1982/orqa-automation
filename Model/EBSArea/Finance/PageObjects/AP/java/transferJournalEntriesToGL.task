@@ -1,0 +1,61 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = ledger ) 
+@param ( name = postInGeneralLedger ) 
+@param ( name = launchOF ) 
+@param ( name = mode ) 
+@name ( 'Transfer Journal Entries to GL' ) try {
+	@name ( 'Launch oracle forms exist' ) if ^launchOF != null && String.valueOf(launchOF).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Submit Request' ) sleep 2 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	sleep 2 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Ledger Field' {
+		@name ( 'Click on Ledger iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Ledger' , xPathPosition = '1' ) 
+		@name ( 'Wait For Ledger Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Ledger' ) 
+		@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Ledger' , xPath = '%' , value = ledger ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Get Last day of the month' ) lastDayOfTheMonth = control.evaluate ( expression = 'def lastDayOfTheMonth = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
+cal.set(Calendar.DAY_OF_MONTH,
+cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+lastDayOfTheMonth = cal.getTime();
+}
+lastDayOfTheMonth = lastDayOfTheMonth.format("dd-MMM-yyy").toUpperCase()
+
+return lastDayOfTheMonth' ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'End Date' , xPathPosition = '3' , value = lastDayOfTheMonth ) 
+	@name ( 'Enter Post in General Ledger' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Post in General Ledger' , value = postInGeneralLedger , xPathPosition = '4' ) 
+	@disabled @name ( 'Check Post in General Ledger exists' ) pglExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Mode' , title = 'Post in General Ledger' ) 
+	@disabled @name ( 'Is Post in General Ledger exists' ) if pglExists {
+		@disabled 'Enter Post in General Ledger' {
+			@disabled @name ( 'Wait For Post in General Ledger' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Post in General Ledger' ) 
+			@disabled @name ( 'Enter Post in General Ledger' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Post in General Ledger' , xPath = '%' , value = postInGeneralLedger ) 
+			@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Submit Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit Request' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Is forms exist' ) isFormsExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Forms' , title = 'Forms' ) 
+	if isFormsExist {
+		@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform transfer journal entries to gl for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

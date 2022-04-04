@@ -1,0 +1,33 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = assetNumber ) 
+@param ( name = closeApp ) 
+@param ( name = reinstate ) 
+@name ( 'Validate Asset' ) try {
+	@name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Assets' ) 
+	@name ( 'Enter Asset Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Asset Number' , title = 'Find Assets' , xPath = 'VTextField[1]' , value = assetNumber ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Retirements button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Retirements' ) 
+	@name ( 'Wait For Retirements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Retirements' ) 
+	@name ( 'Press F11 to activate query mode' ) /EBSArea/lib/java/presskey/press_f11.task ( scenario = scenario , session = session , xPath = 'VTextField[3]' , title = 'Retirements' ) 
+	@name ( 'Enter Ctrl F11 ' ) /EBSArea/lib/java/presskey/press_ctrl_f11.task ( scenario = scenario , session = session , xPath = 'VTextField[3]' , title = 'Retirements' ) 
+	@name ( 'Read Status' ) status = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , title = 'Retirements' , xPath = 'VTextField[6]' ) 
+	assert.true ( expression = 'status == "Processed"' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'asset_status_success' ) 
+	if ^reinstate != null && String.valueOf(reinstate).trim().length() > 0^ {
+		@name ( 'Click Reinstate button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Reinstate' ) 
+		@name ( 'Wait For Caution' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Wait For Retirements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Retirements' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click Retirements Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Retirements' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	} 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_asset_verification_fail"^ ) 
+} 

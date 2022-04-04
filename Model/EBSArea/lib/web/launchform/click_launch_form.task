@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Click launch form [${name}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//*[contains(@id,'" + id + "')]//a[text()='" + name + "']"^ , timeout = 5 ) 
+		web.click ( target = ^"//*[contains(@id,'" + id + "')]//a[text()='" + name + "']"^ ) 
+		@disabled isToClick = web.exists ( target = ^"//*[contains(@id,'" + id + "')]/parent::ul[contains(@style,'none')]"^ ) 
+		@disabled if ^!isToClick^ {
+			@disabled web.wait ( target = ^"//*[contains(@id,'" + id + "')]//a[text()='" + name + "']"^ , timeout = 15 ) 
+			@disabled web.click ( target = ^"//*[contains(@id,'" + id + "')]//a[text()='" + name + "']"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_launch_form_"+name+"_fail"^ ) 
+	error ^"Failed to launch [" + name + "] on session [" + session + "]"^ 
+} 

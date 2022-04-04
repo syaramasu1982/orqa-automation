@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = toCurrency ) 
+@param ( name = toType ) 
+@param ( name = ledger ) 
+@param ( name = period ) 
+@param ( name = posting ) 
+@name ( 'Change Currency on Unposted Journal' ) try {
+	@name ( 'Wait For Find Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Journals' ) 
+	@name ( 'Enter Posting' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Posting' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[8]' , value = posting ) 
+	@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Ledger' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[3]' , value = ledger ) 
+	@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Period' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[5]' , value = period ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Enter Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Enter Journals' ) 
+	@name ( 'Click Review Journal button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Review Journal' ) 
+	@name ( 'Wait For Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Journals' ) 
+	@name ( 'Click Change Currency button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Change Currency' ) 
+	@name ( 'Wait For Change Currency' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Change Currency' ) 
+	@name ( 'Enter To Currency' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'To Period' , title = 'Change Currency' , xPath = 'FScrollBox[1]//VTextField[1]' , value = toCurrency ) 
+	@name ( 'Enter To Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'To Period' , title = 'Change Currency' , xPath = 'FScrollBox[1]//VTextField[3]' , value = toType ) 
+	@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'change_currency_unposted_journals' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_change_currency_on_unposted_journal_fail"^ ) 
+	error ^"Failed to perform change currency on unposted journal for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,60 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = navigationOptions ) 
+@param ( name = runType ) 
+@param ( name = viewResults ) 
+@param ( name = assignmentActions ) 
+java.switch ( session = session ) 
+'Run quick pay including pre-payments' {
+	@name ( 'Click Assignment Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Assignment' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	'Navigate to QuickPay' {
+		@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+		@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+		@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+	@name ( 'Click on New from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'New' ) 
+	@name ( 'Read date paid' ) datePaid = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = 'VTextField[2]' ) 
+	@name ( 'Enter Run Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'RunType' , title = 'QuickPay' , xPath = 'VTextField[6]' , value = runType ) 
+	@name ( 'Wait for clicking save' ) sleep 5 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Wait after clicking save' ) sleep 5 
+	@name ( 'Click Start Run' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Run' ) 
+	@name ( 'Wait for updating status' ) sleep 10 
+	@name ( 'Read status' ) status = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , xPath = "*[@label='Number']//preceding-sibling::VTextField[@label='Status']" ) 
+	@disabled assert.true ( expression = 'status.equals("Complete")' ) 
+	@name ( 'Click Start Pre-payments Button' ) /EBSArea/lib/java/button/click_button_by_width_hight.task ( scenario = scenario , session = session , name = 'Start Pre-payments' ) 
+	@disabled @name ( 'Click Start Pre-payments Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Pre-payments' ) 
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+	@name ( 'Wait for pre-payment status' ) sleep 10 
+	@name ( 'Read pre-payment status' ) quickPayStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , xPath = "*[@label='Number']//following-sibling::VTextField[@label='Status']" ) 
+	@disabled assert.true ( expression = 'quickPayStatus.equals("Complete")' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"quick_pay_status_"+datePaid^ ) 
+	'View Results' {
+		@name ( 'Click View Results Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'View Results...' ) 
+		@name ( 'Wait For View Results' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Results' ) 
+		@name ( 'Enter View Results' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'View Results' , xPath = '%' , value = viewResults ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		'Assignment Actions' {
+			@name ( 'Wait For Assignment Actions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Actions' ) 
+			@name ( 'Enter Assignment Actions' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Assignment Actions' , xPath = '%' , value = assignmentActions ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		@name ( 'Wait For Pay Advice Report' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Pay Advice Report' ) 
+		@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"pay_advise_report"+datePaid^ ) 
+		@name ( 'Click Pay Advice Report Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Pay Advice Report' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+		@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+		@name ( 'Click QuickPay Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'QuickPay' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+		@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+		@name ( 'Click Assignment Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+	error ^"Failed to perform month2 payroll for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

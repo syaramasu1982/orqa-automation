@@ -1,0 +1,215 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle AP' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		@name ( 'Get invoice number index location' ) invoiceIndexLocation = control.evaluate ( expression = "return cases.getHeader().indexOf('INVOICE NUMBER') + 1" ) 
+		@name ( 'Get po number index location' ) poIndexLocation = control.evaluate ( expression = "return cases.getHeader().indexOf('PO NUMBER') + 1" ) 
+		excelColumnInvoiceNumber = /EBSArea/lib/excel/get_excel_column_name.task ( column = ^invoiceIndexLocation +""^ ) 
+		poIndexLocation = /EBSArea/lib/excel/get_excel_column_name.task ( column = ^poIndexLocation +""^ ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle AP Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Update Supplier details]' ) if ^testCaseName.contains("UPDATESUPPLIERDETAILS")^ {
+					@name ( 'Update Supplier [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/updateSupplier.task ( scenario = scenario , session = session , supplierName = ^caseRef['SUPPLIERNAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , deliveryMethod = ^caseRef['DELIVERYMETHOD']^ , email = ^caseRef['EMAIL']^ ) 
+				} 
+				@name ( 'Handle [Enter Invoice Non PO]' ) if ^testCaseName.contains("ENTERINVOICENONPO")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'def invoiceNumber = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceNumber = today
+}
+invoiceNumber = invoiceNumber.format("ddhhmmss")
+return invoiceNumber
+' ) 
+					@name ( 'Enter Invoice Non PO [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/AP/java/enterInvoiceNonPO.task ( scenario = scenario , session = session , operatingUnit = ^caseRef['OPERATINGUNIT']^ , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICEAMOUNT']^ , supplier = ^caseRef['SUPPLIERNAME']^ , taxClassificationCode = ^caseRef['TAXCLASSIFICATIONCODE']^ , description = ^caseRef['DESCRIPTION']^ , amount = ^caseRef['AMOUNT']^ , productCategory = ^caseRef['PRODUCTCATEGORY']^ , primaryIntendedUse = ^caseRef['PRIMARYINTENDEDUSE']^ , account = ^caseRef['ACCOUNT']^ , environment = environment , paymentMethod = ^caseRef['PAYMENTMETHOD']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Invoice Number','PO Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.INVOICENUMBER,result.PONUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Enter Invoice And Match To Multiple PO]' ) if ^testCaseName.contains("ENTERINVOICEANDMATCHTOMULTIPLEPO")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'def invoiceNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+invoiceNumber = getRandomNumber(4)
+
+return invoiceNumber' ) 
+					control.iteration ( loopSource = ^=refTestCaseID.split(",")^ , loopVar = 'refTestCase' , loopIndex = 'refTestID' ) {
+						if ^refTestID ==1^ {
+							@name ( 'Read PO' ) poNumber1 = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+						if ^refTestID == 2^ {
+							@name ( 'Read PO' ) poNumber2 = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+					} 
+					@name ( 'Invoice And Match To Multiple PO [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/invoiceAndMatchToMultiplePO.task ( scenario = scenario , session = session , operatingUnit = ^caseRef['OPERATINGUNIT']^ , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICEAMOUNT']^ , poNumber2 = poNumber2 , description = ^caseRef['DESCRIPTION']^ , poNumber1 = poNumber1 , quantityInvoiced = ^caseRef['QUANTITYINVOICED']^ , environment = environment ) 
+					@name ( 'Print Invoice Number' ) console.write ( data = ^="Invoice Number [" + invoiceNumber + "] created for test case [" + scenario +"]"^ ) 
+					'Write receipt number into excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Invoice Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,invoiceNumber];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Run Invoice Validation]' ) if ^testCaseName.contains("RUNINVOICEVALIDATION")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Submit Invoice Validation [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/submitNewRequest.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , option = ^caseRef['OPTION']^ , fromInvoiceDate = invoiceDate , toInvoiceDate = invoiceDate , environment = environment ) 
+				} 
+				@name ( 'Handle [Cancel Invoice]' ) if ^testCaseName.contains("CANCELINVOICE")^ {
+					@name ( 'Read Invoice Number' ) invoiceNo = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Invoice Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Cancel Invoice [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/cancelInvoice.task ( scenario = scenario , session = session , invoiceNumber = invoiceNo , reason = ^caseRef['REASON']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Generate Payment Run OR Generate Cheque Payment Run]' ) if ^testCaseName.contains("GENERATEPAYMENTRUN") || testCaseName.contains("GENERATECHEQUEPAYMENTRUN")^ {
+					@name ( 'Generate Payment PRN' ) paymentPRN = control.evaluate ( expression = 'def randomNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+randomNumber = getRandomNumber(4)
+def paymentPRN = caseRef[''USETEMPLATE'']+"_"+randomNumber
+return paymentPRN' ) 
+					@name ( 'Generate Payment Run [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/AP/web/generatePaymentRun.task ( scenario = scenario , session = session , useTemplate = ^caseRef['USETEMPLATE']^ , paymentPRN = paymentPRN , payee = ^caseRef['PAYEE']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Payment Process Request Number','Payment Reference Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.PAYPROREQNUM,result.PAYREFNUM];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Run Invoices on Hold Report]' ) if ^testCaseName.contains("RUNINVOICESONHOLDREPORT")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Invoices On Hold Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/invoicesOnHoldReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , orderBy = ^caseRef['ORDERBY']^ , environment = environment , onHoldByPeriodOption = ^caseRef['ONHOLDBYPERIODOPTION']^ , fromDate = invoiceDate , toDate = invoiceDate ) 
+				} 
+				@name ( 'Handle [Run AP Create Accounting]' ) if ^testCaseName.contains("RUNAPCREATEACCOUNTING")^ {
+					@name ( 'Create Accounting [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/createAccounting.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , mode = ^caseRef['MODE']^ , errorsOnly = ^caseRef['ERRORSONLY']^ , report = ^caseRef['REPORT']^ , transferToGL = ^caseRef['TRANSFERTOGL']^ , postInGL = ^caseRef['POSTINGL']^ , userTransactionIdentifier = ^caseRef['USETRANSACTIONIDENTIFIER']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Run Payables Transfer Journal Entries To GL]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOGL")^ {
+					@name ( 'Transfer Journal Entries To GL [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/transferJournalEntriesToGL.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , postInGeneralLedger = ^caseRef['POSTINGENERALLEDGER']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Match Invoice]' ) if ^testCaseName.contains("MATCHINVOICE")^ {
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Match Invoice [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/createInvoice.task ( session = session , scenario = scenario , poNumber = poNumber , operatingUnit = ^caseRef['OPERATINGUNIT']^ , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICEAMOUNT']^ , environment = environment ) 
+					@name ( 'Print Invoice Number' ) console.write ( data = ^="Invoice Number [" + invoiceNumber + "] created for test case [" + scenario +"]"^ ) 
+					'Write receipt number into excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Invoice Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,invoiceNumber];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Create Credit Or Debit Memo And Match To PO]' ) if ^testCaseName.contains("CREATECREDITORDEBITMEMOANDMATCHTOPO")^ {
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Create Credit And Match To PO [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/createCreditAndMatchToPO.task ( scenario = scenario , session = session , operatingUnit = ^caseRef['OPERATINGUNIT']^ , poNumber = poNumber , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICEAMOUNT']^ , quantityInvoiced = ^caseRef['QUANTITYINVOICED']^ , type = ^caseRef['TYPE']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Before Void Payment]' ) if ^testCaseName.equals("BEFOREVOIDPAYMENT")^ {
+					@name ( 'Read Invoice Number' ) invoiceNo = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Invoice Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Before Void Payment [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/beforeVoidPayment.task ( scenario = scenario , session = session , environment = environment , invoiceNumber = invoiceNo ) 
+				} 
+				@name ( 'Handle [Void Payment]' ) if ^testCaseName.equals("VOIDPAYMENT")^ {
+					@name ( 'Calculate Payment Date' ) paymentDate = control.evaluate ( expression = 'def paymentDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+paymentDate = today
+}
+paymentDate = paymentDate.format("dd-MMM-yyy")
+return paymentDate' ) 
+					@name ( 'Read Payment Reference Number' ) paymentRefNum = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Payment Reference Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Void Payments [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/web/voidPayments.task ( scenario = scenario , session = session , payee = ^caseRef['PAYEE']^ , reason = ^caseRef['REASON']^ , paymentDate = paymentDate , paymentReference = paymentRefNum ) 
+				} 
+				@name ( 'Handle [After Void Payment]' ) if ^testCaseName.equals("AFTERVOIDPAYMENT")^ {
+					@name ( 'Read Invoice Number' ) invoiceNo = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Invoice Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'After Void Payment [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/afterVoidPayment.task ( scenario = scenario , session = session , invoiceNumber = invoiceNo ) 
+				} 
+				@name ( 'Handle [Quick Pay Invoice]' ) if ^testCaseName.contains("QUICKPAYINVOICE")^ {
+					@name ( 'Read Invoice Number' ) invoiceNo = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Invoice Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Quick Pay Invoice [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/quickPayInvoice.task ( scenario = scenario , session = session , environment = environment , invoiceNumber = invoiceNo , bankAccount = ^caseRef['BANK ACCOUNT']^ , paymentProcessProfile = ^caseRef['PAYMENT PROCESS PROFILE']^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

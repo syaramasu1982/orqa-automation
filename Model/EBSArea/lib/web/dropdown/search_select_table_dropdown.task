@@ -1,0 +1,42 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = id ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+web.switch ( session = session ) 
+@name ( 'Search select value from drop down [${field}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	@name ( 'Select dropdown' ) try {
+		@name ( 'select value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+			@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+				web.wait ( target = ^"//*[@id='" + id + "']//input[@id='" + xPath + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//*[@id='" + id + "']//input[@id='" + xPath + "']"^ ) 
+				web.setvalue ( value = value , target = ^"//*[@id='" + id + "']//input[@id='" + xPath + "']"^ ) 
+				isExists = web.exists ( target = "//table[@id='lovSuggestTable']//td[contains(.,'Loading')]" ) 
+				if ^!isExists^ {
+					web.wait ( target = ^"//input[@id='" + xPath + "']//following-sibling::a"^ , timeout = 5 ) 
+					web.click ( target = ^"//input[@id='" + xPath + "']//following-sibling::a"^ ) 
+					@name ( 'Switch browser to select dropdown value' ) /EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = 'Search and Select*' ) 
+					@name ( 'Wait until dialogue window loaded' ) sleep 0.25 
+					isValueExists = web.exists ( target = ^"//input[@value='" + value + "']"^ ) 
+					if ^!isValueExists^ {
+						@name ( 'Enter search text' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Search By' , name = 'searchText' , value = value ) 
+						@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+					} 
+					@name ( 'Click quick select' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Quick Select' ) 
+				} 
+				else {
+					web.wait ( target = "//table[@id='lovSuggestTable']//td[contains(.,'Loading')]" , timeout = 3 ) 
+					web.sendkey ( key = 'DOWN_ARROW' , target = ^"//*[@id='" + id + "']//input[@id='" + xPath + "']"^ ) 
+					web.click ( target = "//table[@id='lovSuggestTable']/tr[2]" ) 
+				} 
+			} 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "search_select_dropdown_"+field+"_fail"^ ) 
+	error ^"Failed to select [" +field + "] on session [" + session + "]"^ 
+} 

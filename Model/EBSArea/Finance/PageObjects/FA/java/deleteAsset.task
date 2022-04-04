@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = assetNumber ) 
+@param ( name = closeApp ) 
+@name ( 'Validate Asset' ) try {
+	@name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Assets' ) 
+	@name ( 'Enter Asset Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Asset Number' , title = 'Find Assets' , xPath = 'VTextField[1]' , value = assetNumber ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Open button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Open' ) 
+	@name ( 'Wait For Asset Details' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Asset Details' ) 
+	@name ( 'Click on main menu Edit' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Edit' , menu = 'LWMenuBar' , menuItem = "LWMenu[text()='Edit']" ) 
+	@name ( 'Click on Delete' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Delete' , menu = 'LWPopupMenu' , menuItem = "LWMenuItem[text()='Delete']" ) 
+	@name ( 'Wait For Caution' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'delete_asset_confirmation' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_delete_assets_fail"^ ) 
+} 

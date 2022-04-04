@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = invoiceNumber ) 
+@name ( 'Verify Before Void Payment ' ) try {
+	@name ( 'Wait For Invoice Workbench' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Workbench' ) 
+	@name ( 'Press F11 to activate query mode' ) /EBSArea/lib/java/presskey/press_f11.task ( scenario = scenario , session = session , name = 'Operating Unit' , label = 'Operating Unit' , index = '1' ) 
+	@name ( 'Enter Invoice Number' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Invoice Num' , value = invoiceNumber , label = 'Invoice Num' , index = '1' ) 
+	@name ( 'Enter Ctrl F11 ' ) /EBSArea/lib/java/presskey/press_ctrl_f11.task ( scenario = scenario , session = session , name = 'Invoice Num' , label = 'Invoice Num' , index = '1' ) 
+	@name ( 'Read Amount Paid' ) amountPaid = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Amount Paid' , xPath = "Tab[text()='1 General']//ancestor::FormsTabPanel/preceding-sibling::FScrollBox[1]//VTextField[2]" , title = 'Invoice Workbench' ) 
+	@name ( 'Click View Payments Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = '4 View Payments' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform before void payments for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

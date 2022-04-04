@@ -1,0 +1,7 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = result ) 
+'Prepare Summary' {
+	recordset.use ( recordset = summaryTable ) 
+	recordset.append ( values = '"${result}"' ) 
+} 

@@ -1,0 +1,31 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = name ) 
+@param ( name = expectedVal ) 
+web.switch ( session = session ) 
+@name ( 'Populate check box [${name}]' ) try {
+	@name ( 'Read Check Box' ) readVal = /EBSArea/lib/web/checkbox/read_checkbox.task ( scenario = scenario , session = session , id = id , name = name ) 
+	@name ( 'check expected value' ) actualVal = control.evaluate ( expression = 'if(expectedVal != null && expectedVal != "") {
+	if(expectedVal.equalsIgnoreCase("Y")) {
+		return true
+	} else {
+		return false
+	}
+} else {
+	return false
+}' ) 
+	@name ( 'check to select or not' ) isToSelect = control.evaluate ( expression = 'if(readVal != actualVal) {
+	return true
+} else {
+	return false
+}' ) 
+	if isToSelect {
+		@name ( 'Select Checkbox' ) /EBSArea/lib/web/checkbox/tick_dup_checkbox.task ( scenario = scenario , session = session , id = id , xPath = name ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^"select_checkbox_" + name +"_fail"^ ) 
+	error ^"Failed to select checkbox [" + name + "] on session [" + session + "]"^ 
+} 

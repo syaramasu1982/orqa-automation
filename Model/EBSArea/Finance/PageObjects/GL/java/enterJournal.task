@@ -1,0 +1,145 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = journal ) 
+@param ( name = description ) 
+@param ( name = ledger ) 
+@param ( name = category ) 
+@param ( name = period ) 
+@param ( name = controlTotal ) 
+@param ( name = currency ) 
+@param ( name = type ) 
+@param ( name = line1 ) 
+@param ( name = account ) 
+@param ( name = debit ) 
+@param ( name = reconRef ) 
+@param ( name = line2 ) 
+@param ( name = account2 ) 
+@param ( name = businessUnit ) 
+@param ( name = costCentre ) 
+@param ( name = accountCode ) 
+@param ( name = credit ) 
+@param ( name = reconRef2 ) 
+@param ( name = line3 ) 
+@param ( name = account3 ) 
+@param ( name = credit3 ) 
+@param ( name = reconRef3 ) 
+@param ( name = restrictedAccount ) 
+@param ( name = decisionButton ) 
+@param ( name = amendControlTotal ) 
+@param ( name = clickPost ) 
+@param ( name = viewRequest ) 
+@param ( name = screenshot ) 
+@name ( 'Enter Journal' ) try {
+	@name ( 'Wait For Find Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Journals' ) 
+	@name ( 'Click New Journal button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'New Journal' ) 
+	@name ( 'Wait For Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Journals' ) 
+	@name ( 'Enter Journal' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Journal' , title = 'Journals' , xPath = "VTextField[@label='Effective Date']//preceding-sibling::VTextField[@label='Journal']" , value = journal ) 
+	@name ( 'Enter Description' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Description' , title = 'Journals' , xPath = "VTextField[@label='Effective Date']//preceding-sibling::VTextField[@label='Description']" , value = description ) 
+	@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Ledger' , title = 'Journals' , xPath = "VTextField[@label='Effective Date']//preceding-sibling::VTextField[@label='Ledger']" , value = ledger ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Category' , title = 'Journals' , xPath = "VTextField[@label='Effective Date']//preceding-sibling::VTextField[@label='Category']" , value = category ) 
+	@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Period' , title = 'Journals' , xPath = "VTextField[@label='Effective Date']//preceding-sibling::VTextField[@label='Period']" , value = period ) 
+	@name ( 'Enter Control Total' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Control Total' , value = controlTotal , label = 'Control Total' , index = '1' ) 
+	@name ( 'Enter Currency' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Currency' , value = currency , label = 'Conversion: Currency' , index = '1' ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Type' , value = type , label = 'Conversion: Type' , index = '1' ) 
+	'Enter Line 1' {
+		@name ( 'Enter Line 1' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line' , value = line1 , label = 'Line' , index = '1' ) 
+		@name ( 'Enter Account' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Account' , value = account , label = 'Account' , index = '1' ) 
+		@name ( 'Enter Debit' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Debit' , value = debit , label = 'Entered: Debit' , index = '1' ) 
+		@name ( 'Enter Reconciliation Reference' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Reconciliation Reference' , value = reconRef , label = 'Reconciliation Reference' , index = '1' ) 
+	} 
+	'Enter Line 2' {
+		@name ( 'Click on Line 2' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Line2' , title = 'Journals' , xPath = "VTextField[@label='Line'][2]" ) 
+		@name ( 'Enter Line 2' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line' , value = line2 , label = 'Line' , index = '2' ) 
+		@name ( 'Is Restricted Account Exists' ) if ^restrictedAccount != null && String.valueOf(restrictedAccount).trim().length() > 0^ {
+			@name ( 'Enter Restricted Account' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Restricted Account' , value = restrictedAccount , label = 'Account' , index = '2' ) 
+			sleep 5 
+			@name ( 'Press Tab' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Restricted Account' , title = 'Journals' , xPath = ^"VTextField[contains(text(),'"+ restrictedAccount +"')]"^ ) 
+			@name ( 'Check Error Exists' ) isErrorExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Error Exists' , title = 'Error' ) 
+			if isErrorExist {
+				@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'attempt_restricted_analysis_code' ) 
+				@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+			} 
+		} 
+		@name ( 'Enter Account' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Account2' , value = account2 , label = 'Account' , index = '2' ) 
+		isAccountPopupExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Account' , title = 'RCUK_GL_ACCOUNTING_FLEXFIELD' ) 
+		if isAccountPopupExist {
+			'Enter Cost Centre' {
+				@name ( 'Click on Business Unit iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Business Unit' , xPathPosition = '2' ) 
+				@name ( 'Wait For  Business Unit Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Business Unit' ) 
+				@name ( 'Enter Business Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Business Unit' , xPath = '%' , value = businessUnit ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			'Enter Cost Centre' {
+				@name ( 'Click on Cost Centre iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPathPosition = '3' ) 
+				@name ( 'Wait For  Cost Centre Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Cost Centre' ) 
+				@name ( 'Enter Cost Centre' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPath = '%' , value = costCentre ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			'Enter Account Code' {
+				@name ( 'Click on Account Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Account Code' , xPathPosition = '4' ) 
+				@name ( 'Wait For  Account Code Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Account Code' ) 
+				@name ( 'Enter Account Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Account Code' , xPath = '%' , value = accountCode ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		} 
+		@name ( 'Enter Credit' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Credit' , value = credit , label = 'Entered: Credit' , index = '2' ) 
+		@name ( 'Enter Reconciliation Reference' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Reconciliation Reference' , value = reconRef2 , label = 'Reconciliation Reference' , index = '2' ) 
+	} 
+	'Enter Line 3' {
+		@name ( 'Click on Line 3' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Line3' , title = 'Journals' , xPath = "VTextField[@label='Line'][3]" ) 
+		@name ( 'Enter Line 3' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line' , value = line3 , label = 'Line' , index = '3' ) 
+		@name ( 'Enter Line' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Line' , title = 'Journals' , xPath = "VTextField[@label='Line'][3]" , value = line3 ) 
+		@name ( 'Enter Account' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Account3' , value = account3 , label = 'Account' , index = '3' ) 
+		@name ( 'Enter Credit' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Credit3' , value = credit3 , label = 'Entered: Credit' , index = '3' ) 
+		@name ( 'Enter Reconciliation Reference' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Reconciliation Reference' , value = reconRef3 , label = 'Reconciliation Reference' , index = '3' ) 
+	} 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Check Decission Exists' ) isDecisionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision Exists' , title = 'Decision' ) 
+	@name ( 'is Decision Exists' ) if isDecisionExist {
+		@name ( 'Click Yes or No button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = decisionButton ) 
+		if ^decisionButton == "No"^ {
+			@name ( 'Amend Control Total' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Control Total' , value = amendControlTotal , label = 'Control Total' , index = '1' ) 
+		} 
+	} 
+	@name ( 'Click Reserve Funds button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Reserve Funds' ) 
+	if ^clickPost != null && String.valueOf(clickPost).trim().length() > 0^ {
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click Post button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Post' ) 
+	} 
+	@name ( 'Check Decision Exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+	if isDecisionExists {
+		@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+		@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	} 
+	@name ( 'Check Forms Exists' ) isFormsExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Forms' , title = 'Forms' ) 
+	if isFormsExists {
+		@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+		@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Check Note Exists' ) isNoteExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' ) 
+	if isNoteExist {
+		@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		notificationValue = /EBSArea/lib/java/text/read_notification.task ( scenario = scenario , session = session , field = 'Notification' , title = 'Note' , ancestorTag = 'ChoiceBox' , xPath = 'MultiLineLabel[1]' ) 
+		@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	if ^viewRequest != null && String.valueOf(viewRequest).trim().length() > 0^ {
+		@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+		@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+		@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+		@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+	} 
+	if ^screenshot != null && String.valueOf(screenshot).trim().length() > 0^ {
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+screenshot+""^ ) 
+	} 
+	else {
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'enter_journal' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_enter_journal_fail"^ ) 
+	error ^"Failed to perform enter journal for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,42 @@
+@specification 1.1 
+@param ( name = dataSummaryColumnList ) 
+@param ( name = dataSummaryValuesList ) 
+@param ( name = inputDictionary ) 
+@param ( name = ID ) 
+'Add table to in memory dictonary' {
+	stringColumnList = ^
+def strColumn;
+def counter=0;
+dataSummaryColumnList.each{
+	if(counter>0)
+		{
+			strColumn = strColumn + ',' + it
+		}
+		else
+		{
+		 	strColumn = it
+		}
+		counter++;
+}
+
+return strColumn;^ 
+	stringDataValuesList = ^def strColumn;
+def counter=0;
+dataSummaryValuesList.each{
+	if(counter>0)
+		{
+			strColumn = strColumn + ',' + it
+		}
+		else
+		{
+		 	strColumn = it
+		}
+		counter++;
+}
+
+return strColumn;^ 
+	dataTable = recordset.create ( columns = stringColumnList ) 
+	recordset.append ( values = stringDataValuesList ) 
+	dataTable = transform.blanks ( table = dataTable , columns = stringColumnList , replacementText = '-' ) 
+	map.add ( map = ^=inputDictionary^ , key = ^=ID^ , value = ^=dataTable^ ) 
+} 

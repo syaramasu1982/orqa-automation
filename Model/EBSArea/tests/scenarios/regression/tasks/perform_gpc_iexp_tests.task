@@ -1,0 +1,238 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle GPC and iExp' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle GPC & iExp Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Notify Cardholder Using Aging Details]' ) if ^testCaseName.contains("NOTIFYCARDHOLDERUSINGAGINGDETAILS")^ {
+					@name ( 'Notify Card holder Aging Details [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/java/notifyCardholderAgingDetails.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATING UNIT']^ , name1 = ^caseRef['NAME1']^ , sendNotifications = ^caseRef['SEND NOTIFICATIONS']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Create GPC Expense Report]' ) if ^testCaseName.contains("CREATEGPCEXPENSEREPORT")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy").toUpperCase()
+return periodEndDate ' ) 
+					@name ( 'Create GPC Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/createGPCExpReport.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , expensesForPeriodEnded = periodEndDate , filePath = ^caseRef['FILE PATH']^ ) 
+				} 
+				@name ( 'Handle [Create GPC Exp Report With Itemised Transactions]' ) if ^testCaseName.contains("CREATETHEGPCEXPENSEREPORTWITHITEMISEDTRANSACTIONS")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy").toUpperCase()
+return periodEndDate' ) 
+					@name ( 'Create GPC Expense Report With Itemized Transaction [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/createGPCExpRepWithItemTransaction.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , filePath = ^caseRef['FILE PATH']^ , updateExpenseType = ^caseRef['UPDATE EXPENSE TYPE']^ ) 
+				} 
+				@name ( 'Handle [View GPC Transaction History]' ) if ^testCaseName.contains("VIEWGPCTRANSACTIONHISTORY")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy").toUpperCase()
+return periodEndDate ' ) 
+					@name ( 'View GPC Transaction History [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/viewGPCTransactionHistory.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , filePath = ^caseRef['FILE PATH']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIED ADV REASON']^ ) 
+				} 
+				@name ( 'Handle [Create PrePayment]' ) if ^testCaseName.contains("CREATEPREPAYMENT")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'def invoiceNumber = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceNumber = today
+}
+invoiceNumber = invoiceNumber.format("ddhhmmss")
+
+return invoiceNumber' ) 
+					@name ( 'Create PrePayment [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/java/createPrePayment.task ( scenario = scenario , session = session , operatingUnit = ^caseRef['OPERATING UNIT']^ , supplier = ^caseRef['SUPPLIER']^ , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICE AMOUNT']^ , description = ^caseRef['DESCRIPTION']^ , amount = ^caseRef['AMOUNT']^ , taxClassificationCode = ^caseRef['TAX CLASSIFICATION CODE']^ , productCategory = ^caseRef['PRODUCT CATEGORY']^ , primaryIntendedUse = ^caseRef['PRIMARY INTENDED USE']^ , account = ^caseRef['ACCOUNT']^ , taxRegimeCode = ^caseRef['TAX REGIME CODE']^ , tax = ^caseRef['TAX']^ , taxStatus = ^caseRef['TAX STATUS']^ , rateName = ^caseRef['RATE NAME']^ , taxAmount = ^caseRef['TAX AMOUNT']^ , type = ^caseRef['TYPE']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Generate Payment Run]' ) if ^testCaseName.contains("GENERATEPAYMENTRUN")^ {
+					@name ( 'Generate Payment PRN' ) paymentPRN = control.evaluate ( expression = 'def randomNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+randomNumber = getRandomNumber(4)
+def paymentPRN = caseRef[''USE TEMPLATE'']+"_"+randomNumber
+return paymentPRN' ) 
+					@name ( 'Generate PaymentRun [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/web/generatePaymentRun.task ( scenario = scenario , session = session , useTemplate = ^caseRef['USE TEMPLATE']^ , paymentPRN = paymentPRN , payee = ^caseRef['PAYEE']^ ) 
+				} 
+				@name ( 'Handle [Create Expense Report And Match To Available PrePayment OR CreateExpenseReportOnBehalfOfOtherEmployee]' ) if ^testCaseName.contains("CREATEEXPENSEREPORTANDMATCHTOAVAILABLEPREPAYMENT") || testCaseName.contains("CREATEEXPENSEREPORTONBEHALFOFOTHEREMPLOYEE")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Create Expense Report And Match To Available PrePayment [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/GPCiEXP/web/createExpReportAndMatchToAvailablePrePayment.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptDate = receiptDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ , advanceNumber = ^caseRef['ADVANCE NUMBER']^ , advanceAmountApplied = ^caseRef['ADVANCE AMOUNT APPLIED']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIED ADVANCE REASON']^ , filePath = ^caseRef['FILE PATH']^ , name = ^caseRef['NAME']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Report Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REPORTNUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Create Employee Expense Report]' ) if ^testCaseName.contains("CREATEEMPLOYEEEXPENSEREPORT")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Create Employee Expense Report [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/GPCiEXP/web/createEmpExpReport.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ , receiptDate = receiptDate , filePath = ^caseRef['FILE PATH']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIED ADV REASON']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Report Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REPORTNUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Create Expense Report With Split Account Allocation OR Policy Violation]' ) if ^testCaseName.contains("CREATEEXPENSEREPORTWITHSPLITACCOUNTALLOCATION") || testCaseName.contains("CREATEEXPENSEREPORTWITHPOLICYVIOLATION")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Create Expense Report With Split Account Allocation [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/GPCiEXP/web/createExpReportWithSplitAllocation.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptDate = receiptDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ , perDiemStartDate = receiptDate , perDiemExpenseType = ^caseRef['PERDIEM EXPENSE TYPE']^ , perDiemJustification = ^caseRef['PERDIEM JUSTIFICATION']^ , perDiemNumberOfDays = ^caseRef['PERDIEM NUMBER OF DAYS']^ , mileageStartDate = receiptDate , mileageExpenseType = ^caseRef['MILEAGE EXPENSE TYPE']^ , mileageJustification = ^caseRef['MILEAGE JUSTIFICATION']^ , unitOfMeasure = ^caseRef['UNIT OF MEASURE']^ , tripDistance = ^caseRef['TRIP DISTANCE']^ , locationFrom = ^caseRef['LOCATION FROM']^ , locationTo = ^caseRef['LOCATION TO']^ , businessUnit1 = ^caseRef['BUSINESS UNIT1']^ , costCentre1 = ^caseRef['COST CENTRE1']^ , analysisCode1 = ^caseRef['ANALYSIS CODE1']^ , businessUnit2 = ^caseRef['BUSINESS UNIT2']^ , costCentre2 = ^caseRef['COST CENTRE2']^ , analysisCode2 = ^caseRef['ANALYSIS CODE2']^ , allocationReason = ^caseRef['ALLOCATION REASON']^ , policyViolationtAmount = ^caseRef['POLICY VIOLATION AMOUNT']^ , advanceNumber = ^caseRef['ADVANCE NUMBER']^ , advanceAmountApplied = ^caseRef['ADVANCE AMOUNT APPLIED']^ , unappliedAdvReason = ^caseRef['UNAPPLIED ADV REASON']^ , filePath = ^caseRef['FILE PATH']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Report Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REPORTNUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Manage Internet Expenses Access Authorizations]' ) if ^testCaseName.contains("MANAGEINTERNETEXPENSESACCESSAUTHORIZATIONS")^ {
+					@name ( 'Manage Access Authorizations [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/manageAccessAuthorizations.task ( scenario = scenario , session = session , authName = ^caseRef['AUTH NAME']^ ) 
+				} 
+				@name ( 'Handle [Employee Approves Expense]' ) if ^testCaseName.contains("EMPLOYEEAPPROVESEXPENSE")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Employee Approves Expense [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/employeeApprovesExpense.task ( scenario = scenario , session = session , expenseEmployee = reportNumber , response = ^caseRef['RESPONSE']^ ) 
+				} 
+				@name ( 'Handle [Delete Incomplete Expense Report]' ) if ^testCaseName.contains("DELETEINCOMPLETEEXPENSEREPORT")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Delete Incomplete Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/deleteIncompleteExpenseReport.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptDate = receiptDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ ) 
+				} 
+				@name ( 'Handle [Duplicate Expense Report]' ) if ^testCaseName.contains("DUPLICATEEXPENSEREPORT")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Duplicate Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/duplicateExpenseReport.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptDate = receiptDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , advanceNumber = ^caseRef['ADVANCE NUMBER']^ , advanceAmountApplied = ^caseRef['ADVANCE AMOUN TAPPLIED']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIED ADVANCE REASON']^ , filePath = ^caseRef['FILE PATH']^ ) 
+				} 
+				@name ( 'Handle [Withdraw Submitted Expense Report]' ) if ^testCaseName.contains("WITHDRAWSUBMITTEDEXPENSEREPORT")^ {
+					@name ( 'Withdraw Submitted Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/withdrawSubmittedExpenseReport.task ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [Line Manager Request More Information]' ) if ^testCaseName.contains("LINEMANAGERREQUESTMOREINFORMATION")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Line Manager Requests for More Information [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/lineManagerReqMoreInfo.task ( scenario = scenario , session = session , infoRequested = ^caseRef['REQUESTED INFO']^ , expenseEmployee = reportNumber ) 
+				} 
+				@name ( 'Handle [Employee Provides Requested Information]' ) if ^testCaseName.contains("EMPLOYEEPROVIDESREQUESTEDINFORMATION")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Employee Provides Requested Information [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/empProvidesRequestedInfo.task ( scenario = scenario , session = session , response = ^caseRef['EMP RESPONSE']^ , expenseEmployee = reportNumber ) 
+				} 
+				@name ( 'Handle [Line Manager Rejects Submitted Expense Report]' ) if ^testCaseName.contains("LINEMANAGERREJECTSSUBMITTEDEXPENSEREPORT")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Line Manger Rejects Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/lineMangerRejectsExpenseReport.task ( scenario = scenario , session = session , reponseNote = ^caseRef['REJECTS REPORT']^ , expenseEmployee = reportNumber ) 
+				} 
+				@name ( 'Handle [Employee Resubmit Rejected Expense Report]' ) if ^testCaseName.contains("EMPLOYEERESUBMITREJECTEDEXPENSEREPORT")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Resubmit Rejected Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/resubmitRejectedExpenseReport.task ( scenario = scenario , session = session , justification = ^caseRef['RESUBMIT REPORT']^ , rejectedReportNo = reportNumber ) 
+				} 
+				@name ( 'Handle [Line Manager Views And Approves Submitted Expense Report]' ) if ^testCaseName.contains("LINEMANAGERVIEWSANDAPPROVESSUBMITTEDEXPENSEREPORT")^ {
+					@name ( 'Read Report Number' ) reportNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Report Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Line Manger Approves Expense Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GPCiEXP/web/lineMangerApprovesExpenseReport.task ( scenario = scenario , session = session , reponseNote = ^caseRef['APPROVE REPORT']^ , expenseEmployee = reportNumber ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

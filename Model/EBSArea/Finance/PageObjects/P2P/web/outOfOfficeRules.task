@@ -1,0 +1,49 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = itemType ) 
+@param ( name = message ) 
+@param ( name = reassign ) 
+web.switch ( session = session ) 
+@name ( 'Out of office rules' ) try {
+	@name ( 'Read Out of Office' ) ruleName = /EBSArea/lib/web/basic/check_label_exist.task ( scenario = scenario , session = session , attribute = 'text()' , name = 'Out of Office Rules' , alternateName = 'Vacation Rules' ) 
+	@name ( 'Click on Out of Office Rules' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = ruleName ) 
+	@name ( 'Click Create Rule' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create Rule' , scenario = scenario ) 
+	@name ( 'Select Item Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Item Type' , xPath = 'NRREITItemTypes' , value = itemType ) 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Calculate Start Date' ) startDate = control.evaluate ( expression = 'def startDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+startDate = today
+}
+startDate = startDate .format("dd-MMM-yyy hh:mm:ss")
+return startDate' ) 
+	@name ( 'Enter Start Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Start Date' , xPath = 'NRRERStartDate' , value = startDate ) 
+	@name ( 'Calculate End Date' ) endDate = control.evaluate ( expression = 'def endDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+endDate = today
+}
+endDate = endDate.format("dd-MMM-yyy hh:mm:ss")
+return endDate' ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'End Date' , xPath = 'NRREREndDate' , value = endDate ) 
+	@name ( 'Enter Message' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Message' , xPath = 'NRRERComments' , value = message ) 
+	@disabled @name ( 'Select Reassign RadioButton' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Reassign' ) 
+	@disabled @name ( 'Select Delegate your response RadioButton' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Delegate your response' ) 
+	@name ( 'Select Reassign' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Reassign' , value = reassign , xPath = 'wfUserName1' , scenario = scenario ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'NRRERSubmit' , scenario = scenario ) 
+	isApplyExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = '*' , xPath = "[@id='NRRERSubmit']" ) 
+	if isApplyExist {
+		@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'NRRERSubmit' , scenario = scenario ) 
+	} 
+	@name ( 'Click on Delete icon' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'NtfRRDelete' ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "purchase_order_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform out of office report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+@disabled @name ( 'Return purchase order number' ) poNumber = control.evaluate ( expression = 'String s1 = purchaseOrderNo;
+String[] sp =  s1.split(" ");
+def pid = sp[3];' ) 

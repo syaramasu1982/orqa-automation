@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = environment ) 
+env = environment.read ( name = environment ) 
+'Run All CR1914_AR&ProjectTesting' {
+	@disabled /AnushaTasks/CR1914/1_CR1914ProjectsAndAR.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\RaiseInvoiceToProjects.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/1a_TiebackInvoicesFromReceivables.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\RaiseInvoiceToProjects.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/2_CheckARInvoice.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\CR1914ChekARInvoice.xlsx' , testCase = 'TC_0003' ) 
+	@disabled /AnushaTasks/CR1914/3_VAT_AR_Reconcilliation_Report.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\CR1914\CR1914_AR_VATReconciliationReport.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/4_CR1914CreateARInvoiceTransaction.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\CreateARInvoiceTransaction.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/4a_VAT_AR_Reconcilliation_Report.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\CR1914\CR1914_AR_VATReconciliationReport.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/5_UploadARExternalInvoices.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\UploadExternalARInvoices.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/6_RunExternalARInvoicesProcess.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\RunExternalInvoiceProcess.xlsx' ) 
+	@disabled /AnushaTasks/CR1914/7_RunAutoInvoicingImportProgram.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\RunAutoInvoicingImportProgram.xlsx' ) 
+	/AnushaTasks/CR1914/8_CheckARInvoice.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\CR1914ChekARInvoice.xlsx' ) 
+	/AnushaTasks/CR1914/9_VAT_AR_Reconcilliation_Report.task ( environment = environment , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\CR1914\CR1914_AR_VATReconciliationReport.xlsx' ) 
+} 

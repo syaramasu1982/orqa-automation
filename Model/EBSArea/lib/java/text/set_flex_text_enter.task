@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPathPosition ) 
+@param ( name = value ) 
+java.switch ( session = session ) 
+@name ( 'Set text enter [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/FlexTextField"^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/FlexTextField"^ ) 
+			sleep 0.25 
+			java.setvalue ( text = value , target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/FlexTextField"^ ) 
+			sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "set_text_"+ field +"_fail"^ ) 
+	error ^"Failed to set text [" + field + "] on session [" + session + "]"^ 
+} 

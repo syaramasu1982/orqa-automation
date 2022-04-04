@@ -1,0 +1,114 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = searchCategoryItem ) 
+@param ( name = productCategory ) 
+@param ( name = itemQuantity ) 
+@param ( name = deliveryCharges ) 
+@param ( name = requisitionDescription ) 
+@param ( name = needByDate ) 
+@param ( name = chargeAccount ) 
+@param ( name = justification ) 
+@param ( name = noteToReceiver ) 
+@param ( name = noteToBuyer ) 
+@param ( name = noteToSupplier ) 
+@param ( name = itemDescription ) 
+@param ( name = category ) 
+@param ( name = amount ) 
+@param ( name = costType ) 
+web.switch ( session = session ) 
+@name ( 'Create Catalog Request' ) try {
+	@name ( 'Click on Science Warehouse' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Science Warehouse (One Advanced)' ) 
+	'Browse by Category' {
+		sleep 3 
+		@name ( 'Click on Browse by Category' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Browse by Category' ) 
+		@name ( 'Enter Search for categories field' ) /EBSArea/lib/web/text/set_search_text.task ( scenario = scenario , session = session , field = 'Search for categories' , xPathClass = 'sidebar_content panel-body' , xPathInput = 'search term' , value = searchCategoryItem ) 
+		@name ( 'Click on Product Category' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = ^"//a[text()='"+ productCategory +"']"^ ) 
+		sleep 3 
+	} 
+	'Add to basket and Checkout' {
+		@name ( 'Enter Quantity' ) /EBSArea/lib/web/text/set_search_text.task ( scenario = scenario , session = session , field = 'Quantity' , xPathClass = 'sr-item-bottom sr-item-action' , xPathInput = 'quantity' , value = itemQuantity ) 
+		@name ( 'Click Add to basket button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Add to basket' , scenario = scenario ) 
+		isPopupExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , text = 'OK' ) 
+		if isPopupExists {
+			@name ( 'Click OK Button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		} 
+		@name ( 'Click View Basket' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Basket' ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_link_button.task ( scenario = scenario , session = session , id = 'basket-actions' , name = 'Checkout' ) 
+		sleep 3 
+		@name ( 'Enter Delivery Charges' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Minimum Charge' , xPath = 'items[1].quantity' , value = deliveryCharges ) 
+		@disabled @name ( 'Click Add to basket' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Add to basket' ) 
+		@name ( 'Click Add to basket button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Add to basket' , scenario = scenario ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_link_button.task ( scenario = scenario , session = session , id = 'basket-actions' , name = 'Checkout' ) 
+	} 
+	'Read Shopping Cart and Checkout' {
+		@name ( 'Read Quantity' ) quantity = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Quantity' , xPath = 'N3:Quantity:0' ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Checkout' ) 
+		@name ( 'Enter Requisition Description' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Requisition Description' , id = 'HeaderLabelFieldLayout' , xPath = 'ReqDescription' , value = requisitionDescription ) 
+		@name ( 'Enter Need-By Date' ) /EBSArea/lib/web/text/set_search_text.task ( scenario = scenario , session = session , field = 'Need By Date' , xPathInput = 'NeedByDate' , value = needByDate , xPathId = 'DeliverySummaryRN' ) 
+		@name ( 'Click Multiple' ) web.runjs ( javaScript = "document.getElementById('ChargeAccountMultiple').click();" ) 
+		@disabled @name ( 'Click Multiple' ) /EBSArea/lib/web/click/click.task ( xPath = "//a[@id='ChargeAccountMultiple']" , scenario = scenario , session = session ) 
+		isMultipleExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = "[@id='ChargeAccountMultiple']" ) 
+		if isMultipleExists {
+			@name ( 'Click Multiple' ) /EBSArea/lib/web/click/click.task ( xPath = "//a[@id='ChargeAccountMultiple']" , scenario = scenario , session = session ) 
+		} 
+	} 
+	'Accounts' {
+		@name ( 'Read account code of line 1' ) chargeAccount = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Charge Account' , xPath = 'AccountsLinesAdvTable:ChargeAccount:0' ) 
+		@name ( 'Click on account code of line 2' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'AccountsLinesAdvTable:ChargeAccount:1' ) 
+		@name ( 'Add account code of line 1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'RCUK_GL_ACCOUNTING_FLEXFIELD' , xPath = 'AccountsDistsAdvTable:ChargeAccountFlex_COMBINATION:0' , value = chargeAccount ) 
+		@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply' ) 
+		@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply' ) 
+		@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Enter Justification' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'Justification' , value = justification ) 
+		@name ( 'Enter Note To Receiver' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Receiver' , xPath = 'NoteToReceiver' , value = noteToReceiver ) 
+		@name ( 'Enter Note To Buyer' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Buyer' , xPath = 'NoteToBuyer' , value = noteToBuyer ) 
+		@name ( 'Enter NoteToSupplier' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Supplier' , xPath = 'NoteToSupplier' , value = noteToSupplier ) 
+		@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	} 
+	@name ( 'Read Requisition' ) requestMessage1 = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Request' , xPath = 'ApproverText' ) 
+	@name ( 'Return requisition number1' ) requestID1 = control.evaluate ( expression = 'String s1 = requestMessage1 ;
+String[] sp =  s1.split(" ");
+requestID = sp[1];' ) 
+	'Continue Shopping' {
+		@name ( 'Click Continue Shopping button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Continue Shopping' ) 
+		@name ( 'Click on Hospitality, Catering & Meeting Rooms Smart Forms' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Hospitality, Catering & Meeting Rooms Smart Forms' ) 
+		@name ( 'Click on Baxter Storey (1) Smart Form' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Baxter Storey (1) Smart Form' ) 
+		@name ( 'Add Item Description' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'ItemDescription' , xPath = 'ItemDescription' , value = itemDescription ) 
+		@name ( 'Select Category' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Category' , value = category , xPath = 'Category' , scenario = scenario ) 
+		@name ( 'Add Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Amount' , xPath = 'Amount' , value = amount ) 
+		@name ( 'Select Cost Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Please select cost type' , xPath = 'Poplist1' , value = costType ) 
+		@name ( 'Click Add to cart button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Add to Cart' ) 
+		@name ( 'Click View Cart and Checkout' ) /EBSArea/lib/web/button/press_enter_button.task ( scenario = scenario , session = session , name = 'View Cart and Checkout' ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Checkout' ) 
+		@name ( 'Enter Need-By Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Date' , xPath = 'NeedByDate' , value = needByDate ) 
+		@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_duplicate_button.task ( scenario = scenario , session = session , id = 'PageButtonsRN_uixr' , title = 'Next' ) 
+		isNextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@title='Next']" ) 
+		if isNextExists {
+			@name ( 'Click Multiple' ) /EBSArea/lib/web/click/click.task ( xPath = "//button[@title='Next']" , scenario = scenario , session = session ) 
+		} 
+		@name ( 'Enter Justification' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'Justification' , value = justification ) 
+		@name ( 'Enter Note To Receiver' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Receiver' , xPath = 'NoteToReceiver' , value = noteToReceiver ) 
+		@name ( 'Enter Note To Buyer' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Buyer' , xPath = 'NoteToBuyer' , value = noteToBuyer ) 
+		@name ( 'Enter NoteToSupplier' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note To Supplier' , xPath = 'NoteToSupplier' , value = noteToSupplier ) 
+		@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_duplicate_button.task ( scenario = scenario , session = session , id = 'PageActionButtonsBar' , title = 'Next' ) 
+		@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	} 
+	@name ( 'Read Requisition' ) requestMessage2 = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Request' , xPath = 'ApproverText' ) 
+	@name ( 'Return requisition number 2' ) requestID2 = control.evaluate ( expression = 'String s1 = requestMessage2 ;
+String[] sp =  s1.split(" ");
+requestID = sp[1];' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "create_non_catlog_req_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform create catalog request for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Request ID to Map' ) map.add ( map = result , key = 'REQUESTID1' , value = ^=requestID1^ ) 
+	@name ( 'Add Request ID to Map' ) map.add ( map = result , key = 'REQUESTID2' , value = ^=requestID2^ ) 
+	@name ( 'Return requisition numbers' ) result = control.evaluate ( expression = 'return result' ) 
+	@name ( 'Print Request Number1' ) console.write ( data = ^="Request Number 1 [" + requestID1 + "] created for test case [" + scenario +"]"^ ) 
+	@name ( 'Print Request Number2' ) console.write ( data = ^="Request Number 2 [" + requestID2 + "] created for test case [" + scenario +"]"^ ) 
+} 

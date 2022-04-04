@@ -1,0 +1,15 @@
+@specification 1.1 
+@name ( 'Close all active sessions' ) try {
+	@name ( 'Perform action' ) control.retry ( maxAttempts = 2 ) {
+		control.timeout ( timeout = 60 ) {
+			activeSessions = web.getsessions ( ) 
+			@name ( 'Close all active sessions' ) if ^activeSessions.size() > 0^ {
+				@name ( 'Close sessions' ) control.paralleliteration ( loopSource = ^=activeSessions^ , poolSize = 25 , loopVar = 'session' , loopIndex = 'sessionID' ) {
+					@testcase @name ( 'Close session [${session}]' ) try {
+						web.terminate ( session = session ) 
+					} 
+				} 
+			} 
+		} 
+	} 
+} 

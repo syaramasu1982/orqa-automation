@@ -1,0 +1,11 @@
+@specification 1.1 
+@description 'Open a new login session for a selected environment' 
+@param ( name = environment , description = 'Select Environment' , type = automatic ) 
+@param ( name = user , description = 'Select User' , choiceList = 'LOCAL,REQUESTER,APPROVER,BUYER,GPCEMP,GPCMGR,EXPEMP,HR,REQUESTER_SSO,QAAPPROVER_SSO,APPROVER_SSO,BUYER_SSO,LOCAL_SSO' , type = choice ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve user sheet' ) sheet = control.evaluate ( expression = 'if( String.valueOf(env.openEnv).equalsIgnoreCase("TRUE") ){
+	return "Generic"
+} else {
+	return env.name
+}' ) 
+session = '/Utils/new login session/sub tasks/handle_session.task' ( environment = env , scenario = 'abc' , workbook = 'EBSArea\tests\scenarios\users\Users.xlsx' , sheet = sheet , testCase = user ) 

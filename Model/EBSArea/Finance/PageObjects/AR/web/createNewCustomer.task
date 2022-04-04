@@ -1,0 +1,47 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = organizationName ) 
+@param ( name = country ) 
+@param ( name = addressLine1 ) 
+@param ( name = addressLine2 ) 
+@param ( name = townOrCity ) 
+@param ( name = postCode ) 
+@param ( name = operatingUnit ) 
+@param ( name = purpose1 ) 
+@param ( name = purpose2 ) 
+@param ( name = billToLocation ) 
+web.switch ( session = session ) 
+@name ( 'Create New Customer' ) try {
+	@name ( 'Click Create button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create' , scenario = scenario ) 
+	@name ( 'Wait for Create Organization' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Create Organization' ) 
+	@name ( 'Enter Organization Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Organization Name' , xPath = 'organization_name' , value = organizationName ) 
+	@name ( 'Enter Address Line1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Address Line 1' , xPath = 'HzAddressStyleFlex1' , value = addressLine1 ) 
+	@name ( 'Enter Address Line2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Address Line 2' , xPath = 'HzAddressStyleFlex2' , value = addressLine2 ) 
+	@name ( 'Enter Town or City' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town Or City' , xPath = 'HzAddressStyleFlex4' , value = townOrCity ) 
+	@name ( 'Enter Post Code' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Post Code' , xPath = 'HzAddressStyleFlex6' , value = postCode ) 
+	@name ( 'Select Operating Unit' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'AcctSiteOU' , value = operatingUnit ) 
+	@name ( 'Select Purpose' ) /EBSArea/lib/web/dropdown/select_dup_dropdown.task ( scenario = scenario , session = session , field = 'Purpose' , xPath = 'BizPurposeTable:sitePurposeUpdatable:0' , value = purpose1 , id = 'BizPurposeTableStack' ) 
+	@name ( 'Select Bill To Check box' ) /EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , id = 'BizPurposeTableStack' , name = 'BizPurposeTable:PrimaryUseFlag:0' , expectedVal = 'Y' ) 
+	@name ( 'Click Add Another Row button' ) /EBSArea/lib/web/button/click_duplicate_button.task ( scenario = scenario , session = session , id = 'ArUtilRN' , name = 'Add Another Row' ) 
+	@name ( 'Select Purpose' ) /EBSArea/lib/web/dropdown/select_dup_dropdown.task ( scenario = scenario , session = session , field = 'Purpose' , xPath = 'BizPurposeTable:sitePurposeUpdatable:1' , value = purpose2 , id = 'BizPurposeTableStack' ) 
+	@name ( 'Select Bill To Location' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Bill To Location' , id = 'BizPurposeTableStack' , xPath = 'BizPurposeTable:billToLocUpdatable:1' , value = billToLocation ) 
+	@name ( 'Select Ship To Check box' ) /EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , id = 'BizPurposeTableStack' , name = 'BizPurposeTable:PrimaryUseFlag:1' , expectedVal = 'Y' ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'applyCreActBut_uixr' , scenario = scenario ) 
+	@name ( 'Read Account Number' ) accountNumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Account Number' , xPath = 'HzPuiAccountTable:AccountNumber:0' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'create_new_customer' ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'create_new_customer_confrimation' ) 
+	@name ( 'Read Confirmation' ) confirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Your changes have been saved' ) 
+	assert.true ( expression = 'confirmation == "Your changes have been saved"' ) 
+	@name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^scenario+ "_create_new_customer_fail"^ ) 
+	error ^"Failed to perform create new customer for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+@disabled 'Return Result' {
+	@disabled @name ( 'Create Result Map' ) result = map.new ( ) 
+	@disabled @name ( 'Add Organization Name to Map' ) map.add ( map = result , key = 'ORGANIZATIONNAME' , value = ^=organizationName^ ) 
+	@disabled @name ( 'Return invoice number' ) result = control.evaluate ( expression = 'return result' ) 
+} 

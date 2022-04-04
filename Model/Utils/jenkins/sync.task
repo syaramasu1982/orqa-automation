@@ -1,0 +1,7 @@
+@specification 1.1 
+jobs = file.list ( sourcePath = 'C:\Program Files (x86)\oracle\Jenkins\JenkinsHome\jobs' ) 
+@name ( 'Process' ) control.iteration ( loopSource = ^=jobs^ , loopVar = 'job' , loopIndex = 'jobID' ) {
+	jobInfo = file.info ( sourcePath = job ) 
+	@name ( 'Resolve Job' ) jobName = control.evaluate ( expression = 'return jobInfo["Name"]' ) 
+	file.copy ( sourcePath = ^job + "/config.xml"^ , targetPath = ^"Utils/jenkins/jobs/" + jobName + "/config.xml"^ ) 
+} 

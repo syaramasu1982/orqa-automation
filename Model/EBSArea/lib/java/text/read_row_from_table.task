@@ -1,0 +1,20 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = fieldValue ) 
+@param ( name = fieldColumnIndex ) 
+@param ( name = readColumnIndex ) 
+java.switch ( session = session ) 
+@name ( 'Read column value for index[${readColumnIndex}] with the field value [${fieldValue}] and index [${fieldColumnIndex}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//VTextField[text() = '"+ fieldValue +"']"^ , timeout = 5 ) 
+		indexResolved = java.getvalue ( target = ^"//VTextField[text() = '"+ fieldValue +"']"^ ) 
+		yAxis = java.getvalue ( target = ^"//VTextField[text() = '"+ fieldValue +"']/@y"^ ) 
+		java.waitforcomponent ( target = ^"//VTextField[@y="+ yAxis +"]["+ fieldColumnIndex + "][text() = '"+ fieldValue +"']"^ , timeout = 5 ) 
+		valueRead = java.getvalue ( target = ^"//VTextField[@y="+ yAxis +"][" + readColumnIndex +"]"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_text_row_"+fieldValue +"_fail"^ ) 
+	error ^"Failed to read row value with text [" + fieldValue + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+@param ( name = fullXPath ) 
+java.switch ( session = session ) 
+@name ( 'Wait for title [${title}]' ) try {
+	if ^title != null && String.valueOf(title).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			@name ( 'Wait for component' ) sleep 3 
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]"^ , timeout = 30 ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+			@name ( 'Wait for component' ) sleep 3 
+			java.waitforcomponent ( target = ^""+ fullXPath +""^ , timeout = 30 ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "wait_for_title_"+ title +"_fail"^ ) 
+	error ^"Failed to wait for title [" +title + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = element ) 
+@param ( name = text ) 
+web.switch ( session = session ) 
+@name ( 'Wait for component' ) try {
+	@name ( 'Wait' ) control.retry ( maxAttempts = 5 ) {
+		@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+		web.wait ( target = ^"//" + element +"[contains(text(),'" + text + "')]"^ , timeout = 15 ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "title_"+text+"_fail"^ ) 
+	error ^"Failed to find component [" + element + "] with [" + text + "] on session [" + session + "]"^ 
+} 

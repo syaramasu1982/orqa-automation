@@ -1,0 +1,78 @@
+@specification 1.1 
+@param ( name = uftuser ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = launchOraApp ) 
+@param ( name = fullname ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=uftuser' , password #= '="TestOct2021"' ) 
+@name ( 'Security Settings Retained HR' ) try {
+	@disabled @name ( 'Navigate Security Settings' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK HR Operational"' , itemId #= '="RCUK HR Operational"' , itemName #= '="Enter and Maintain"' ) 
+	@name ( 'Is oracle application not launched ' ) if ^launchOraApp != null && String.valueOf(launchOraApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click No button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'No' ) 
+	@name ( 'Enter Full Name' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , label = 'Full Name' , index = '1' , value = fullname ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	'Read Employee Details' {
+		@name ( 'Read Employee LastName' ) IsemplastName = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Name: Last' , index = '1' ) 
+		@name ( 'Read Employee FirstName' ) IsempfirstName = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Name: First' , index = '1' ) 
+		@name ( 'Read Employee Title' ) IsempTitle = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Name: Title' , index = '1' ) 
+		@name ( 'Read Employee Middle' ) IsempMiddle = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Name: Middle' , index = '1' ) 
+		@name ( 'Read Employee Person Types' ) IsemppersonType = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Person Types' , index = '1' ) 
+		@name ( 'Read Employee Number' ) IsempNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Employee Number' , index = '1' ) 
+		@name ( 'Read NI Number' ) IsniNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'People')]//ancestor::ExtendedFrame//VTextField[@label='NI Number']" ) 
+		@name ( 'Read BirthDate' ) IsbirthDate = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Birth Date' , index = '1' ) 
+		@name ( 'Read  Age' ) Isage = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Age' , index = '1' ) 
+		@name ( 'Read Status' ) Isstatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Status' , index = '1' ) 
+		@name ( 'Read Nationality' ) Isnationality = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Nationality' , index = '1' ) 
+		@disabled assert.true ( expression = 'IsemplastName' ) 
+		@disabled assert.true ( expression = 'IsempfirstName' ) 
+		@disabled assert.true ( expression = 'IsempTitle' ) 
+		@disabled assert.true ( expression = 'IsempMiddle' ) 
+		@disabled assert.true ( expression = 'IsemppersonType' ) 
+		@disabled assert.true ( expression = 'IsempNumber' ) 
+		@disabled assert.true ( expression = 'IsbirthDate' ) 
+		@disabled assert.true ( expression = 'IsniNumber' ) 
+		@disabled assert.true ( expression = 'Isage' ) 
+		@disabled assert.true ( expression = 'Isstatus' ) 
+		@disabled assert.true ( expression = 'Isnationality' ) 
+		'Read Employee Address Deatils' {
+			@name ( 'Click Address' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Address' ) 
+			@name ( 'Read Address' ) Isaddress = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Address' , index = '1' ) 
+			@name ( 'Read DateFrom' ) Isdatefrom = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Details: Date From' , index = '1' ) 
+			@disabled assert.true ( expression = 'Isaddress=="United Kingdom (International).22 Whiteman Street...Swindon.Wiltshire.SN2 1BW.United Kingdom"' ) 
+			@disabled assert.true ( expression = 'Isdatefrom' ) 
+			@name ( 'Click Address Close icon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'Address')]//ancestor::ExtendedFrame//ToolBar//ToolBarButton[3]" ) 
+		} 
+		'Read Employee Absense Details' {
+			@name ( 'Click Absense' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Absence' ) 
+			@name ( 'Read Absense Type' ) IsabsenseType = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Type' , index = '1' ) 
+			@name ( 'Read Absense Reason' ) Isreason = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Reason' , index = '1' ) 
+			@name ( 'Read Absense Category' ) Iscategory = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Category' , index = '1' ) 
+			@name ( 'Read Associated Element' ) Isassoscialtedelement = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Associated Element' , index = '1' ) 
+			@disabled assert.true ( expression = 'IsabsenseType=="Annual Leave Days"' ) 
+			@disabled assert.true ( expression = 'Isreason=="Annual Leave Days"' ) 
+			@disabled assert.true ( expression = 'Iscategory=="Annual Leave"' ) 
+			@disabled assert.true ( expression = 'Isassoscialtedelement=="RCUK Annual Leave Days"' ) 
+			@name ( 'Click Absense Close icon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'Absence')]//ancestor::ExtendedFrame//ToolBar//ToolBarButton[3]" ) 
+		} 
+		'Read Employee Assignment Details' {
+			@name ( 'Click Assignment' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Assignment' ) 
+			@name ( 'Read Organization' ) Isorganization = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , xPath = "VTextField[@label='Organization']" ) 
+			@name ( 'Read Status' ) Isstatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'Assignment')]//ancestor::ExtendedFrame//VTextField[@label='Status']" ) 
+			@name ( 'Read AssignmentNumber' ) IsassignmentNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , label = 'Assignment Number' , index = '1' ) 
+			@disabled assert.true ( expression = 'Isorganization=="UK SBS - ISS Service Management"' ) 
+			@disabled assert.true ( expression = 'Isstatus=="Active Assignment"' ) 
+			@disabled assert.true ( expression = 'IsassignmentNumber=="148097"' ) 
+			@name ( 'Click Assignment Close icon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'Assignment')]//ancestor::ExtendedFrame//ToolBar//ToolBarButton[3]" ) 
+			@name ( 'Click People Close icon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , xPath = "LWLabel[contains(text(),'People')]//ancestor::ExtendedFrame//ToolBar//ToolBarButton[3]" ) 
+			@disabled @name ( 'Close java applications' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_Securityl_Settings_Retained_HR_fail"^ ) 
+	error ^"Failed to perform Security Settings HR[" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,29 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = payee ) 
+@param ( name = paymentDate ) 
+@param ( name = reason ) 
+@param ( name = paymentReference ) 
+web.switch ( session = session ) 
+'Void Payments' {
+	@name ( 'Click Payments Tab' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'AP_PAY_PMT_TAB' ) 
+	@name ( 'Wait for Payments' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Payments' ) 
+	@disabled @name ( 'Select Payee' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Payee' , id = 'SearchMsgCompLayout' , xPath = 'PayeeLovSearch' , value = payee ) 
+	@name ( 'Select Payment Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Payment Date' , xPath = 'PmtDateSearch' , value = paymentDate ) 
+	@name ( 'Enter Payment Reference Number' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Payment Reference Number' , id = 'SearchMsgCompLayout' , xPath = 'PmtRefrenceNumberSearch' , value = paymentReference ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Go' ) 
+	@name ( 'Click Void icon' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//*[@id='SearchHdr']//a[contains(@id,'ResultAdvTable:Void:0')]" ) 
+	@name ( 'Enter Reason' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Reason' , id = 'PaymentRN' , xPath = 'VoidReason' , value = reason ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply' ) 
+	@name ( 'Read Warning Message' ) isWarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'Are you sure you want to void this payment?' ) 
+	assert.true ( expression = 'isWarning == "Are you sure you want to void this payment? This action cannot be reversed."' ) 
+	@name ( 'Click Yes Button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Go' ) 
+	@name ( 'Read Status' ) isStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'ResultAdvTable:PaymentStatus:0' ) 
+	assert.true ( expression = 'isStatus == "Void"' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = ^env['session.web']^ , name = ^ "void_payments_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform void payments for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

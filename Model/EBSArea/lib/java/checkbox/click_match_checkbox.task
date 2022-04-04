@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = frame ) 
+@param ( name = scrollBox ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+@name ( 'Click checkbox [${name}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = "//ExtendedFrame//DrawnPanel//FolderPrompt[text()='Match']/../CheckBox[1]/LWCheckbox" , timeout = 5 ) 
+		java.click ( target = "//ExtendedFrame//DrawnPanel//FolderPrompt[text()='Match']/../CheckBox[1]/LWCheckbox" ) 
+		java.waitforcomponent ( target = "//ExtendedFrame//DrawnPanel//FolderPrompt[text()='Match']/../CheckBox[1]/LWCheckbox[@selected='true']" , timeout = 2 ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

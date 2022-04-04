@@ -1,0 +1,88 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = accountNumber ) 
+@param ( name = glDate ) 
+@param ( name = amount5 ) 
+@param ( name = description5 ) 
+@param ( name = paymentsAmount ) 
+@param ( name = createType ) 
+@param ( name = organization ) 
+@param ( name = activity ) 
+@param ( name = method ) 
+@param ( name = amount ) 
+@name ( 'Modifying Automated Bank Statement Uploads' ) try {
+	@name ( 'Wait For Find Bank Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Bank Statements' ) 
+	@name ( 'Enter Account Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Account Number' , title = 'Find Bank Statements' , xPath = 'FScrollBox[1]//VTextField[1]' , value = accountNumber ) 
+	@name ( 'Enter GL Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'GL Date' , title = 'Find Bank Statements' , xPath = 'FScrollBox[1]//VTextField[7]' , value = glDate ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Reconcile Bank Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reconcile Bank Statements' ) 
+	@name ( 'Click Review button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Review' ) 
+	@name ( 'Wait For Bank Statement' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement' ) 
+	@name ( 'Click Lines button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Lines' ) 
+	@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+	@name ( 'Update Amount 5' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[31]' , value = amount5 ) 
+	@name ( 'Click on the Description tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Description' ) 
+	@name ( 'Update Description 5' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[5]' , value = description5 ) 
+	@name ( 'Click on the Amount tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Amounts' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	'Decision 1' {
+		@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		while isDecisionExists {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+			@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		} 
+	} 
+	@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+	@name ( 'Click Bank Statement Lines Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Bank Statement Lines' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For Bank Statement' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement' ) 
+	@name ( 'Update Payments Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[15]' , value = paymentsAmount ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	'Decision 1' {
+		@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		while isDecisionExists {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+			@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		} 
+	} 
+	@name ( 'Read Payments Amount in Control Totals' ) paymentsAmountCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[15]' ) 
+	@name ( 'Read Payments Amount in Line Totals' ) paymentsAmountLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[25]' ) 
+	assert.true ( expression = 'paymentsAmountCT== paymentsAmountLT' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'modifying_bank_statement_upload' ) 
+	'Daily clearing bank charges' {
+		@name ( 'Click Lines button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Lines' ) 
+		@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+		@name ( 'Click on fifth Unreconciled Receipt Line ' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'First Receipt' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[18]' ) 
+		@name ( 'Click Create button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Create' ) 
+		@name ( 'Check Create pop up exists' ) isCreateExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Create' , title = 'Create' ) 
+		if isCreateExists {
+			@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Create' , xPath = '%' , value = createType ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		@name ( 'Wait For Miscellaneous Receipts' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Miscellaneous Receipts' ) 
+		@name ( 'Enter Organization' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Organization' , title = 'Miscellaneous Receipts' , xPath = 'FScrollBox[2]//VTextField[14]' , value = organization ) 
+		@name ( 'Enter Activity' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Activity' , title = 'Miscellaneous Receipts' , xPath = 'FScrollBox[2]//VTextField[27]' , value = activity ) 
+		@name ( 'Enter Method' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Method' , title = 'Miscellaneous Receipts' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[27]' , value = method ) 
+		@name ( 'Enter Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount' , title = 'Miscellaneous Receipts' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[40]' , value = amount ) 
+		@name ( 'Click Create button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Create' ) 
+		@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		if isDecisionExists {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+		@name ( 'Click Miscellaneous Receipts Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Miscellaneous Receipts' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+		@name ( 'Click Bank Statement Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'daily_clearing_bank_charges' ) 
+		@name ( 'Read Unreconciled' ) unreconciled = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[28]' ) 
+		assert.true ( expression = 'unreconciled == "0.00"' ) 
+		@name ( 'Click Bank Statement Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Bank Statement' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+		@name ( 'Click Reconcile Bank Statements Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Reconcile Bank Statements' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_modifying_automated_bank_stmt_upload_fail"^ ) 
+	error ^"Failed to perform modifying automated bank statement uploads for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

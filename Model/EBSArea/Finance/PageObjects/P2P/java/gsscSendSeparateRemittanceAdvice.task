@@ -1,0 +1,42 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = ledger ) 
+@param ( name = type ) 
+@param ( name = balanceType ) 
+@param ( name = company ) 
+@param ( name = businessUnit ) 
+@param ( name = costCentre ) 
+@param ( name = accountCode ) 
+@param ( name = analysisCode ) 
+@param ( name = spare ) 
+@param ( name = orderBy ) 
+@name ( 'GSSC Send Separate Remittance Advice' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@disabled @name ( 'Click text Submit a New Request' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField' , value = name ) 
+	sleep 2 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Ledger/Ledger Set' {
+		@name ( 'Click on Payment Instruction iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Payment Instruction' , xPathPosition = '1' ) 
+		@name ( 'Wait For Ledger Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Payment Instruction' ) 
+		@name ( 'Enter Payment Instruction' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Payment Instruction' , xPath = 'LWTextField' , value = paymentInstruction ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	'Enter Order By' {
+		@name ( 'Click on Order By iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Order By' , xPathPosition = '12' ) 
+		@name ( 'Wait For Order By Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Order By' ) 
+		@name ( 'Enter Order By' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Order By' , xPath = 'LWTextField' , value = orderBy ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'gssce_send_sep_remit_advice_fail' ) 
+} 

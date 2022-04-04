@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = transactionType ) 
+@param ( name = bankAccountNumber ) 
+@name ( 'Run Transactions Available For Reconciliation Report' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField6' , value = name ) 
+	sleep 2 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@name ( 'Enter Transaction Type' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Transaction Type' , xPathPosition = '1' , value = transactionType ) 
+	'Enter Bank Account Number' {
+		@name ( 'Click on Report Format iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Bank Account Number' , xPathPosition = '5' ) 
+		@name ( 'Wait For  Report Format Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Account Number' ) 
+		@name ( 'Enter  Report Format' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Bank Account Number' , xPath = '%' , value = bankAccountNumber ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@disabled @name ( 'Enter Bank Account Number' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Bank Account Number' , xPathPosition = '5' , value = bankAccountNumber ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Wait for submission screen' ) sleep 5 
+	@name ( 'Read Name' ) isName = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Name' , row = '1' , column = '3' ) 
+	assert.true ( expression = 'isName == "Transactions Available for Reconciliation Report"' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_run_transactions_available_recon_report_fail"^ ) 
+	error ^"Failed to perform run transactions available for recon report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

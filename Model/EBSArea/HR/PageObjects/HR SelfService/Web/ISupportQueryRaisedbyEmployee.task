@@ -1,0 +1,40 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empuser ) 
+@param ( name = problemsummary ) 
+@param ( name = problemtype ) 
+@param ( name = note ) 
+@param ( name = filepath ) 
+@param ( name = description ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+servicerequest = control.evaluate ( expression = 'return null' ) 
+@name ( 'I Support Employee User' ) try {
+	'Navigate ISupport Employee User' {
+		@disabled @name ( 'Navigate ISupport Employee User' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="iSupport Employee User"' , itemId #= '="iSupport Employee User"' , itemName #= '="Home"' ) 
+		@name ( 'Click ServiceRequest' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Create Service Request' ) 
+		@name ( 'Click HRPolicy' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'HR Policy' ) 
+		@name ( 'Enter ProblemSummary' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'ProblemSummary' , xPath = 'IBU_CF_SR_PROB_SUM_INPUT' , value = problemsummary ) 
+		@name ( 'Enter Problem Type' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , xPath = 'IBU_CF_SR_PROB_TYPE_CODE' , value = problemtype ) 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Enter Note' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , xPath = 'IBU_CF_SR_NOTE' , value = note ) 
+		@name ( 'Click Add Attachment' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Add Attachment' ) 
+		@name ( 'Switch browser to select dropdown value' ) /EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = '*Attachment' ) 
+		@name ( 'Enter Upload' ) /EBSArea/lib/web/upload/upload.task ( scenario = scenario , session = session , id = 'file' , filePath = filepath ) 
+		@name ( 'Enter Description' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Description' , xPath = 'atthDesc' , value = description ) 
+		@name ( 'Click Attach' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Attach' ) 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+		@name ( 'Read Confirm' ) IsConfirm = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Confirm' , element = 'h1' , xPath = 'Confirmation' ) 
+		servicerequest = control.evaluate ( expression = 'String s1 = IsConfirm ;
+String[] sp =  s1.split(" ");
+servicerequest= sp[4];' ) 
+		servicerequest = control.evaluate ( expression = 'return servicerequest.substring(0, servicerequest.length() - 5);' ) 
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'ISupportQueryRaisedbyEmployee' ) 
+	error ^"Failed to perform ISupportQueryRaisedbyEmployee[" + scenario +"] with session ["+ session +"]"^ 
+} 

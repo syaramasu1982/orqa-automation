@@ -1,0 +1,47 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = bookTypeCode ) 
+@param ( name = launchApp ) 
+@name ( 'Transfer Journal Entries to GL' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Book Type Code' {
+		@name ( 'Click on Book Type Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPathPosition = '1' ) 
+		@name ( 'Wait For Book Type Code Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Book Type Code' ) 
+		@name ( 'Enter Book Type Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPath = '%' , value = bookTypeCode ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Get Last day of the month' ) lastDayOfTheMonth = control.evaluate ( expression = 'def lastDayOfTheMonth = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
+cal.set(Calendar.DAY_OF_MONTH,
+cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+lastDayOfTheMonth = cal.getTime();
+}
+lastDayOfTheMonth = lastDayOfTheMonth.format("dd-MMM-yyy").toUpperCase()
+
+return lastDayOfTheMonth' ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'End Date' , xPathPosition = '4' , value = lastDayOfTheMonth ) 
+	@name ( 'Capture Screen Parameters' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'Transfer_Journal_Entries_To_GL' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Is forms exist' ) isFormsExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Forms' , title = 'Forms' ) 
+	if isFormsExist {
+		@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@disabled @name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

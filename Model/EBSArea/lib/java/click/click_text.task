@@ -1,0 +1,39 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+@param ( name = text ) 
+java.switch ( session = session ) 
+@name ( 'Click text [${field}]' ) try {
+	if ^title != null && String.valueOf(title).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 1 
+		} 
+	} 
+	elseif ^label != null && String.valueOf(label).trim().length() > 0 ^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//VTextField[@label='"+ label +"'][text()='"+ text +"']"^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//VTextField[@label='"+ label +"'][text()='"+ text +"']"^ ) 
+			sleep 1 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//"+xPath+""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//"+xPath+""^ ) 
+			sleep 1 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_text_"+field+"_fail"^ ) 
+	error ^"Failed to click button [" + field + "] on session [" + session + "]"^ 
+} 

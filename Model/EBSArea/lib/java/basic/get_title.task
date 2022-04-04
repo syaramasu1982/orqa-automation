@@ -1,0 +1,15 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+java.switch ( session = session ) 
+@name ( 'Read text [${field}]' ) try {
+	@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = '//ExtendedFrame[1]//LWLabel | //FlexWindow[1]//LWLabel | //TitleBar[1]//LWLabel' , timeout = 5 ) 
+		valueRead = java.getvalue ( target = '//ExtendedFrame[1]//LWLabel | //FlexWindow[1]//LWLabel | //TitleBar[1]//LWLabel' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'read_text_fail' ) 
+	error ^"Failed to read text on session [" + session + "]"^ 
+} 

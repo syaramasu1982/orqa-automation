@@ -1,0 +1,15 @@
+@specification 1.1 
+@param ( name = column ) 
+@name ( 'Get excel column name by number' ) columnName = control.evaluate ( expression = '	int base = 26
+	String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	String colName = ""
+	int colNum = Integer.parseInt(column)
+
+	while (colNum > 0){
+		int position = colNum % base
+		colName = (position == 0 ? ''Z'' : String.valueOf(Chars.charAt(position > 0 ? position - 1 : 0))) + colName
+		colNum = (colNum - 1) / base
+	}
+
+	return colName
+' ) 

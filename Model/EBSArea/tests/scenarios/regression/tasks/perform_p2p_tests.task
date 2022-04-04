@@ -1,0 +1,305 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle P2P' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle P2P Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Create Non Catalog Request]' ) if ^['CREATENONCATALOGREQUEST'].contains(testCaseName)^ {
+					@name ( 'Calculate Need By Date' ) needByDate = control.evaluate ( expression = 'def needByDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+needByDate = today+2
+}
+needByDate = needByDate.format("dd-MMM-yyy hh:mm:ss")
+return needByDate ' ) 
+					itemDescription = control.evaluate ( expression = "caseRef['ITEMDESCRIPTION']" ) 
+					if ^itemDescription.equals("") || itemDescription == null || itemDescription == ""^ {
+						@name ( 'Generate Item Description' ) itemDescription = control.evaluate ( expression = 'def randomNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+randomNumber = getRandomNumber(4)
+def itemDescription = "NCRTest"+randomNumber
+return itemDescription' ) 
+					} 
+					@name ( 'Create Non Catalog Request [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/P2P/web/createNonCatalogRequest.task ( session = session , scenario = testCase , itemDescription = itemDescription , category = ^caseRef['CATEGORY']^ , quantity = ^caseRef['QUANTITY']^ , unitPrice = ^caseRef['UNITPRICE']^ , supplierName = ^caseRef['SUPPLIERNAME']^ , needByDate = needByDate , site = ^caseRef['SITE']^ , requestType = ^caseRef['REQUESTTYPE']^ , itemType = ^caseRef['ITEMTYPE']^ , clickChargeAccount = ^caseRef['CLICKCHARGEACCOUNT']^ , costCentre = ^caseRef['COSTCENTRE']^ , unitOfMeasure = ^caseRef['UNITOFMEASURE']^ , ratePerUnit = ^caseRef['RATEPERUNIT']^ , currency = ^caseRef['CURRENCY']^ , amount = ^caseRef['AMOUNT']^ , project = ^caseRef['PROJECT']^ , task = ^caseRef['TASK']^ , deliverToLocation = ^caseRef['DELIVERTOLOCATION']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Request Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REQUESTID];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Approve Requisition]' ) if ^['APPROVEREQUISITION'].contains(testCaseName)^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Approve Requisition [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/approveRequisition.task ( session = session , requestID = requestID , scenario = testCase ) 
+				} 
+				@name ( 'Handle [Approve Multiple Requests]' ) if ^testCaseName.equals("APPROVEMULTIPLEREQUESTS")^ {
+					@name ( 'Status Monitor [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/statusMonitor.task ( scenario = testCase , session = session , workflowStarted = ^caseRef['WORKFLOWSTARTED']^ , workflowType = ^caseRef['WORKFLOWTYPE']^ ) 
+				} 
+				@name ( 'Handle [Create Purchase Order]' ) if ^['CREATEPURCHASEORDER'].contains(testCaseName)^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Create Purchase Order [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/P2P/web/createPurchaseOrder.task ( session = session , scenario = testCase , ou = ^caseRef['OPERATINGUNIT']^ , requisition = requestID ) 
+					'Write po number in excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','PO Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.PONUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Receipt Request]' ) if ^testCaseName.contains("RECEIPTREQUEST") ||  testCaseName.contains("FULLRECEIPT") || testCaseName.contains("PARTIALRECEIPT")^ {
+					requestID = control.evaluate ( expression = 'return null' ) 
+					poNumber = control.evaluate ( expression = 'return null' ) 
+					control.iteration ( loopSource = ^=refTestCaseID.split(",")^ , loopVar = 'refTestCase' , loopIndex = 'refTestID' ) {
+						if ^refTestID ==1^ {
+							@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+						if ^refTestID == 2^ {
+							@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+					} 
+					@name ( 'Receipt Request [${sheet}]: ID=${caseRef.ID}' ) resultDetails = /EBSArea/Finance/PageObjects/P2P/web/receiptRequest.task ( session = session , scenario = testCase , requisition = requestID , poNumber = poNumber , fullQuantity = ^caseRef['FULLQUANTITY']^ , partialQuantity = ^caseRef['PARTIALQUANTITY']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write receipt number into excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Receipt Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.RECEIPTNUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Create Invoice]' ) if ^testCaseName.equals("CREATEINVOICE")^ {
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Invoice Number' ) invoiceNumber = control.evaluate ( expression = 'def invoiceNumber = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceNumber = today
+}
+invoiceNumber = invoiceNumber.format("ddhhmmss")
+return invoiceNumber
+' ) 
+					@name ( 'Create Invoice [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/createInvoice.task ( session = session , scenario = testCase , poNumber = poNumber , operatingUnit = ^caseRef['OPERATINGUNIT']^ , dateInvRec = invoiceDate , invoiceDate = invoiceDate , invoiceNumber = invoiceNumber , invoiceAmount = ^caseRef['INVOICEAMOUNT']^ , environment = environment ) 
+					@name ( 'Print Invoice Number' ) console.write ( data = ^="Invoice [" + invoiceNumber + "] created for test case [" + scenario +"]"^ ) 
+					'Write receipt number into excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Invoice Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,invoiceNumber];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Setup New Supplier]' ) if ^testCaseName.contains("SETUPNEWSUPPLIER")^ {
+					@disabled @name ( 'Resolve organization name' ) orgNameRef = control.evaluate ( expression = 'return caseRef[''ORGANIZATIONNAME'']+"_"+new java.text.SimpleDateFormat("HHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Resolve account number' ) accountNumber = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Setup New Supplier [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/setupNewSupplier.task ( scenario = testCase , session = session , taxCountry = ^caseRef['TAXCOUNTRY']^ , type = ^caseRef['TYPE']^ , addressLine1 = ^caseRef['ADDRESSLINE1']^ , addressLine2 = ^caseRef['ADDRESSLINE2']^ , townOrCity = ^caseRef['TOWNORCITY']^ , postalCode = ^caseRef['POSTALCODE']^ , addressName = ^caseRef['ADDRESSNAME']^ , phoneAreaCode = ^caseRef['AREACODE']^ , phoneNumber = ^caseRef['PHONENUMBER']^ , invoiceCurrency = ^caseRef['INVOICECURRENCY']^ , paymentCurrency = ^caseRef['PAYMENTCURRENCY']^ , deliveryMethod = ^caseRef['DELIVERYMETHOD']^ , country = ^caseRef['COUNTRY']^ , bankName = ^caseRef['BANKNAME']^ , branchName = ^caseRef['BRANCHNAME']^ , accountNumber = accountNumber , accountName = ^caseRef['ACCOUNTNAME']^ , currency = ^caseRef['CURRENCY']^ , notificationMethod = ^caseRef['NOTIFICATIONMETHOD']^ , email = ^caseRef['EMAIL']^ , matchApprovalLevel = ^caseRef['MATCHAPPROVALLEVEL']^ , organizationName = ^caseRef['ORGANIZATIONNAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ ) 
+				} 
+				@name ( 'Handle [Catalogue Item Requisition]' ) if ^testCaseName.contains("CATALOGUEITEMREQUISITION")^ {
+					@name ( 'Calculate Need By Date' ) needByDate = control.evaluate ( expression = 'def needByDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+needByDate = today+1
+}
+needByDate = needByDate.format("dd-MMM-yyy hh:mm:ss")
+return needByDate ' ) 
+					@name ( 'Generate Item Description' ) itemDescription = control.evaluate ( expression = 'def randomNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+randomNumber = getRandomNumber(4)
+def itemDescription = "NCRTest"+randomNumber
+return itemDescription' ) 
+					@name ( 'Create Catalog Request [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/P2P/web/createCatalogRequest.task ( scenario = testCase , session = session , needByDate = needByDate , category = ^caseRef['CATEGORY']^ , searchCategoryItem = ^caseRef['SEARCHCATEGORYITEM']^ , productCategory = ^caseRef['PRODUCTCATEGORY']^ , itemQuantity = ^caseRef['ITEMQUANTITY']^ , deliveryCharges = ^caseRef['DELIVERYCHARGES']^ , requisitionDescription = ^caseRef['REQUISITIONDESCRIPTION']^ , justification = ^caseRef['JUSTIFICATION']^ , noteToReceiver = ^caseRef['NOTETORECEIVER']^ , noteToBuyer = ^caseRef['NOTETOBUYER']^ , noteToSupplier = ^caseRef['NOTETOSUPPLIER']^ , itemDescription = ^caseRef['ITEMDESCRIPTION']^ , amount = ^caseRef['AMOUNT']^ , costType = ^caseRef['COSTTYPE']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Request Number1','Request Number2'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REQUESTID1,result.REQUESTID2];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Request Additional Information]' ) if ^testCaseName.contains("REQUESTADDITIONALINFORMATION")^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Request Additional Information [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/requestAdditionalInformation.task ( scenario = testCase , session = session , requestID = requestID , informationRequested = ^caseRef['INFOREQUESTED']^ ) 
+				} 
+				@name ( 'Handle [Employee Provides Requested Information]' ) if ^testCaseName.contains("EMPLOYEEPROVIDESREQUESTEDINFO")^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Employee Provides Requested Infoormation [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/employeeProvidesRequestedInfo.task ( scenario = testCase , session = session , requestID = requestID , response = ^caseRef['RESPONSE']^ ) 
+				} 
+				@name ( 'Handle [Add To Order]' ) if ^testCaseName.contains("ADDTOORDER")^ {
+					requestID = control.evaluate ( expression = 'return null' ) 
+					poNumber = control.evaluate ( expression = 'return null' ) 
+					control.iteration ( loopSource = ^=refTestCaseID.split(",")^ , loopVar = 'refTestCase' , loopIndex = 'refTestID' ) {
+						if ^refTestID ==1^ {
+							@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+						if ^refTestID == 2^ {
+							@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+					} 
+					@name ( 'Add to Order [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/P2P/web/addToOrder.task ( scenario = testCase , session = session , ou = ^caseRef['OPERATINGUNIT']^ , type = ^caseRef['TYPE']^ , requisition = requestID , orderStyle = poNumber ) 
+					@name ( 'Click on Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+					'Write po number in excel' {
+						dataColumnList = ^return ['Test Case','Test Case ID','PO Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.PONUMBER2];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [ViewOrder]' ) if ^testCaseName.contains("VIEWORDER")^ {
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'View Orders [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/viewOrders.task ( scenario = testCase , session = session , selectView = 'My Open Orders' , actions = 'View PDF' , orderNumber = poNumber ) 
+				} 
+				@name ( 'Handle [Buyer Creates PO onbehalf of Requestor]' ) if ^testCaseName.contains("BUYERCREATESPO")^ {
+					@name ( 'Buyer Creates PO [${sheet}]: ID=${caseRef.ID}' ) resultDetails = /EBSArea/Finance/PageObjects/P2P/java/buyerCreatesPO.task ( scenario = testCase , session = session , operatingUnit = ^caseRef['OPERATINGUNIT']^ , supplier = ^caseRef['SUPPLIERNAME']^ , site = ^caseRef['SITE']^ , description = ^caseRef['DESCRIPTION']^ , categoryFamily = ^caseRef['CATEGORYFAMILY']^ , category = ^caseRef['CATEGORY']^ , quantity = ^caseRef['QUANTITY']^ , price = ^caseRef['PRICE']^ , requester = ^caseRef['REQUESTER']^ , deliverTo = ^caseRef['DELIVERTO']^ , poChargeAccount = ^caseRef['POCHARGEACCOUNT']^ , environment = environment , businessUnit = ^caseRef['BUSINESSUNIT']^ , costCentre = ^caseRef['COSTCENTRE']^ , accountCode = ^caseRef['ACCOUNTCODE']^ , subCategory = ^caseRef['SUBCATEGORY']^ , programme = ^caseRef['PROGRAMME']^ ) 
+					'Write po number in excel' {
+						resultPO = control.evaluate ( expression = 'resultPO = resultDetails' ) 
+						dataColumnList = ^return ['Test Case','Test Case ID','PO Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,resultPO.PONUMBER];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Buyer Runs Expected Receipt Report]' ) if ^testCaseName.contains("BUYERRUNSEXPECTEDRECEIPTREPORT")^ {
+					@name ( 'Exptected Receipt Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/exptectedReceiptReport.task ( scenario = testCase , session = session , name = ^caseRef['NAME']^ , reports = ^caseRef['REPORTS']^ , organizationName = ^caseRef['ORGANIZATIONNAME']^ , environment = environment , dynamicPrecisionOption = ^caseRef['DYNAMIC PRECISION OPTION']^ ) 
+				} 
+				@name ( 'Handle [Buyer Runs Purchase Requisition Status Report]' ) if ^testCaseName.contains("BUYERRUNSPURCHASEREQUISITIONSTATUSREPORT")^ {
+					@name ( 'Purchase Requisition Status Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/purchaseRequisitionStatusReport.task ( scenario = testCase , session = session , reports = ^caseRef['REPORTS']^ , name = ^caseRef['NAME']^ , environment = environment , dynamicPrecisionOption = ^caseRef['DYNAMIC PRECISION OPTION']^ ) 
+				} 
+				@name ( 'Handle [Buyer Runs Uninvoices Receipt Report]' ) if ^testCaseName.contains("BUYERRUNSUNINVOICESRECEIPT")^ {
+					@name ( 'UnInvoiced Receipt Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/unInvoicedReceiptReport.task ( scenario = testCase , session = session , reports = ^caseRef['REPORTS']^ , name = ^caseRef['NAME']^ , environment = environment , dynamicPrecisionOption = ^caseRef['DYNAMIC PRECISION OPTION']^ ) 
+				} 
+				@name ( 'Handle [Cancel Purchase Order]' ) if ^testCaseName.contains("CANCELPURCHASEORDER")^ {
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Cancel Purchase Order [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/cancelPurchaseOrder.task ( scenario = testCase , session = session , number = poNumber , reason = ^caseRef['REASON']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Create Out of Office Rule]' ) if ^testCaseName.contains("CREATEOUTOFOFFICERULE")^ {
+					@name ( 'Out of Office Rules [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/outOfOfficeRules.task ( scenario = testCase , session = session , itemType = ^caseRef['ITEMTYPE']^ , message = ^caseRef['MESSAGE']^ , reassign = ^caseRef['REASSIGN']^ ) 
+				} 
+				@name ( 'Handle [Verify Purchase Order Created Automatically From CPA]' ) if ^testCaseName.contains("VERIFYPURCHASEORDERCREATEDAUTOMATICALLY")^ {
+					requestID = control.evaluate ( expression = 'return null' ) 
+					poNumber = control.evaluate ( expression = 'return null' ) 
+					control.iteration ( loopSource = ^=refTestCaseID.split(",")^ , loopVar = 'refTestCase' , loopIndex = 'refTestID' ) {
+						if ^refTestID ==1^ {
+							@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+						if ^refTestID == 2^ {
+							@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+					} 
+					@name ( 'Verify Purchase Order Created [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/verifyPurchaseOrderCreated.task ( scenario = testCase , session = session , poNumber = poNumber , requisition = requestID ) 
+				} 
+				@name ( 'Handle [Return Receipted Requisition]' ) if ^testCaseName.equals("RETURNSRECEIPTEDREQUISITION")^ {
+					requestID = control.evaluate ( expression = 'return null' ) 
+					poNumber = control.evaluate ( expression = 'return null' ) 
+					control.iteration ( loopSource = ^=refTestCaseID.split(",")^ , loopVar = 'refTestCase' , loopIndex = 'refTestID' ) {
+						if ^refTestID ==1^ {
+							@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+						if ^refTestID == 2^ {
+							@name ( 'Read Receipt Number' ) receiptNo = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCase , tableColumnName = 'Receipt Number' , testCaseTableDict = TestCaseTableDict ) 
+						} 
+					} 
+					@name ( 'Retrun Receipt [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/retrunReceipt.task ( scenario = testCase , session = session , receiptNo = receiptNo , returnQuantity = ^caseRef['RETURNQUANTITY']^ , reason = ^caseRef['REASON']^ , requestNumber = requestID ) 
+				} 
+				@name ( 'Handle [PlacePurchaseOrderOnHold]' ) if ^testCaseName.contains("PLACEPURCHASEORDERONHOLD")^ {
+					@name ( 'Read PO' ) poNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'PO Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Place Purchase Order On-Hold [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/placePurchaseOrderOnHold.task ( scenario = testCase , session = session , number = poNumber , reason = ^caseRef['REASON']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Requestor Amends Existing PO]' ) if ^testCaseName.contains("REQUESTORAMENDSEXISTINGPO")^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Requester Amends PO [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/web/requesterAmendsPO.task ( scenario = testCase , session = session , reqNumber = requestID , quantity = ^caseRef['AMENDQUANTITY']^ , reason = ^caseRef['REASON']^ , noteToApprover = ^caseRef['NOTETOAPPROVER']^ ) 
+				} 
+				@name ( 'Handle [System Admin Submit New Request]' ) if ^testCaseName.contains("SYSTEMADMINSUBMITNEWREQUEST")^ {
+					@name ( 'System Admin Submit New Request [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/systemAdminRunRequest.task ( scenario = testCase , session = session , environment = environment , name = ^caseRef['NAME']^ , processDeferred = ^caseRef['PROCESSDEFERRED']^ , processTimeout = ^caseRef['PROCESSTIMEOUT']^ , processStuck = ^caseRef['PROCESSSTUCK']^ ) 
+				} 
+				@name ( 'Handle [Create Accounting - Receiving]' ) if ^testCaseName.contains("CREATEACCOUNTINGRECEIVING")^ {
+					@name ( 'Create Accounting Receiving [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/createAccountingReceiving.task ( scenario = testCase , session = session , environment = environment , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , mode = ^caseRef['MOED']^ , errorsOnly = ^caseRef['ERRORSONLY']^ , report = ^caseRef['REPORT']^ , transferToGL = ^caseRef['TRANSFERTOGL']^ , postInGL = ^caseRef['POSTINGL']^ , userTransactionIdentifier = ^caseRef['USERTRANSACTIONIDENTIFIER']^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOGL")^ {
+					@name ( 'Transfer Journal Entries To GL [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/transferJournalEntriesToGL.task ( scenario = testCase , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , postInGeneralLedger = ^caseRef['POSTINGENERALLEDGER']^ , environment = environment , mode = ^caseRef['MODE']^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL - Receiving]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOAGLRECEIVING")^ {
+					@name ( 'Transfer Journal Entries To GL Additional [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/transferJournalEntriesToGL_Additional.task ( scenario = testCase , session = session , environment = environment , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , postInGeneralLedger = ^caseRef['POSTINGENERALLEDGER']^ , mode = ^caseRef['MODE']^ ) 
+				} 
+				@name ( 'Handle [SmartFormValidation]' ) if ^testCaseName.contains("SMARTFORMREQUESTVALIDATION")^ {
+					@name ( 'Read Request ID' ) requestID = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Request Number' , testCaseTableDict = TestCaseTableDict ) 
+					/EBSArea/Finance/Procurement/P2P/SmartFormRequestvalidation.task ( scenario = scenario , session = session , requisition = requestID ) 
+				} 
+				@name ( 'Handle [SmartFormItemRequisition]' ) if ^testCaseName.contains("SMARTFORMITEMREQUISITION")^ {
+					@name ( 'Calculate Need By Date' ) needByDate = control.evaluate ( expression = 'def needByDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+needByDate = today+2
+}
+needByDate = needByDate.format("dd-MMM-yyy hh:mm:ss")
+return needByDate ' ) 
+					itemDescription = control.evaluate ( expression = "caseRef['ITEMDESCRIPTION']" ) 
+					if ^itemDescription.equals("") || itemDescription == null || itemDescription == ""^ {
+						@name ( 'Generate Item Description' ) itemDescription = control.evaluate ( expression = 'def randomNumber
+def getRandomNumber(int num){
+    Random random = new Random()
+    return random.nextInt(10 ** num)
+}
+randomNumber = getRandomNumber(4)
+def itemDescription = "NCRTest"+randomNumber
+return itemDescription' ) 
+					} 
+					@name ( 'SmartFormItemRequisition [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/Procurement/P2P/SmartFormItemRequisition.task ( scenario = scenario , session = session , costtype = ^caseRef['COSTTYPE']^ , category = ^caseRef['CATEGORYSMART']^ , requestType = ^caseRef['REQUESTTYPESMART']^ , itemDescription = itemDescription , amount = ^caseRef['AMOUNT']^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Request Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REQUESTID];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

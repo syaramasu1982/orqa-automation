@@ -1,0 +1,45 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = datesInServiceFrom ) 
+@param ( name = datesInServiceTo ) 
+@param ( name = closeApp ) 
+@name ( 'Single Asset Retirement' ) try {
+	@name ( 'Define result' ) result = control.evaluate ( expression = 'return null' ) 
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Assets' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Find Assets' , xPath = 'VTextField[10]' , value = book ) 
+	@name ( 'Enter Dates in service from' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates In Service from' , title = 'Find Assets' , xPath = 'VTextField[12]' , value = datesInServiceFrom ) 
+	@name ( 'Enter Dates in service to' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates In Service from' , title = 'Find Assets' , xPath = 'VTextField[13]' , value = datesInServiceTo ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Assignments button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Assignments' ) 
+	@name ( 'Wait For Assignments' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignments' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'assignments_review' ) 
+	@name ( 'Click Assignments Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Assignments' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Source Lines button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Source Lines' ) 
+	@name ( 'Wait For View Source Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Source Lines' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'view_source_lines' ) 
+	@name ( 'Click View Source Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'View Source Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Books button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Books' ) 
+	@name ( 'Wait For View Financial Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Financial Information' ) 
+	@name ( 'Click Transactions button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Transactions' ) 
+	@name ( 'Wait For Transaction History' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction History' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'transaction_history' ) 
+	@name ( 'Click Transaction History Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Transaction History' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For View Financial Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Financial Information' ) 
+	@name ( 'Click View Financial Information Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'View Financial Information' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_inquire_assets_financial_info_fail"^ ) 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Asset to Map' ) map.add ( map = result , key = 'ASSETNUMBER' , value = ^=assetNumber^ ) 
+	@name ( 'Return result' ) result = control.evaluate ( expression = 'return result' ) 
+} 

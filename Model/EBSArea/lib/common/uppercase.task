@@ -1,0 +1,3 @@
+@specification 1.1 
+@param ( name = data ) 
+data = control.evaluate ( expression = 'return data != null ? String.valueOf(data).toUpperCase() : ""' ) 

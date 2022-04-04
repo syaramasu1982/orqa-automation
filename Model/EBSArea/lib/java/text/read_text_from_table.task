@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = row ) 
+@param ( name = column ) 
+java.switch ( session = session ) 
+@name ( 'Read text [${field}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//ExtendedFrame//Button[@text='Refresh Data']/../VTextField["+ row +"]"^ , timeout = 5 ) 
+		yAxis = java.getvalue ( target = ^"//ExtendedFrame//Button[@text='Refresh Data']/../VTextField["+ row +"]/@y"^ ) 
+		valueRead = java.getvalue ( target = ^"//ExtendedFrame//Button[@text='Refresh Data']/../VTextField[@y="+ yAxis +"][" + column +"]"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_text_"+field+"_fail"^ ) 
+	error ^"Failed to read text [" + field + "] on session [" + session + "]"^ 
+} 

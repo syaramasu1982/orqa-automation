@@ -1,0 +1,62 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = accountNumber ) 
+@param ( name = glDate ) 
+@param ( name = dates ) 
+@param ( name = clearedDate ) 
+@name ( 'Mark Statement Line As Reconciled' ) try {
+	@name ( 'Wait For Find Bank Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Bank Statements' ) 
+	@name ( 'Enter Account Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Account Number' , title = 'Find Bank Statements' , xPath = 'FScrollBox[1]//VTextField[1]' , value = accountNumber ) 
+	@name ( 'Enter GL Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'GL Date' , title = 'Find Bank Statements' , xPath = 'FScrollBox[1]//VTextField[7]' , value = glDate ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Reconcile Bank Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reconcile Bank Statements' ) 
+	@name ( 'Click Review button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Review' ) 
+	@name ( 'Wait For Bank Statement' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement' ) 
+	@name ( 'Click Lines button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Lines' ) 
+	@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+	'Reconcile first AR Receipt' {
+		@name ( 'Click on first Unreconciled Receipt Line ' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'First Receipt' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[1]' ) 
+		@name ( 'Wait For Find Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Transactions' ) 
+		@name ( 'Select Detail RadioButton' ) /EBSArea/lib/java/radioButton/select_radio_button.task ( scenario = scenario , session = session , title = 'Find Transactions' , xPath = "FScrollBox[2]//ExtendedCheckbox[@text='Detail']" ) 
+		@name ( 'Select AR Receipt Checkbox' ) /EBSArea/lib/java/checkbox/populate_checkbox.task ( session = session , expectedVal = 'Y' , title = 'Find Transactions' , xPath = "FScrollBox[2]//LWCheckbox[@text='AR Receipt']" , scenario = scenario , name = 'AR Receipt' ) 
+		@name ( 'Enter the Dates' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates' , title = 'Find Transactions' , xPath = 'FScrollBox[1]//VTextField[3]' , value = dates ) 
+		@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Find' ) 
+		@name ( 'Wait For Available Transactions' ) sleep 2 
+		@name ( 'Wait For Available Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Available Transactions' ) 
+		@name ( 'Select Transaction line Checkbox' ) /EBSArea/lib/java/checkbox/populate_checkbox.task ( session = session , expectedVal = 'Y' , title = 'Available Transactions' , xPath = 'FScrollBox[1]//CheckBox[1]/LWCheckbox' , scenario = scenario ) 
+		@name ( 'Amend Cleared Date to Todays Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Cleared Date' , title = 'Available Transactions' , xPath = 'FScrollBox[1]//VTextField[45]' , value = clearedDate ) 
+		@name ( 'Click Reconcile button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Reconcile' ) 
+		@name ( 'Wait For Bank Statement Lines' ) sleep 2 
+		@name ( 'Check Available Transactions exists' ) isAvailableTransactionsExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Available Transactions' , title = 'Available Transactions' ) 
+		if isAvailableTransactionsExist {
+			@name ( 'Click Available Transactions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Available Transactions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+		} 
+		@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+		@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[66]' ) 
+		assert.true ( expression = 'isStatus == "Reconciled"' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	} 
+	'Reconcile Miscellaneous' {
+		@name ( 'Click on third Unreconciled Receipt Line ' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'First Receipt' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[3]' ) 
+		@name ( 'Wait For Find Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Transactions' ) 
+		@name ( 'Select Detail RadioButton' ) /EBSArea/lib/java/radioButton/select_radio_button.task ( scenario = scenario , session = session , title = 'Find Transactions' , xPath = "FScrollBox[2]//ExtendedCheckbox[@text='Detail']" ) 
+		@name ( 'Select Miscellaneous Checkbox' ) /EBSArea/lib/java/checkbox/populate_checkbox.task ( session = session , expectedVal = 'Y' , title = 'Find Transactions' , xPath = "FScrollBox[2]//LWCheckbox[@text='Miscellaneous']" , scenario = scenario , name = 'Miscellaneous' ) 
+		@name ( 'Enter the Dates' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates' , title = 'Find Transactions' , xPath = 'FScrollBox[1]//VTextField[3]' , value = dates ) 
+		@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Find' ) 
+		@name ( 'Wait For Available Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Available Transactions' ) 
+		@name ( 'Select Transaction line Checkbox' ) /EBSArea/lib/java/checkbox/populate_checkbox.task ( session = session , expectedVal = 'Y' , title = 'Available Transactions' , xPath = 'FScrollBox[1]//CheckBox[1]/LWCheckbox' , scenario = scenario ) 
+		@name ( 'Amend Cleared Date to Todays Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Cleared Date' , title = 'Available Transactions' , xPath = 'FScrollBox[1]//VTextField[45]' , value = clearedDate ) 
+		@name ( 'Click Reconcile button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Reconcile' ) 
+		@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+		@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[68]' ) 
+		assert.true ( expression = 'isStatus == "Reconciled"' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click Bank Statement Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_mark_statement_line_reconciled_fail"^ ) 
+	error ^"Failed to perform mark statement line as reconciled for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

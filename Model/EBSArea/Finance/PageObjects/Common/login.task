@@ -1,0 +1,56 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = user ) 
+@param ( name = password ) 
+@param ( name = environment ) 
+@param ( name = scenario ) 
+@param ( name = testCaseUser ) 
+control.try ( showFailure = false ) {
+	web.switch ( session = session ) 
+	@name ( 'Check home exists' ) isHomeExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = "[text()='Home']" ) 
+	if isHomeExists {
+		@name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+} 
+catch {
+	if ^environment['browser'].equals('Chrome')^ {
+		web.start ( session = session , browser = ^environment['browser']^ , executable = ^environment['browser.path']^ , args = ^environment['privateMode']^ ) 
+	} 
+	else {
+		@name ( 'Resolve user data directory' ) myProf = control.evaluate ( expression = 'def myProf = "MYPROF"+testCaseUser
+return myProf' ) 
+		web.start ( browser = ^environment['browser']^ , session = session , profilePath = ^"C:/Users/" + System.getProperty("user.name") +"/AppData/Local/Microsoft/Edge/User Data/"+myProf^ ) 
+	} 
+	@name ( 'Login' ) try {
+		if ^testCaseUser.contains("SSO")^ {
+			web.maximize ( ) 
+			web.url ( url = ^environment['ssoURL']^ ) 
+			@name ( 'Read login title' ) loginTitle = /EBSArea/lib/web/basic/check_label_exist.task ( scenario = scenario , session = session , attribute = 'text()' , name = 'Username:' , alternateName = 'UKSBS Service Portal' ) 
+			@name ( 'Wait for Login Screen' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , text = loginTitle , element = '*' ) 
+			@name ( 'Enter User Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'User Name' , value = user , xPath = 'username' ) 
+			@name ( 'Check Next button' ) isNextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , xPath = "[@value='Next']" , element = 'input' ) 
+			@name ( 'Is Next Exists' ) if isNextExists {
+				@name ( 'Click Next Button' ) /EBSArea/lib/web/button/click_input_type_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+			} 
+			@name ( 'Enter Password' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Password' , value = password , xPath = 'password' ) 
+			@name ( 'Read Login button' ) login = /EBSArea/lib/web/basic/check_label_exist.task ( scenario = scenario , session = session , attribute = '@value' , name = 'Login' , alternateName = 'Sign In' ) 
+			@name ( 'Click Login Button' ) /EBSArea/lib/web/button/click_input_type_button.task ( scenario = scenario , session = session , name = login ) 
+			@name ( 'Wait for Login Success' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , text = 'Oracle Applications Home Page' , element = 'h1' ) 
+		} 
+		else {
+			web.maximize ( ) 
+			web.url ( url = ^environment['url']^ ) 
+			@name ( 'Wait for Login Screen' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , text = 'User Name' , element = '*' ) 
+			@name ( 'Enter User Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'User Name' , value = user , xPath = 'unamebean' ) 
+			@name ( 'Enter Password' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Password' , value = password , xPath = 'pwdbean' ) 
+			@disabled /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'before_login' ) 
+			@name ( 'Click Login Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'SubmitButton' , scenario = scenario ) 
+			@name ( 'Wait for Login Success' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , text = 'Oracle Applications Home Page' , element = 'h1' ) 
+			@disabled /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'after_login' ) 
+		} 
+	} 
+	@name ( 'Handle failure' ) catch {
+		/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'login_fail' ) 
+		error ^"Failed to perform login for scenario [" + scenario +"] with session ["+ session +"]"^ 
+	} 
+} 

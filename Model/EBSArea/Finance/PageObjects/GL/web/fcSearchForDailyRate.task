@@ -1,0 +1,26 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = fromCurrency ) 
+@param ( name = toCurrency ) 
+@param ( name = startDate ) 
+@param ( name = endDate ) 
+@param ( name = rateType ) 
+web.switch ( session = session ) 
+@name ( 'Foreign Currency Search For Daily Rate' ) try {
+	@name ( 'Select From Currency' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'From Currency' , id = 'searchHeader' , xPath = 'searchFromCurrency' , value = fromCurrency ) 
+	@name ( 'Select To Currency' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'To Currency' , id = 'searchHeader' , xPath = 'searchToCurrency' , value = toCurrency ) 
+	@name ( 'Select Rate Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Rate Type' , xPath = 'searchRateType' , value = rateType ) 
+	@name ( 'Enter Start Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Start Date' , xPath = 'searchFromDate' , value = startDate ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'End Date' , xPath = 'searchToDate' , value = endDate ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'drSearchSubmit' , scenario = scenario ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'drSearchSubmit' , scenario = scenario ) 
+	@name ( 'Read Rate Type' ) rateTypeValue = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Rate Type' , xPath = 'N46:conversionType:0' ) 
+	@disabled assert.true ( expression = 'rateTypeValue == rateType' ) 
+	@name ( 'Read Rate' ) rate = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Rate' , xPath = 'N46:conversionRate:0' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^"foreign_currency_search_daily_rate_"+startDate+""^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ scenario+"_foreign_currency_search_daily_rate_fail"^ ) 
+	error ^"Failed to perform fc search for daily rates for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

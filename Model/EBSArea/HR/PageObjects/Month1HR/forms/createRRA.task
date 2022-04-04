@@ -1,0 +1,64 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = elementName ) 
+@param ( name = annualAmount ) 
+java.switch ( session = session ) 
+'Create sickness absence' {
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click on Alter Effective Date from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Alter Effective Date' ) 
+	@name ( 'Wait For Alter Effective Date' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Alter Effective Date' ) 
+	@name ( 'Calculate First Day Of Fifth Month' ) firstDayOfFifthMonth = control.evaluate ( expression = 'def firstDayOfFifthMonth = null
+
+def cal = Calendar.getInstance();
+
+cal.add(Calendar.MONTH, 4);
+
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+
+firstDayOfFifthMonth = cal.getTime().format("dd-MMM-yyyy").toUpperCase()
+
+return firstDayOfFifthMonth' ) 
+	@name ( 'Enter Effective Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Effective Date' , title = 'Alter Effective Date' , xPath = 'VTextField[1]' , value = firstDayOfFifthMonth ) 
+	@name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click Assignment Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Assignment' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Click Entries Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entries' ) 
+	@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+	@disabled @name ( 'Click on Alter Effective Date from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Alter Effective Date' ) 
+	@disabled @name ( 'Wait For Alter Effective Date' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Alter Effective Date' ) 
+	@disabled @name ( 'Calculate Effective Date' ) effectiveDate = control.evaluate ( expression = 'def effectiveDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheMonth = cal.getTime();
+
+effectiveDate = firstDayOfTheMonth.format("dd-MMM-yyyy").toUpperCase()
+
+return effectiveDate' ) 
+	@disabled @name ( 'Enter Effective Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Effective Date' , title = 'Alter Effective Date' , xPath = 'VTextField[1]' , value = effectiveDate ) 
+	@disabled @name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@disabled @name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+	@name ( 'Press tab on Element Name' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Element Name' , label = 'Element Name' , index = '7' ) 
+	@name ( 'Wait For RCUK Pay Cost Allocation KF' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'RCUK Pay Cost Allocation KF' ) 
+	@name ( 'Click Cancel' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Cancel' ) 
+	@name ( 'Enter Element Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Element Name' , value = elementName , label = 'Element Name' , index = '7' ) 
+	@name ( 'Wait For RCUK Pay Cost Allocation KF' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'RCUK Pay Cost Allocation KF' ) 
+	@name ( 'Click Cancel' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Cancel' ) 
+	@name ( 'Click Entry Values Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entry Values' ) 
+	@name ( 'Wait For Entry Values' ) sleep 5 
+	@name ( 'Wait For Entry Values' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Entry Values' ) 
+	@name ( 'Enter Annual Amount' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , label = 'Annual Amount' , index = '1' , value = annualAmount ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Entry Values Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Entry Values' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+	@name ( 'Click Element Entries Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Element Entries' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Click Assignment Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+	error ^"Failed to perform month2 hr for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

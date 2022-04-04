@@ -1,0 +1,52 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet , default = 'TestCases' , type = automatic ) 
+@param ( name = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve scenario' ) scenario = control.evaluate ( expression = 'return "AR_TC01"' ) 
+@name ( 'Resolve Oracle Forms session' ) session = control.evaluate ( expression = 'return "EBS_FIN_OF"' ) 
+@testcase 'Executing Test Pack [${workbook}]]' {
+	@testcase 'Process sheet [${sheet}] on workbook [${workbook}]' {
+		@name ( 'Execute test cases' ) try {
+			workbookInfo = file.info ( sourcePath = workbook ) 
+			@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+			file.copy ( sourcePath = workbook , targetPath = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ ) 
+			cases = /EBSArea/lib/common/get_test_cases.task ( environment = environment , workbook = workbook , sheet = sheet , testCase = testCase , convertColumns = 'QUANTITY,UNITPRICE,NUMBER' ) 
+			@name ( 'Create All Results List' ) results = list.new ( ) 
+			list.add ( list = results , entry = ^["INVOICENUMBER"]^ ) 
+			@name ( 'Login as HR' ) /EBSArea/Finance/PageObjects/Common/login_old.task ( password = ^env['hr.password']^ , scenario = scenario , environment = environment , user = ^env['hr.username']^ , session = ^env['session.web']^ ) 
+			@name ( 'Process test cases' ) for caseRef in cases {
+				@name ( 'Resolve ID' ) orqaRef = control.evaluate ( expression = "return caseRef['ID']" ) 
+				@name ( 'Resolve test case' ) testCaseRef = control.evaluate ( expression = "return caseRef['TEST CASE NAME']" ) 
+				@testcase 'Execute test case [${orqaRef}] with reference of [${testCaseRef}] from sheet [${sheet}]' {
+					@name ( 'Navigate Transactions' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK HR Operational' , itemId = 'RCUK HR Operational' , itemName = 'Enter and Maintain' , isJavaApp = 'Yes' ) 
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'New Starter' ) /EBSArea/HR/PageObjects/Month1HR/forms/newStarter.task ( scenario = scenario , session = session , environment = environment , firstName = 'Tester' , title = 'Mr' , action = 'Create Employment' , gender = 'Male' , personTypes = 'Employee' , birthDate = '01-AUG-1990' , status = 'Unknown' , addressLine1 = '2 Demo Road' , addressLine2 = 'Harvard Way' , addressLine3 = 'Oakgrove' , town = 'Milton Keynes' , postCode = 'MK10 9TF' , type = 'Home' , navigationOptions = 'Contract' , contractStatus = 'Active' , contractType = 'Open Ended' , navigationOptions2 = 'Person Type Usage' , payslipRequired = 'Yes' , pensionScheme = 'Alpha Pension Scheme' , leaveScheme = 'UKRI Annual Leave Days Scheme' , harmonisationFlag = 'Yes' , termsAndConditions = 'UKRI 2018' , position = 'UKRI-Administrator-1081825' , assignmentCategory = 'Full Time' , employeeCategory = 'Open Ended' , supervisorName = 'McKerracher, Mr Doug' , miscellaneousReason = 'New Starter' , navigationOptions3 = 'Extra Details Of Service' , contractTypeService = 'UKRI - 37' , navigationOptions4 = 'Budgets' , navigationOptions5 = 'QuickPay' , runType = 'Regular' , viewResults = 'SOE Report' , assignmentActions = 'Standard Run' , changeAmount = '21129' , updateSalary = '21129' , salary = '20129.00' , reasonForChange = 'New Starter' ) 
+				} 
+				@name ( 'Add Result to List' ) list.add ( list = results , entry = ^[result.INVOICENUMBER]^ ) 
+			} 
+			'Write results summary' {
+				@name ( 'Write results to spread sheet' ) /EBSArea/lib/excel/writeSummary.task ( workbookSummary = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ , summaryTable = results , resultsSheet = 'TestCases' , resultsCellName = 'P' , cellRange = 'A1:P1' , boarders = 'A1:P' ) 
+			} 
+		} 
+		@name ( 'Handle failures' ) catch {
+			@name ( 'Resolve task name' ) taskName = control.evaluate ( expression = "return workbookInfo.Name.substring(0, workbookInfo.Name.indexOf('.')  )" ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = ^env['session.web']^ , name = ^taskName+"_fail"^ ) 
+			@disabled @name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^taskName+"_OF_fail"^ ) 
+		} 
+		@name ( 'Close all active sessions' ) control.try ( showFailure = false ) {
+			@name ( 'Close sessions' ) if closeSessions {
+				@name ( 'Close all sessions [Java]' ) /EBSArea/lib/java/basic/close_all_active_sessions.task ( ) 
+				@name ( 'Close all sessions [Web]' ) /EBSArea/lib/web/basic/close_all_active_sessions.task ( ) 
+			} 
+		} 
+		control.evaluate ( expression = 'workbook' ) 
+	} 
+} 

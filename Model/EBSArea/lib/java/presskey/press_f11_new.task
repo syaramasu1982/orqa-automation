@@ -1,0 +1,35 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+@param ( name = alternateLabel ) 
+@param ( name = index ) 
+java.switch ( session = session ) 
+@name ( 'Press f11 [${field}]' ) try {
+	if ^label != null && String.valueOf(label).trim().length() > 0^ {
+		label = /EBSArea/lib/java/basic/check_label_exist.task ( scenario = scenario , session = session , name = label , alternateName = alternateLabel , index = index ) 
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//VTextField[@label='" + label + "']["+index+"]"^ , timeout = 5 ) 
+			sleep 0.5 
+			java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+			sleep 0.5 
+			java.sendkey ( key = 'F11' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.5 
+			java.click ( clickType = 'DOUBLE_CLICK' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 0.5 
+			java.sendkey ( key = 'F11' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "press_f11_"+field+"_fail"^ ) 
+	error ^"Failed to press f11 [" + field + "] on session [" + session + "]"^ 
+} 

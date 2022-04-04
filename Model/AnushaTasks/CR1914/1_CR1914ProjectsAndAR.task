@@ -1,0 +1,74 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet , default = 'TestCases' , type = automatic ) 
+@param ( name = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve scenario' ) scenario = control.evaluate ( expression = 'return "CR1914_PRO_TC01"' ) 
+@name ( 'Resolve Oracle Forms session' ) session = control.evaluate ( expression = 'return "EBS_FIN_OF"' ) 
+@testcase 'Executing Test Pack [${workbook}]]' {
+	@testcase 'Process sheet [${sheet}] on workbook [${workbook}]' {
+		@name ( 'Execute test cases' ) try {
+			workbookInfo = file.info ( sourcePath = workbook ) 
+			@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+			file.copy ( sourcePath = workbook , targetPath = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ ) 
+			cases = /EBSArea/lib/common/get_test_cases.task ( environment = environment , workbook = workbook , sheet = sheet , testCase = testCase ) 
+			@name ( 'Create All Results List' ) results = list.new ( ) 
+			list.add ( list = results , entry = ^["DRAFTINVOICEREQUESTID","ARINVOICENUMBER"]^ ) 
+			@name ( 'Login as Local User' ) /EBSArea/Finance/PageObjects/Common/login_old.task ( password = ^env['project.password']^ , scenario = scenario , environment = environment , user = ^env['project.username']^ , session = ^env['session.web']^ ) 
+			@name ( 'Process test cases' ) for caseRef in cases {
+				@name ( 'Resolve ID' ) orqaRef = control.evaluate ( expression = "return caseRef['ID']" ) 
+				@name ( 'Resolve test case' ) testCaseRef = control.evaluate ( expression = "return caseRef['TEST CASE NAME']" ) 
+				@testcase 'Execute test case [${orqaRef}] with reference of [${testCaseRef}] from sheet [${sheet}]' {
+					@name ( 'Navigate RequestsRun' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK PA Super User (Forms)' , subMenu = 'Billing' , itemId = 'Events' , itemName = 'Project' , subSubMenu = 'Events' ) 
+					@name ( 'Calculate Event Date' ) eventDate = control.evaluate ( expression = 'def eventDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+eventDate = today
+}
+eventDate = eventDate.format("dd-MMM-yyy").toUpperCase()
+return eventDate' ) 
+					/AnushaTasks/PageObjects_ProjectsRegression/raiseInvoiceToProjects.task ( scenario = scenario , session = session , environment = environment , projectNumber = ^caseRef['PROJECTNUMBER']^ , eventType = ^caseRef['EVENTTYPE']^ , description = ^caseRef['DESCRIPTION']^ , billAmount = ^caseRef['BILLAMOUNT']^ , revenueAmount = ^caseRef['REVENUEAMOUNT']^ , eventDate = eventDate , operatingUnit = ^caseRef['OPERATINGUNIT']^ ) 
+					/EBSArea/Finance/PageObjects/Common/navigate_java_menu_items.task ( scenario = scenario , mainMenu = 'Other' , subMenu1 = 'Requests' , itemName = 'Run' , index = '1' , session = session , title = 'RCUK PA Super User (Forms)' ) 
+					result = /AnushaTasks/PageObjects_ProjectsRegression/generateDraftInvoiceforSingleProject.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+					/EBSArea/Finance/PageObjects/Common/navigate_java_menu_items.task ( scenario = scenario , mainMenu = 'Billing' , itemName = 'Invoice Review' , index = '1' , session = session , title = 'RCUK PA Super User (Forms)' ) 
+					/AnushaTasks/PageObjects_ProjectsRegression/findingSingleInvoiceReview.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ , taxDescription = ^caseRef['TAXDESCRIPTION']^ ) 
+					/EBSArea/Finance/PageObjects/Common/navigate_java_menu_items.task ( scenario = scenario , mainMenu = 'Other' , subMenu1 = 'Requests' , itemName = 'Run' , session = session , index = '1' , title = 'RCUK PA Super User (Forms)' ) 
+					/AnushaTasks/interfaceInvoicesToReceivables.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , nameInterfaceInvoice = ^caseRef['NAMEINTERFACEINVOICE']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+					@name ( 'Navigate RequestsRun' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK AR Super User' , subMenu = 'Control' , itemId = 'Requests' , itemName = 'Run' , subSubMenu = 'Requests' ) 
+					@disabled /EBSArea/Finance/PageObjects/Common/navigate_java_menu_items.task ( scenario = scenario , mainMenu = 'Control' , subMenu1 = 'Requests' , itemName = 'Run' , session = session , index = '1' , title = 'RCUK AR Super User' ) 
+					@name ( 'Calculate Default Date' ) defaultDate = control.evaluate ( expression = 'def defaultDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+defaultDate = today
+}
+defaultDate = defaultDate.format("dd-MMM-yyy").toUpperCase()
+return defaultDate' ) 
+					@name ( 'autoInvoiceImportProgram' ) /AnushaTasks/autoInvoicingImportProgram.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAMEAUTOINVOICEIMPORT']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , transactionSource = ^caseRef['TRANSACTIONSOURCEPROJECTS']^ , defaultDate = defaultDate ) 
+					@disabled @name ( 'Navigate RequestsRun' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK PA Super User (Forms)' , subMenu = 'Other' , itemId = 'Requests' , itemName = 'Run' , subSubMenu = 'Requests' ) 
+					@disabled /AnushaTasks/tiebackInvoicesFromReceivables.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , nameTiebackInvoice = ^caseRef['NAMETIEBACKINVOICE']^ ) 
+				} 
+				@name ( 'Add Result to List' ) list.add ( list = results , entry = ^[result.PERIODNAME,result.ARINVOICENUMBER,result.DRAFTINVOICEREQUESTID]^ ) 
+			} 
+			'Write results summary' {
+				@name ( 'Write results to spread sheet' ) /EBSArea/lib/excel/writeSummary.task ( workbookSummary = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ , summaryTable = results , resultsSheet = 'TestCases' , resultsCellName = 'Q' , cellRange = 'A1:Q1' , boarders = 'A1:Q' ) 
+			} 
+		} 
+		@name ( 'Handle failures' ) catch {
+			@name ( 'Resolve task name' ) taskName = control.evaluate ( expression = "return workbookInfo.Name.substring(0, workbookInfo.Name.indexOf('.')  )" ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= "=env['session.web']" , name #= '=taskName+"_fail"' ) 
+			@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^taskName+"_OF_fail"^ ) 
+		} 
+		'Close all active sessions' {
+			webSessions = web.getsessions ( ) 
+			javaSessions = java.getsessions ( ) 
+			@name ( 'Is web session exist' ) if ^webSessions.contains(env['session.web'])^ {
+				@name ( 'Close Web Session' ) /EBSArea/lib/web/basic/close_web_session.task ( session = ^env['session.web']^ ) 
+			} 
+			@name ( 'Is java session exist' ) if ^javaSessions.contains(session)^ {
+				@name ( 'Close Java Session' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+			} 
+		} 
+		control.evaluate ( expression = 'workbook' ) 
+	} 
+} 

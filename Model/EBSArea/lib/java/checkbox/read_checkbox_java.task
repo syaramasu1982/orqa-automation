@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Read checkbox [${title}]' ) try {
+	@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+		checkBoxValueRead = java.getvalue ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +"/@selected"^ ) 
+		@name ( 'Read checkbox value' ) checked = control.evaluate ( expression = 'if(checkBoxValueRead == "false"){
+	return false
+} else {
+	return true
+}' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_checkbox_"+ title +"_fail"^ ) 
+	error ^"Failed to click button [" + title + "] on session [" + session + "]"^ 
+} 

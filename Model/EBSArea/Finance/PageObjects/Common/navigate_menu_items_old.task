@@ -1,0 +1,103 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = mainMenu ) 
+@param ( name = subMenu ) 
+@param ( name = subSubMenu ) 
+@param ( name = subSubSubMenu ) 
+@param ( name = subMenu4 ) 
+@param ( name = itemId ) 
+@param ( name = itemName ) 
+@param ( name = isJavaApp ) 
+web.switch ( session = session ) 
+@name ( 'Click Button [${name}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	isMenuExist = web.exists ( target = ^"//a[text()='" + mainMenu + "']"^ ) 
+	@name ( 'Check and navigate home' ) if ^!isMenuExist^ {
+		isHomeExist = web.exists ( target = "//a[text()='Home']" ) 
+		@name ( 'Open Home' ) if isHomeExist {
+			web.click ( target = "//a[text()='Home']" ) 
+		} 
+	} 
+	web.wait ( target = ^"//a[text()='" + mainMenu + "']"^ , timeout = 10 ) 
+	@name ( 'Handle[Root Menu]' ) if ^mainMenu != null && String.valueOf(mainMenu).trim().length() > 0^ {
+		@name ( 'Click Main Menu' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/img[contains(@alt,'Expand')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']"^ ) 
+				sleep 0.25 
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/img[contains(@alt,'Expand')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	@name ( 'Handle[Sub Menu1]' ) if ^subMenu != null && String.valueOf(subMenu).trim().length() > 0^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']"^ ) 
+				sleep 0.25 
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	@name ( 'Handle[Sub Menu 2]' ) if ^subSubMenu != null && String.valueOf(subSubMenu).trim().length() > 0^ {
+		@name ( 'Click Sub-Sub Menu' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[contains(text(),'"+ subSubMenu +"')]/img[contains(@alt,'Expand')]/ancestor::ul[position()=1 and contains(@style,'block')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']"^ ) 
+				sleep 0.25 
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[contains(text(),'"+ subSubMenu +"')]/img[contains(@alt,'Expand')]/ancestor::ul[position()=1 and contains(@style,'block')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	@name ( 'Handle [SubMenu 3]' ) if ^subSubSubMenu != null && String.valueOf(subSubSubMenu).trim().length() > 0^ {
+		@name ( 'Click Sub-Sub-Sub Menu' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']"^ ) 
+				sleep 0.25 
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	@name ( 'Handle [SubMenu 4]' ) if ^subSubSubMenu != null && String.valueOf(subSubSubMenu).trim().length() > 0^ {
+		@name ( 'SubMenu4' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu4 + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu4 + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu4 + "']"^ ) 
+				sleep 0.25 
+				web.wait ( target = ^"//ul[contains(@class,'treeview')]/li[contains(@class,'rootmenu')]/a[text()='" + mainMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subSubSubMenu + "']/following-sibling::ul/li[contains(@class,'submenu')]/a[text()='" + subMenu4 + "']/img[contains(@alt,'Expand')]//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Unexpected error while processing the request.' ) 
+	@name ( 'Handle [Item Name]' ) if ^itemName != null && String.valueOf(itemName).trim().length() > 0^ {
+		@name ( 'Click on Item' ) control.retry ( maxAttempts = 3 ) {
+			isToExpand = web.exists ( target = ^"//a[text()='"+ itemName +"']//ancestor::*[contains(@id,'"+ mainMenu +"') or contains(@style,'block')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				web.wait ( target = ^"//*[contains(@id,'" + itemId + "')]//a[text()='" + itemName + "']"^ , timeout = 5 ) 
+				web.click ( target = ^"//*[contains(@id,'" + itemId + "')]//a[text()='" + itemName + "']"^ ) 
+				sleep 2 
+				@disabled currentUrl = web.geturl ( ) 
+				@disabled if ^currentUrl.contains("OAFunc=OAHOMEPAGE")^ {
+					@disabled map.remove ( map = ^=isJavaApp^ , key = 'ISJAVAAPP' ) 
+					@disabled map.add ( map = ^=isJavaApp^ , key = 'ISJAVAAPP' , value = 'YES' ) 
+				} 
+			} 
+		} 
+	} 
+} 
+/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "navigation_"+itemName+"_success"^ ) 
+@name ( 'Handle Failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_on_navigate_item_"+itemName+"_fail"^ ) 
+	error ^"Failed to navigate [" + itemName + "] on session [" + session + "]"^ 
+} 

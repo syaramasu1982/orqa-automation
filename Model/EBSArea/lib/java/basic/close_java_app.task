@@ -1,0 +1,3 @@
+@specification 1.1 
+@param ( name = session ) 
+java.terminate ( session = session ) 

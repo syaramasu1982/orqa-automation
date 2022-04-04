@@ -1,0 +1,13 @@
+@specification 1.1 
+@param ( name = folder ) 
+filesList = file.list ( sourcePath = ^"EBSArea/Finance/" + folder^ ) 
+@name ( 'Process' ) control.iteration ( loopSource = ^=filesList^ , loopVar = 'fileHandle' , loopIndex = 'fileHandleID' ) {
+	@name ( 'Resolve file' ) fileName = control.evaluate ( expression = "return fileHandle.getName().substring(0, fileHandle.getName().indexOf('.')  )" ) 
+	@disabled @name ( 'Resolve command' ) tasknameGenearted = control.evaluate ( expression = 'return "/EBSArea/Finance/" + folder +"/" + fileName +".task ( environment = environment , workbook = ''C:/Users/syar11/OneDrive - ph.rc/Desktop/Automation_List/TestData/" + folder + "/" + fileName + ".xlsx'' ) "
+' ) 
+	@disabled @name ( 'Resolve command' ) tasknameGenearted = control.evaluate ( expression = 'return "EBSArea/Finance/" + folder +"/" + fileName +".task  - workbook = ''" + fileName + ".xlsx'' "
+' ) 
+	@name ( 'Resolve command' ) tasknameGenearted = control.evaluate ( expression = 'return fileName
+//return fileName.toUpperCase()' ) 
+	console.write ( data = ^=tasknameGenearted^ ) 
+} 

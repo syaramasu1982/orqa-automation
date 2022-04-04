@@ -1,0 +1,15 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Click button [${name}]' ) try {
+	@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//input[@type='button' and contains(@value,'"+ name +"')] | //input[@type='submit' and contains(@value,'"+ name +"')]"^ , timeout = 5 ) 
+		web.click ( target = ^"//input[@type='button' and contains(@value,'"+ name +"')] | //input[@type='submit' and contains(@value,'"+ name +"')]"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_button_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

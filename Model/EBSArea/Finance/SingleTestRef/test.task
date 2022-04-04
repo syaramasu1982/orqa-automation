@@ -1,0 +1,8 @@
+@specification 1.1 
+email.connect ( mailboxProtocol = 'IMAP' , mailboxHost = 'imap.gmail.com' , mailboxPort = 993 , mailboxUsername = 'yaramasu.automation@gmail.com' , mailboxPassword = 'Yuvansh@1234' , session = 'testing' ) 
+email = email.popreceive ( seenFlag = 'ANY' ) 
+@disabled web.start ( browser = 'CHROME' , session = 'abc' , executable = 'C:\Program Files (x86)\MyInstalls\GoogleChromePortable\GoogleChromePortable.exe' ) 
+@disabled web.url ( url = 'https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&flowName=GlifWebSignIn&flowEntry=ServiceLogin' ) 
+@disabled web.click ( target = "//input[@id='identifierId']" ) 
+@disabled web.setvalue ( value = 'uksbstestingrecfaith@gmail.com' , target = "//input[@id='identifierId']" ) 
+@disabled web.click ( target = "//*[@id='identifierNext']//button" ) 

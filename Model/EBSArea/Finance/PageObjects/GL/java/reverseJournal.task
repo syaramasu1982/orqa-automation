@@ -1,0 +1,42 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = reversalPeriod ) 
+@param ( name = posting ) 
+@param ( name = ledger ) 
+@param ( name = period ) 
+@param ( name = category ) 
+@param ( name = journal ) 
+@name ( 'Reverse Journal' ) try {
+	@name ( 'Wait For Find Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Journals' ) 
+	@name ( 'Enter Posting' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Posting' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[8]' , value = posting ) 
+	@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Ledger' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[3]' , value = ledger ) 
+	@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Period' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[5]' , value = period ) 
+	@name ( 'Enter Journal' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Journal' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[2]' , value = journal ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Category' , title = 'Journals' , xPath = 'FScrollBox[2]//VTextField[6]' , value = category ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Enter Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Enter Journals' ) 
+	@name ( 'Click Reverse Batch button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Reverse Batch' ) 
+	@name ( 'Wait For Default Reversal Period' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Default Reversal Period' ) 
+	'Enter Default Reversal Period' {
+		@name ( 'Enter Reversal Period' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Ledger' , xPath = '%' , value = reversalPeriod ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click on Switch Dr/Cr button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Switch' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+	@name ( 'Read Name' ) isName = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '3' ) 
+	assert.true ( expression = 'isName == "Reverse Journals"' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_reverse_journal_fail"^ ) 
+	error ^"Failed to perform reverse journal for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

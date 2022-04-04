@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Press enter [${xPath}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^""+ xPath +""^ , timeout = 5 ) 
+		sleep 1 
+		web.sendkey ( key = 'ENTER' , target = ^""+ xPath +""^ ) 
+		sleep 1 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "press_enter_"+xPath+"_fail"^ ) 
+	error ^"Failed to press enter [" + xPath + "] on session [" + session + "]"^ 
+} 

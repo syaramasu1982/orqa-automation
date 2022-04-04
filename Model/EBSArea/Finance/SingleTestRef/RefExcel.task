@@ -1,0 +1,51 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve Web session' ) session = control.evaluate ( expression = 'return "PRO_WEB"' ) 
+@name ( 'Resolve scenario' ) scenario = control.evaluate ( expression = 'return "TC01"' ) 
+@disabled @name ( 'Login as Local User' ) /EBSArea/Finance/PageObjects/Common/login_old.task ( password = ^env['local.password']^ , scenario = scenario , environment = environment , user = ^env['local.username']^ , session = ^env['session.web']^ ) 
+@disabled @name ( 'Navigate Customer' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK AR Super User' , subMenu = 'Customers' , itemId = 'Customers' , itemName = 'Customers' ) 
+@disabled @name ( 'Create New Customer' ) /EBSArea/Finance/PageObjects/AR/web/createNewCustomer.task ( scenario = scenario , session = ^env['session.web']^ , country = 'United Kingdom' , addressLine1 = '3 Harvard Way' , addressLine2 = 'Fire Fly Avenue' , townOrCity = 'Swindon' , postCode = 'SN2 2FT' , operatingUnit = 'MRC' , purpose1 = 'Bill To' , purpose2 = 'Ship To' , billToLocation = '(Site Bill-to)' , organizationName = 'Autoomation100221' ) 
+file.copy ( sourcePath = workbook , targetPath = 'C:\Users\syar11\OneDrive - ph.rc\Desktop\Automation_List\TestData\CreateNewCust1.xlsx' , overwrite = true ) 
+'Processing sheet [${sheet}]' {
+	cases = excel.read ( filePath = workbook , sheetName = sheet ) 
+	@disabled trades = excel.read ( filePath = 'Reference\Java Automation\Input\simpleBarrierFXOptionsData.xls' ) 
+	trades = transform.cast ( columns = 'ID' , type = 'java.lang.String' , pattern = '#' ) 
+	@name ( 'Create All Results List' ) results = list.new ( ) 
+	@disabled list.add ( list = results , entry = ^["REPORTNUMBER"]^ ) 
+	list.add ( list = results , entry = ^["ID", "Price", "Vega", "Rho", "Vanna", "Gamma", "Delta", "Theta", "Volga"]^ ) 
+	@name ( 'For Each Trade' ) for caseRef in cases {
+		'excel' {
+			@name ( 'Create New Customer' ) result = /EBSArea/Finance/PageObjects/AR/web/createNewCustomer.task ( scenario = scenario , session = ^env['session.web']^ , country = ^caseRef['COUNTRY']^ , addressLine1 = ^caseRef['ADDRESSLINE1']^ , addressLine2 = ^caseRef['ADDRESSLINE2']^ , townOrCity = ^caseRef['TOWNORCITY']^ , postCode = ^caseRef['POSTCODE']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , purpose1 = ^caseRef['PURPOSE1']^ , purpose2 = ^caseRef['PURPOSE2']^ , billToLocation = ^caseRef['BILLTOLOCATION']^ , organizationName = ^caseRef['ORGANIZATIONNAME']^ ) 
+			@name ( 'Add Result to List' ) list.add ( list = results , entry = ^[result.ID, result.Price, result.Vega, result.Rho, result.Vanna, result.Gamma, result.Delta, result.Theta, result.Volga]^ ) 
+			@disabled @name ( 'Add Result to List' ) list.add ( list = results , entry = ^[result.REPORTNUMBER]^ ) 
+		} 
+	} 
+	@disabled /EBSArea/lib/excel/writeSummary.task ( workbookSummary = 'C:\Users\syar11\OneDrive - ph.rc\Desktop\Automation_List\TestData\AR\CreateNewCustomer1.xlsx' , summaryTable = results ) 
+	'/Reference/Java Automation/Tasks/Write Results to SpreadSheet.task' ( results #= '=results' , spreadsheet #= '="C:\\Users\\syar11\\OneDrive - ph.rc\\Desktop\\Automation_List\\TestData\\CreateNewCust1.xlsx"' ) 
+} 
+@disabled file.copy ( sourcePath = workbook , targetPath = 'C:\Users\syar11\OneDrive - ph.rc\Desktop\Automation_List\TestData\CreateNewCust1.xls' , overwrite = true ) 
+@disabled 'Processing sheet [${sheet}]' {
+	@disabled cases = excel.read ( filePath = workbook , sheetName = sheet ) 
+	@disabled @name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+	@disabled @name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+	@disabled cases = transform.columnrename ( columns = headers ) 
+	@disabled cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+	@disabled cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+	@disabled @name ( 'Rasie test case not found error' ) if ^cases.size() < 2^ {
+		@disabled error ^"Test case[" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]" ^ 
+	} 
+	@disabled for caseRef in cases {
+		@disabled @name ( 'Create New Customer' ) result = /EBSArea/Finance/PageObjects/AR/web/createNewCustomer.task ( scenario = scenario , session = ^env['session.web']^ , country = ^caseRef['COUNTRY']^ , addressLine1 = ^caseRef['ADDRESSLINE1']^ , addressLine2 = ^caseRef['ADDRESSLINE2']^ , townOrCity = ^caseRef['TOWNORCITY']^ , postCode = ^caseRef['POSTCODE']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , purpose1 = ^caseRef['PURPOSE1']^ , purpose2 = ^caseRef['PURPOSE2']^ , billToLocation = ^caseRef['BILLTOLOCATION']^ , organizationName = ^caseRef['ORGANIZATIONNAME']^ ) 
+		@disabled resultTable = control.evaluate ( expression = 'def resultTable = headers +", RESULT"
+
+return resultTable' ) 
+		@disabled summaryTable = /EBSArea/lib/excel/create_table.task ( columns = resultTable ) 
+		@disabled /EBSArea/lib/excel/handlePrepareSummary123.task ( result #= '=result' , summaryTable #= '=summaryTable' , id #= "=caseRef['ID']" , organizationName #= "=caseRef['ORGANIZATIONNAME']" , country #= "=caseRef['COUNTRY']" , addressLine1 #= "=caseRef['ADDRESSLINE1']" , addressLine2 #= "=caseRef['ADDRESSLINE2']" , postCode #= "=caseRef['POSTCODE']" , operatingUnit #= "=caseRef['OPERATINGUNIT']" , purpose1 #= "=caseRef['PURPOSE1']" , purpose2 #= "=caseRef['PURPOSE2']" , billToLocation #= "=caseRef['BILLTOLOCATION']" , townOrCity #= "=caseRef['TOWNORCITY']" ) 
+		@disabled /EBSArea/lib/excel/writeSummary.task ( workbookSummary = 'C:\Users\syar11\OneDrive - ph.rc\Desktop\Automation_List\TestData\CreateNewCust1.xls' , summaryTable = summaryTable ) 
+	} 
+	@disabled control.evaluate ( expression = 'workbook' ) 
+} 

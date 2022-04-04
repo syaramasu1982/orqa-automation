@@ -1,0 +1,51 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = option ) 
+@param ( name = bucket ) 
+@param ( name = customerNumber ) 
+@param ( name = cycle ) 
+@param ( name = closePopup ) 
+@name ( 'Print Documents Statements ' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Print Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Print Statements' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Operating Unit' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField6"]' , value = operatingUnit ) 
+	@name ( 'Enter Option' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Option' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField7"]' , value = option ) 
+	@name ( 'Enter Bucket' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Bucket' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField8"]' , value = bucket ) 
+	@name ( 'Enter Customer Number' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Customer Number' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField11"]' , value = customerNumber ) 
+	@name ( 'Enter Customer Number' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Customer Number' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField12"]' , value = customerNumber ) 
+	@name ( 'Enter Cycle' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Cycle' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField14"]' , value = cycle ) 
+	@name ( 'Calculate To Date' ) toDate = control.evaluate ( expression = 'def toDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+toDate = today
+}
+toDate  = toDate .format("dd-MMM-yyy").toUpperCase()
+return toDate' ) 
+	@name ( 'Enter Statement Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Statement Date' , title = 'Print Statements' , xPath = 'VTextField[@name="VTextField16"]' , value = toDate ) 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"print_documents_statements_"+operatingUnit+"_"+timeStamp^ ) 
+	@name ( 'Click Submit button' ) /AnushaTasks/clickRoundedButtonOF.task ( scenario = scenario , session = session , name = 'RoundedButton14' ) 
+	sleep 2 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Requests' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Read Request ID' ) readRequestID = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Request ID' , row = '1' , column = '2' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"print_document_request_report_"+timeStamp^ ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"print_statement_cycles_fail"^ ) 
+} 

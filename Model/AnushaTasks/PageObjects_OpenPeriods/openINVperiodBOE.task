@@ -1,0 +1,103 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = environment ) 
+@param ( name = organization ) 
+@param ( name = closeApp ) 
+@param ( name = status ) 
+@param ( name = launchApp ) 
+@name ( 'Open INV Period' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Check Organizations' ) organizationsExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Organizations' , title = 'Organizations' ) 
+	if organizationsExists {
+		@name ( 'Wait For Organizations' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Organizations' , scenario = scenario ) 
+		'Enter Organization Name' {
+			@name ( 'Wait For Organizations' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Organizations' ) 
+			@name ( 'Enter Organization Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Find' , xPath = '%' , value = organization ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+	} 
+	@name ( 'Check Inventory Accounting Periods' ) isPeriodsExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Inventory Accounting Periods' , title = 'Inventory Accounting Periods' ) 
+	if isPeriodsExists {
+		@name ( 'Wait For Inventory Accounting Periods' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Inventory Accounting Periods' , scenario = scenario ) 
+		/EBSArea/lib/java/presskey/press_f11_new.task ( scenario = scenario , session = session , field = 'Status' , label = 'Status' , index = '1' ) 
+		@name ( 'Enter Status' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Status' , title = 'Inventory Accounting Periods' , value = status , label = 'Status' , index = '1' ) 
+		/EBSArea/lib/java/presskey/press_ctrl_f11_new.task ( scenario = scenario , session = session , filed = 'Status' , label = 'Status' , index = '1' ) 
+		@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period' , label = 'Period' , index = '1' ) 
+		lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+		@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+
+}
+
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+		while ^lastOpenPeriodDate<periodName^ {
+			/EBSArea/lib/java/presskey/press_f11_new.task ( scenario = scenario , session = session , field = 'Period' , label = 'Status' , index = '1' ) 
+			if ^session.contains("5")^ {
+				date1 = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+//String date1=date.format('MMM-yyyy')
+String date1=null
+use (groovy.time.TimeCategory) {
+ date=(date + 1.months)
+date1=date.format('MMM-yyyy').toUpperCase()
+}
+//date=date.format('MMM-yyyy')
+
+return date1" ) 
+				@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Period Name' , value = date1 , label = 'Period' , index = '1' , alternateLabel = 'Period Name' ) 
+			} 
+			else {
+				date1 = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+//String date1=date.format('MMM-yyyy')
+String date1=null
+use (groovy.time.TimeCategory) {
+ date=(date + 1.months)
+date1=date.format('MMM-yyyy')
+}
+//date=date.format('MMM-yyyy')
+
+return date1" ) 
+				@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Period Name' , value = date1 , label = 'Period' , index = '1' , alternateLabel = 'Period Name' ) 
+			} 
+			/EBSArea/lib/java/presskey/press_ctrl_f11_new.task ( scenario = scenario , session = session , filed = 'Period' , label = 'Period' , index = '1' ) 
+			@name ( 'Click on Change Status button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Change Status...' ) 
+			@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+			@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+			@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period' , label = 'Period' , index = '1' ) 
+			lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+			@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+
+}
+
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+		} 
+		@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"open_INV_period_name_"+organization+"_"+timeStamp^ ) 
+		@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period' , label = 'Period' , index = '1' ) 
+		'Return Result' {
+			@name ( 'Create Result Map' ) result = map.new ( ) 
+			@name ( 'Add Period Name to Map' ) map.add ( map = result , key = 'PERIODNAME' , value = ^=lastOpenPeriod^ ) 
+			@name ( 'Return Period Name' ) result = control.evaluate ( expression = 'return result' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "open INV periods "+scenario+"_failed"^ ) 
+} 

@@ -1,0 +1,29 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = menu ) 
+@param ( name = menuItem ) 
+java.switch ( session = session ) 
+@name ( 'Click tab [${name}]' ) try {
+	@name ( 'Populate value' ) if ^menu != null && String.valueOf(menu).trim().length() > 0 && menuItem != null && String.valueOf(menuItem).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//"+menu+"//"+menuItem+""^ , timeout = 5 ) 
+			@name ( 'Wait for element' ) sleep 0.5 
+			java.click ( target = ^"//"+menu+"//"+menuItem+""^ ) 
+			@name ( 'Wait for element' ) sleep 0.5 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWMenu[contains(text(),'"+ menuItem+"')]"^ , timeout = 5 ) 
+			@name ( 'Wait for element' ) sleep 0.5 
+			java.click ( target = ^"//LWMenu[contains(text(),'"+ menuItem+"')]"^ ) 
+			@name ( 'Wait for element' ) sleep 0.5 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_mainmenu_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

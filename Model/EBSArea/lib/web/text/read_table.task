@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = element ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Read table [${field}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//" + element +"" + xPath + ""^ , timeout = 5 ) 
+		resultsTable = web.gettable ( target = ^"//" + element +"" + xPath + ""^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "read_table_"+ field +"_fail"^ ) 
+	error ^"Failed to read table [" + field + "] on session [" + session + "]"^ 
+} 

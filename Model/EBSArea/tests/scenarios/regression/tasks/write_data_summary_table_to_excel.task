@@ -1,0 +1,51 @@
+@specification 1.1 
+@param ( name = dataSummaryExcelPath ) 
+@param ( name = dataSummarySheetName ) 
+@param ( name = dataSummaryColumnList ) 
+@param ( name = dataSummaryValuesList ) 
+'Write data summary table to excel' {
+	fileExists = file.exists ( sourcePath = dataSummaryExcelPath ) 
+	existingDataSummaryExcelSize = 1 
+	if fileExists {
+		sheetNames = excel.getSheets ( filePath = dataSummaryExcelPath ) 
+		if ^sheetNames.contains(dataSummarySheetName)^ {
+			existingDataSummaryExcel = excel.read ( filePath = dataSummaryExcelPath , sheetName = dataSummarySheetName , hasHeader = false ) 
+			existingDataSummaryExcelSize = ^existingDataSummaryExcel.size()+1^ 
+		} 
+	} 
+	stringColumnList = ^
+def strColumn;
+def counter=0;
+dataSummaryColumnList.each{
+	if(counter>0)
+		{
+			strColumn = strColumn + ',' + it
+		}
+		else
+		{
+		 	strColumn = it
+		}
+		counter++;
+}
+
+return strColumn;^ 
+	stringDataValuesList = ^def strColumn;
+def counter=0;
+dataSummaryValuesList.each{
+	if(counter>0)
+		{
+			strColumn = strColumn + ',' + it
+		}
+		else
+		{
+		 	strColumn = it
+		}
+		counter++;
+}
+
+return strColumn;^ 
+	dataSummaryTable = recordset.create ( ) 
+	recordset.append ( values = stringColumnList ) 
+	recordset.append ( values = stringDataValuesList ) 
+	/EBSArea/tests/scenarios/regression/tasks/write_data_summary_to_excel.task ( summaryTable = dataSummaryTable , columnCellSize = ^dataSummaryColumnList.size()^ , rowToStartWriting = existingDataSummaryExcelSize , dataSummarySheetName = dataSummarySheetName , workbookDataSummary = dataSummaryExcelPath ) 
+} 

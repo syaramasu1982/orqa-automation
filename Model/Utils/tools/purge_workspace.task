@@ -1,0 +1,8 @@
+@specification 1.1 
+@name ( 'Define list of folder(s)' ) list = control.evaluate ( expression = 'return "artefacts,EBSArea/Finance/regression/results"' ) 
+@name ( 'Cleanup' ) control.paralleliteration ( loopSource = ^=list.split(",")^ , poolSize = 5 , loopVar = 'folder' , loopIndex = 'folderID' ) {
+	@testcase @name ( 'Cleanup [${folder}]' ) try {
+		@name ( 'Wait for cleanup' ) sleep 0.5 
+		@name ( 'Cleanup [${folder}]' ) file.delete ( filePath = folder ) 
+	} 
+} 

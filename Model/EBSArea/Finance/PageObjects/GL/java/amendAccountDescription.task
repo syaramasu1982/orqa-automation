@@ -1,0 +1,53 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = segment ) 
+@param ( name = description ) 
+@param ( name = screenShot ) 
+@name ( 'Amend Account Description' ) try {
+	@name ( 'Wait For Find Key Flexfield Segment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Key Flexfield Segment' ) 
+	'Enter Receipt Method Info' {
+		@name ( 'Enter Segment' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Segment' , title = 'Find Key Flexfield Segment' , xPath = 'FScrollBox[1]//VTextField[4]' , value = segment ) 
+		@name ( 'Wait For Key Flexfield Segments' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Key Flexfield Segments' ) 
+		@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Segment' , xPath = '%' , value = segment ) 
+		@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Segment Values' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Segment Values' ) 
+	@name ( 'Amend to New Description first row' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Description' , title = 'Segment Values' , xPath = 'FScrollBox[5]//VTextField[22]' , value = description ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	if ^screenShot != null && String.valueOf(screenShot).trim().length() > 0^ {
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^""+screenShot+""^ ) 
+	} 
+	@name ( 'Click Segment Values Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Segment Values' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Check Note pop up exists' ) isNoteExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' , ancestorTag = 'TitleBar' , xPath = 'LWComponent' ) 
+	if isNoteExists {
+		@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		notificationValue = /EBSArea/lib/java/text/read_notification.task ( scenario = scenario , session = session , field = 'Notification' , title = 'Note' , ancestorTag = 'ChoiceBox' , xPath = 'MultiLineLabel[1]' ) 
+		assert.true ( expression = 'notificationValue == "Submitted request(s) to compile 1 value set hierarchies"' ) 
+		@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	if ^screenShot != null && String.valueOf(screenShot).trim().length() > 0^ {
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^""+screenShot+"_success"^ ) 
+	} 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+	@disabled @name ( 'Click Requests Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Requests' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@disabled @name ( 'Click Segment Values Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Segment Values' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@disabled @name ( 'Check Note pop up exists' ) isNoteExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' , ancestorTag = 'TitleBar' , xPath = 'LWComponent' ) 
+	@disabled if isNoteExists {
+		@disabled @name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		@disabled notificationValue = /EBSArea/lib/java/text/read_notification.task ( scenario = scenario , session = session , field = 'Notification' , title = 'Note' , ancestorTag = 'ChoiceBox' , xPath = 'MultiLineLabel[1]' ) 
+		@disabled assert.true ( expression = 'notificationValue == "Submitted request(s) to compile 1 value set hierarchies"' ) 
+		@disabled @name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_amend_account_description_fail"^ ) 
+	error ^"Failed to perform amend account description for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

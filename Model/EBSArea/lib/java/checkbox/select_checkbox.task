@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Click checkbox [${title}]' ) try {
+	if ^xPath != null && String.valueOf(xPath).trim().length() > 0 && title != null && String.valueOf(title).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			sleep 2 
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 2 
+			java.click ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 2 
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +"[@selected='true']"^ , timeout = 2 ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			sleep 2 
+			java.waitforcomponent ( target = ^"//"+xPath+""^ , timeout = 5 ) 
+			sleep 2 
+			java.click ( target = ^"//"+xPath+""^ ) 
+			sleep 2 
+			java.waitforcomponent ( target = ^"//"+xPath+"[@selected='true']"^ , timeout = 2 ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+title+"_fail"^ ) 
+	error ^"Failed to click button [" + title + "] on session [" + session + "]"^ 
+} 

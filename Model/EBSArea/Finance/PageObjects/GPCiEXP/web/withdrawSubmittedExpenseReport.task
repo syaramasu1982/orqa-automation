@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+web.switch ( session = session ) 
+@name ( 'Withdraw Submitted Expense Report' ) try {
+	@name ( 'Define report number' ) reportNumber = control.evaluate ( expression = 'return null' ) 
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Read Receipt to withdraw' ) isReportNumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Report Number' , xPath = 'N11:ReportNumberEnabled:0' ) 
+	@name ( 'Click on Withdraw icon' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'N11:Withdrawable:0' ) 
+	@name ( 'Click Yes button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+	@name ( 'Read Receipt withdraw Information' ) isWithdrawInfo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Withdraw Information' , xPath = 'Withdraw was successful for expense report' ) 
+	@name ( 'Return requisition number' ) reportNumber = control.evaluate ( expression = 'String s1 = isWithdrawInfo;
+String[] sp =  s1.split(" ");
+reportNumber = sp[6].replace(".", "");' ) 
+	assert.true ( expression = 'reportNumber == isReportNumber' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'withdraw_expense_report' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ scenario+"_withdraw_submitted_exp_report_fail"^ ) 
+	error ^"Failed to perform withdraw submitted expense report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

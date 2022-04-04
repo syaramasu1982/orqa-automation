@@ -1,0 +1,73 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = lmuser ) 
+@param ( name = empname ) 
+@param ( name = empuser ) 
+@param ( name = absensetype ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'LM Requests Employee Provide Further Information' ) try {
+	@disabled web.switch ( session = session ) 
+	@disabled @name ( 'Navigate LM Requests Employee Further Information' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="RCUK Self-Service EmployeeAll Actions Awaiting Your AttentionPersonal InformationDisabilityMy InformationPayslipSalary Bank Details"' , itemName #= '="Attendance Management"' ) 
+	@name ( 'Click Entitlement Absense' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Entitlement Balances' ) 
+	@name ( 'Click Show Accural Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show Accrual Balances' ) 
+	@name ( 'Read UKRI AnnualLeave Scheme' ) UKRIAnnualLeave = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'UKRI AnnualScheme' , xPath = 'UKRI Annual Leave Days Scheme' ) 
+	@name ( 'AssertConfirmationMessage' ) assert.true ( expression = 'UKRIAnnualLeave=="UKRI Annual Leave Days Scheme"' ) 
+	@name ( 'Read AnnuaLeaveBalance' ) ReadAnnualleavebalance = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualLeaveInitialbalance' , xPath = 'Annual leave initial balance' ) 
+	assert.true ( expression = 'ReadAnnualleavebalance=="Annual leave initial balance"' ) 
+	@name ( 'Read AnnualLeaveTaken' ) ReadAnnualleaveTaken = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualleaveTaken' , xPath = 'Annual leave taken' ) 
+	assert.true ( expression = 'ReadAnnualleaveTaken=="Annual leave taken"' ) 
+	@name ( 'Read AnnualLeaveBooked' ) ReadAnnualleavebooked = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Annualleavebooked' , xPath = 'Annual leave booked' ) 
+	assert.true ( expression = 'ReadAnnualleavebooked=="Annual leave booked"' ) 
+	@name ( 'Read AnnualLeaveRemaining' ) ReadAnnualleaveremaining = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualleaveRemaining' , xPath = 'Annual leave remaining' ) 
+	assert.true ( expression = 'ReadAnnualleaveremaining =="Annual leave remaining"' ) 
+	@name ( 'Read Annual Leave Remaining' ) readRemainingAnnualLeaves = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Annual leave remaining' , xPath = "//*[contains(text(),'Annual leave remaining')]//ancestor::tr[2]/td[3]//span" ) 
+	remainingAnnualLeaves = control.evaluate ( expression = 'def remainingAnnualLeaves = readRemainingAnnualLeaves as int
+
+return remainingAnnualLeaves' ) 
+	if ^remainingAnnualLeaves > 1^ {
+		@name ( 'ClickAbsenseSummary' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Absence Summary' ) 
+		@name ( 'ClickCreateAbsense' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Create Absence' ) 
+		@name ( 'SelectAbsensetype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'HrAbsenceType' , value = absensetype ) 
+		@name ( 'CalculateStartDate' ) StartDate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  StartDate = today+4
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'SetStartdate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrAbsenceStartDate' , value = StartDate ) 
+		@name ( 'CalculateEndDate' ) EndDate = control.evaluate ( expression = 'def EndDate= null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+   EndDate= today+4
+}
+ EndDate=  EndDate.format("dd-MMM-yyy")
+
+return  EndDate' ) 
+		@name ( 'SetEndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , xPath = 'HrAbsenceEndDate' , value = EndDate ) 
+		@name ( 'ClickCalculateButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Calculate Duration' ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+		@name ( 'ReadConfirmation' ) Issubmit = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'submitted ' ) 
+		assert.true ( expression = 'Issubmit=="The changes have been submitted for approval."' ) 
+		@name ( 'Read EmpName' ) empName = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'EmpName' ) 
+		empname = control.evaluate ( expression = 'String E1=empName;
+String[] ep=E1.split(" ");
+empname=ep[1]' ) 
+		@name ( 'Read EmpNumber' ) Empnumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'EmployeeNumber' ) 
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+		@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMrequestsprovideinformation' ) 
+	error ^"Failed to perform LMrequestsEmpprovidesmoreinformation[" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result to Map' ) result = map.new ( ) 
+	@name ( 'Add Empname to Map' ) map.add ( map = result , key = 'EMPNAME' , value = ^=empname^ ) 
+	@name ( 'Add to EmpNumber to Map' ) map.add ( map = result , key = 'EMPNUMBER' , value = ^=Empnumber^ ) 
+	@name ( 'Return Result' ) result = control.evaluate ( expression = 'return result' ) 
+} 

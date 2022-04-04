@@ -1,0 +1,51 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = ou ) 
+@param ( name = requisition ) 
+web.switch ( session = session ) 
+@name ( 'Create Purchase Order' ) try {
+	@name ( 'Define po number' ) poNumber = control.evaluate ( expression = 'return null' ) 
+	@name ( 'Select Unassigned Requisitions' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'customizationsPoplist' , value = 'Unassigned Requisitions' , field = 'View' ) 
+	@name ( 'Click Go' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@name ( 'Select OU' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'OU' , value = ou , xPath = 'OrgNameSelect' ) 
+	@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisition ) 
+	@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	while ^!requsitionExists && nextExists^ {
+		@name ( 'Click on Next' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisition ) 
+		@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	} 
+	@name ( 'Select Check Box' ) /EBSArea/lib/web/checkbox/click_checkbox.task ( scenario = scenario , session = session , requisition = requisition ) 
+	@name ( 'Click Add Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddToDocumentBuilder' , scenario = scenario ) 
+	@name ( 'Click Create Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create' , scenario = scenario ) 
+	@name ( 'Check warning exists' ) isWarningExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'h1' , text = 'Warning' ) 
+	if isWarningExists {
+		@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+	} 
+	@name ( 'Select Manage Tax' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'ActionsPoplist' , value = 'Manage Tax' , field = 'View' ) 
+	@name ( 'Click Go Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'GoButton' , scenario = scenario ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+	@name ( 'Click Add Tax Info Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddTaxInfoButton' , scenario = scenario ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	@name ( 'Click on Returnlink' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Update Standard Purchase Order' ) 
+	@name ( 'Click Submit Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'SubmitButton' , scenario = scenario ) 
+	@name ( 'Read PO Number' ) purchaseOrderNo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Purchase Order' , xPath = 'Purchase Order' ) 
+	@name ( 'Calculate purchase order number' ) poNumber = control.evaluate ( expression = 'String s1 = purchaseOrderNo;
+String[] sp =  s1.split(" ");
+def pid = sp[3];' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^"created_purchase_order_"+poNumber^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "purchase_order_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform create purchase order for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Calculate purchase order number' ) poNumber = control.evaluate ( expression = 'String s1 = purchaseOrderNo;
+String[] sp =  s1.split(" ");
+def pid = sp[3];' ) 
+	@name ( 'Print Purchase Order Number' ) console.write ( data = ^="Purchase order [" + poNumber + "] created for test case [" + scenario +"]"^ ) 
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Invoice to Map' ) map.add ( map = result , key = 'PONUMBER' , value = ^=poNumber^ ) 
+	@name ( 'Return purchase order number' ) result = control.evaluate ( expression = 'return result' ) 
+} 

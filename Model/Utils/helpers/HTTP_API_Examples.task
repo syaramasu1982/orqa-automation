@@ -1,0 +1,23 @@
+@specification 1.1 
+'POST Example - https://httpbin.org/put?param1=param1Value&param2=param2Value' {
+	console.write ( data = '------------- POST EXAMPLE - https://httpbin.org/post?param1=param1Value&param2=param2Value --------------' ) 
+	endpoint1 = http.file ( host = 'httpbin.org' , path = 'post' , headers = ^["exampleHeader1":"example header value 1", "exampleHeader2":"example header value 2"]^ , query = 'param1=param1Value&param2=param2Value' , https = true , method = 'POST' ) 
+	text.write ( text = 'Example request body' , filePath = endpoint1 ) 
+	console.write ( data = ^"responseBody:" + endpoint1.responseBody^ ) 
+	console.write ( data = ^"responseCode:" + endpoint1.responseCode^ ) 
+	console.write ( data = ^"responseHeaders:" + endpoint1.responseHeaders^ ) 
+	console.write ( data = ^"requestHeaders:" + endpoint1.requestHeaders^ ) 
+	console.write ( data = ^"requestBody:" + endpoint1.requestBody^ ) 
+} 
+'GET Example - https://httpbin.org/uuid' {
+	console.write ( data = '------------- GET EXAMPLE - https://httpbin.org/uuid --------------' ) 
+	endpoint2 = http.file ( host = 'httpbin.org' , path = 'uuid' , https = true ) 
+	endpoint2Response = text.read ( filePath = endpoint2 ) 
+	console.write ( data = ^"responseBody:" + endpoint2Response^ ) 
+	console.write ( data = ^"responseCode:" + endpoint2.responseCode^ ) 
+	console.write ( data = ^"responseHeaders:" + endpoint2.responseHeaders^ ) 
+	'Parse Response JSON' {
+		jsonObject = json.read ( filePath = endpoint2 ) 
+		console.write ( data = ^"UUID from Response: " + jsonObject.uuid^ ) 
+	} 
+} 

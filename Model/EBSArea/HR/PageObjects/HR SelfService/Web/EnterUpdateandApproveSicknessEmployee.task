@@ -1,0 +1,35 @@
+@specification 1.1 
+@param ( name = absensetype ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'Updatesickness' ) try {
+	web.switch ( session = session ) 
+	@disabled @name ( 'NavigatecreateAbsense' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="RCUK Self-Service EmployeeAll Actions Awaiting Your AttentionPersonal InformationDisabilityMy InformationPayslipSalary Bank Details"' , itemName #= '="Attendance Management"' ) 
+	update = control.evaluate ( expression = 'def  update= "//*[text()=''"+absensetype+"'']//parent::td//following-sibling::td[5]/a"
+
+return update' ) 
+	@name ( 'ClickUpdate' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = update ) 
+	@name ( 'CalculateEndDate' ) EndDate = control.evaluate ( expression = 'def EndDate= null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+   EndDate= today-3
+}
+ EndDate=  EndDate.format("dd-MMM-yyy")
+
+return  EndDate' ) 
+	@name ( 'SetEndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , xPath = 'HrAbsenceEndDate' , value = EndDate ) 
+	@name ( 'ClickCalculateButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Calculate Duration' ) 
+	@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+	@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'ReadConfirmation' ) Issubmit = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'submitted ' ) 
+	assert.true ( expression = 'Issubmit=="The changes have been submitted for approval."' ) 
+	@name ( 'ReadEmpnumber' ) Empnumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'EmployeeNumber' ) 
+	@disabled assert.true ( expression = 'Empnumber=="176403"' ) 
+	@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMUpdateSickness' ) 
+	error ^"Failed to perform LinemanagerUpdateSickness[" + scenario +"] with session ["+ session +"]"^ 
+} 

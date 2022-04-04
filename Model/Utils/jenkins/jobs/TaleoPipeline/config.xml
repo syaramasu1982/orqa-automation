@@ -1,0 +1,49 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.90">
+    <script>node{
+    stage &apos;Checkout code&apos;
+        git branch: &apos;main&apos;, url: &apos;https://github.com/UKSBS/uksbs-test-automation-taleo.git&apos;
+    stage &apos;Restore Nuget&apos;
+        bat &apos;nuget.exe restore &quot;C:/Program Files (x86)/oracle/Jenkins/JenkinsHome/workspace/MSBuild/Uksbs.Taleo.AutomatedTests.sln&quot;&apos;
+    stage &apos;Build&apos;
+     //   def msbuild =  &quot;C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/MSBuild/Current/Bin/MsBuild.exe&quot;
+      //  def exitStatus = bat(returnStatus: true, script: &quot;${msbuild} Uksbs.Taleo.AutomatedTests.sln /p:Configuration=Debug&quot;)
+     //   if (exitStatus != 0){
+     //       currentBuild.result = &apos;FAILURE&apos;
+     //   }
+        bat &quot;\&quot;${tool &apos;MSBuild&apos;}\&quot; Uksbs.Taleo.AutomatedTests.sln /p:Configuration=Release /p:Platform=\&quot;Any CPU\&quot; /p:ProductVersion=1.0.0.${env.BUILD_NUMBER}&quot;
+    stage &apos;Test&apos;
+        bat &apos;dotnet test --filter Category=01_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=02_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=03_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=04_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=05_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=06_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=07_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=08_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=09_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=10_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=11_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=12_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=13_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=14_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=15_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=16_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=17_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=18_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=19_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=20_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=21_taleoSuperscript&apos;
+        bat &apos;dotnet test --filter Category=22_taleoSuperscript&apos;
+        archiveArtifacts artifacts: &apos;/**/*TestReports/**/*&apos;, followSymlinks: false
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

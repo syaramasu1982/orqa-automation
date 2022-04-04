@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPathPosition ) 
+java.switch ( session = session ) 
+@name ( 'Click button [${field}]' ) try {
+	@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/FlexTextField"^ , timeout = 5 ) 
+		java.click ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/FlexTextField"^ , clickType = 'DOUBLE_CLICK' ) 
+		java.waitforcomponent ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/IconButton"^ , timeout = 5 ) 
+		java.click ( target = ^"//LWLabel[text()='"+ field +"']//ancestor::ScrollBox[position() = 1]//following-sibling::ScrollBox//LWContainer/LWContainer[position()='"+xPathPosition +"']/IconButton"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_button_"+field +"_fail"^ ) 
+	error ^"Failed to click button [" + field + "] on session [" + session + "]"^ 
+} 

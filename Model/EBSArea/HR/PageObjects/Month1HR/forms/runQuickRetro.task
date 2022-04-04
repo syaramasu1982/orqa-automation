@@ -1,0 +1,65 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = payroll ) 
+@param ( name = incExc ) 
+@param ( name = fullName ) 
+@param ( name = name ) 
+@param ( name = elementSet ) 
+@param ( name = startDate ) 
+java.switch ( session = session ) 
+'Run Quick Retro' {
+	@name ( 'Wait For Assignment Set' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Set:' ) 
+	@name ( 'Calculate Name' ) assignmentSetName = control.evaluate ( expression = 'def assignmentSetName = null
+def today = null
+use (groovy.time.TimeCategory) {
+ today = new Date()
+}
+
+assignmentSetName = "TEST"+today.format("ddHHMMSS")
+
+return assignmentSetName' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Name' , value = assignmentSetName , label = 'Name' , index = '1' ) 
+	@name ( 'Enter Payroll' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Payroll' , value = payroll , label = 'Payroll' , index = '1' ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Amendment' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Amendment' ) 
+	@name ( 'Wait For Assignment Amendments' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Amendments' ) 
+	@name ( 'Enter Inc/Exc' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Inc/Exc' , value = incExc , label = 'Inc/Exc' , index = '1' ) 
+	@name ( 'Enter Full Name' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Full Name' , label = 'Full Name' , index = '1' , value = fullName ) 
+	@disabled @name ( 'Enter Full Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Full Name' , value = fullName , label = 'Full Name' , index = '1' ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Assignment Amendments Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment Amendments' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Click Assignment Set Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment Set:' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	'Submit process and reports' {
+		@name ( 'Navigate Submit Processes and Reports' ) /EBSArea/Finance/PageObjects/Common/navigate_java_menu_items.task ( scenario = scenario , session = session , title = 'RCUK Payroll Manager' , mainMenu = 'Processes and Reports' , itemName = 'Submit Processes and Reports' , index = '1' ) 
+		@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+		sleep 2 
+		@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+		'Enter Assignment Set' {
+			@name ( 'Click on Assignment Set iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Assignment Set' , xPathPosition = '1' ) 
+			@name ( 'Wait For Assignment Set Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Set' ) 
+			@name ( 'Enter  Assignment Set' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Assignment Set' , xPath = '%' , value = assignmentSetName ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		'Enter Element Set' {
+			@name ( 'Click on Element Set iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Element Set' , xPathPosition = '2' ) 
+			@name ( 'Wait For Element Set Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Set' ) 
+			@name ( 'Enter  Element Set' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Element Set' , xPath = '%' , value = elementSet ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		@name ( 'Enter Start Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Start Date' , xPathPosition = '3' , value = startDate ) 
+		@disabled @name ( 'Enter Start Date' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Start Date' , xPathPosition = '3' , value = startDate ) 
+		@name ( 'Capture Parameters' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'aged_debt_report_parameters' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+		@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+		@name ( 'Capture Report' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'retro_pay_by_element_report' ) 
+		@name ( 'Click Requests Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Requests' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+	error ^"Failed to perform run quick retro for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empname ) 
+@param ( name = lmuser ) 
+'Login As Manager' {
+	@name ( 'Enroll CourseCatlog' ) try {
+		@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=lmuser' , password #= '="Welcome123"' ) 
+		@name ( 'Click FullList' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+		@name ( 'Click ApproverLink' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = empname ) 
+		@name ( 'ClickApproveButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Approve' ) 
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+		@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+	} 
+} 
+@name ( 'HandleFailure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMbooksAnnualleave' ) 
+	error ^"Failed to perform EmployeeEnrollsCourseCatlog[" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,58 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = projectNumber ) 
+@param ( name = taxDescription ) 
+@name ( 'Finding Single Invoice Review' ) try {
+	@disabled @name ( 'IsNotePopupExists' ) isNotePopupExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' ) 
+	@disabled @name ( 'Note Popup' ) if isNotePopupExists {
+		@disabled @name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		@disabled @name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@disabled @name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Note_"+timeStamp^ ) 
+		@disabled @name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Wait For Find Invoice' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Invoice' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Operating Unit' , value = operatingUnit , label = 'Operating Unit' , index = '1' ) 
+	@name ( 'Enter Project Number' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Project Number' , value = projectNumber , label = 'Project :  Number' , index = '1' ) 
+	@name ( 'Calculate Current Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+	@name ( 'Enter GL date from' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'GL' , value = date , label = 'Date Ranges : GL From' , index = '1' ) 
+	@name ( 'Enter GL date To' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'GL To' , value = date , label = 'Date Ranges : GL To' , index = '1' ) 
+	@name ( 'Click Find' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' , fullName = 'Find' ) 
+	@name ( 'Wait For Invoice Summary' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Summary' ) 
+	@name ( 'Read Invoice Status' ) invoiceStatus = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = 'Unapproved' , fieldColumnIndex = '7' , readColumnIndex = '7' ) 
+	@name ( 'Select Invoice Status' ) /EBSArea/lib/java/click/select_text.task ( scenario = scenario , session = session , field = 'Unapproved' , xPath = "VTextField[text()='Unapproved']" ) 
+	if ^invoiceStatus=="Unapproved"^ {
+		@name ( 'Click Lines' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Lines' , fullName = 'Lines' ) 
+		@name ( 'Wait For Invoice Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Lines' ) 
+		@name ( 'Enter Tax Description' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Tax Description' , title = 'Invoice Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[28]' , value = taxDescription ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click Invoice Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Invoice Lines' , xPath = 'ToolBar/ToolBarButton[2]' , field = 'Close icon' ) 
+		@name ( 'Click Approve 1' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Approve 1' , fullName = 'Approve 1' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click on Release button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Release...' , fullName = 'Release...' ) 
+		@name ( 'Wait For Release Invoice' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Release Invoice' ) 
+		@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Project_Number_"+projectNumber+"_"+"Released_"+timeStamp^ ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' , fullName = 'OK' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Read AR Number' ) arInvoiceNumber = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = projectNumber , fieldColumnIndex = '1' , readColumnIndex = '11' ) 
+	} 
+	else {
+		@name ( 'Read AR Number' ) arInvoiceNumber = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = projectNumber , fieldColumnIndex = '1' , readColumnIndex = '11' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Project_Number_"+projectNumber+"_"+"Approved & Released"+"_"+"AR_Number_"+arInvoiceNumber+"_"+timeStamp^ ) 
+	@name ( 'Click Invoice Summary Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Invoice Summary' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Find Invoice Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Find Invoice' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

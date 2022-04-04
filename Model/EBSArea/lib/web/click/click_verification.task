@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Click [${xPath}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^""+ xPath +""^ , timeout = 5 ) 
+		@name ( 'Wait for button to click' ) sleep 0.25 
+		web.click ( target = ^""+ xPath +""^ ) 
+		@name ( 'Wait after clicking button' ) sleep 0.25 
+		web.wait ( target = ^""+ xPath +""^ , timeout = 5 , operation = 'NOT_EXIST' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_"+xPath+"_fail"^ ) 
+	error ^"Failed to click [" + xPath + "] on session [" + session + "]"^ 
+} 

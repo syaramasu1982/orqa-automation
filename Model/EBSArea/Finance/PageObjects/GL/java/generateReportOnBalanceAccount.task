@@ -1,0 +1,110 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = ledger ) 
+@param ( name = ledgerCurrency ) 
+@param ( name = currencyType ) 
+@param ( name = enteredCurrency ) 
+@param ( name = type ) 
+@param ( name = balanceType ) 
+@param ( name = startingPeriod ) 
+@param ( name = endingPeriod ) 
+@param ( name = companyLow ) 
+@param ( name = businessUnit ) 
+@param ( name = costCentre ) 
+@param ( name = accountCode ) 
+@param ( name = analysisCode ) 
+@param ( name = spare ) 
+@param ( name = orderBy ) 
+@name ( 'Generate Report On Balance Account' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	sleep 2 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Ledger Field' {
+		@name ( 'Click on Ledger iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Ledger/Ledger Set' , xPathPosition = '1' ) 
+		@name ( 'Wait For Ledger Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Ledger' ) 
+		@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Ledger' , xPath = '%' , value = ledger ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter Ledger Currency' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Ledger Currency' , xPathPosition = '2' , value = ledgerCurrency ) 
+	@name ( 'Enter Currency Type' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Currency Type' , xPathPosition = '3' , value = currencyType ) 
+	@name ( 'Enter Entered Currency' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Entered Currency' , xPathPosition = '4' , value = enteredCurrency ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Type' , xPathPosition = '5' , value = type ) 
+	'Enter Balance Type' {
+		@name ( 'Click on Balance Type iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Balance Type' , xPathPosition = '6' ) 
+		@name ( 'Wait For Balance Type Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Balance Type' ) 
+		@name ( 'Enter Balance Type' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Balance Type' , xPath = '%' , value = balanceType ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Starting Period' {
+		@name ( 'Click on Starting Period iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Starting Period' , xPathPosition = '8' ) 
+		@name ( 'Wait For Starting Period Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Starting Period' ) 
+		@name ( 'Enter Starting Period' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Starting Period' , xPath = '%' , value = startingPeriod ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Ending Period' {
+		@name ( 'Click on Ending Period iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Ending Period' , xPathPosition = '9' ) 
+		@name ( 'Read Find button exists' ) findExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Ending Period' , title = 'Ending Period' , ancestorTag = 'FWindow' , xPath = "PushButton[@text='Find']" ) 
+		if findExists {
+			@name ( 'Wait For Ending Period Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Ending Period' ) 
+			@name ( 'Enter Ending Period' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Ending Period' , xPath = '%' , value = endingPeriod ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+	} 
+	accountingFlexfield = /EBSArea/lib/java/basic/check_text_exist.task ( scenario = scenario , session = session , name = 'RCUK_GL_ACCOUNTING_FLEXFIELD' , alternateName = 'GSSC GL Accounting Flexfield' ) 
+	@name ( 'Wait For GL Accounting Flexfield' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = accountingFlexfield ) 
+	@name ( 'Wait For GL Accounting Flexfield' ) sleep 2 
+	'Enter Company Low' {
+		@name ( 'Click on Company Low iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Company' , xPathPosition = '1' ) 
+		@name ( 'Wait For Company Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Company' ) 
+		@name ( 'Enter Company Low' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Company' , xPath = '%' , value = companyLow ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Business Unit' {
+		@name ( 'Click on Business Unit iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Business Unit' , xPathPosition = '3' ) 
+		@name ( 'Wait For Business Unit Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Business Unit' ) 
+		@name ( 'Enter Business Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Business Unit' , xPath = '%' , value = businessUnit ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Cost Centre' {
+		@name ( 'Click on Cost Centre iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPathPosition = '5' ) 
+		@name ( 'Wait For Cost Centre Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Cost Centre' ) 
+		@name ( 'Enter Cost Centre' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPath = '%' , value = costCentre ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Account Code' {
+		@name ( 'Click on Account Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Account Code' , xPathPosition = '7' ) 
+		@name ( 'Wait For Account Code Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Account Code' ) 
+		@name ( 'Enter Account Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Account Code' , xPath = '%' , value = accountCode ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Analysis Code' {
+		@name ( 'Click on Analysis Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Analysis Code' , xPathPosition = '9' ) 
+		@name ( 'Wait For Analysis Code Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Analysis Code' ) 
+		@name ( 'Enter Analysis Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Analysis Code' , xPath = '%' , value = analysisCode ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Spare' {
+		@name ( 'Click on Spare iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Spare' , xPathPosition = '11' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	'Enter Order By' {
+		@name ( 'Click on Order By iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Order By' , xPathPosition = '12' ) 
+		@name ( 'Wait For Order By Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Order By' ) 
+		@name ( 'Enter Order By' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Order By' , xPath = '%' , value = orderBy ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Capture Screen Parameter' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'generate_report_balance_parameters' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+	@name ( 'Capture Screen Parameter' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'generate_report_balance_account' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_generate_report_on_balance_account_fail"^ ) 
+	error ^"Failed to perform gnerate report on balane account for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

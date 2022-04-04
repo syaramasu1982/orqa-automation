@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = id ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Select radio button [${field}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+		web.wait ( target = ^"//*[@id='" + id+ "']//input[@id='" + xPath + "']"^ , timeout = 5 ) 
+		web.click ( target = ^"//*[@id='" + id+ "']//input[@id='" + xPath + "']"^ ) 
+		@name ( 'Wait for radio button to be checked' ) sleep 0.5 
+		web.wait ( target = ^"//*[@id='" + id+ "']//input[@id='" + xPath + "' and @checked]"^ , timeout = 5 ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_radio_button_"+ field +"_fail"^ ) 
+	error ^"Failed to select radio button [" + field + "] on session [" + session + "]"^ 
+} 

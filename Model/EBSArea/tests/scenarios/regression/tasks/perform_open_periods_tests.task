@@ -1,0 +1,69 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle Open Periods' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle Open Periods Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Open AP Periods]' ) if ^testCaseName.contains("OPENAPPERIOD")^ {
+					@name ( 'Open AP Periods [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openAPperiodBOE.task ( session = session , scenario = scenario , environment = environment , ledger = ^caseRef['LEDGER']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , periodStatus = ^caseRef['PERIODSTATUS']^ ) 
+				} 
+				@name ( 'Handle [Open AR Periods]' ) if ^testCaseName.contains("OPENARPERIOD")^ {
+					@name ( 'Open AR Periods [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openARperiod.task ( session = session , scenario = scenario , source = ^caseRef['SOURCE']^ , environment = environment , ledger = ^caseRef['LEDGER']^ ) 
+				} 
+				@name ( 'Handle [Open GL Periods]' ) if ^testCaseName.contains("OPENGLPERIOD")^ {
+					@name ( 'Open GL Periods [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openGLperiodBOE.task ( session = session , scenario = scenario , environment = environment , ledger = ^caseRef['LEDGER']^ , periodStatus = ^caseRef['PERIODSTATUS']^ ) 
+				} 
+				@name ( 'Handle [Open INV Periods]' ) if ^testCaseName.contains("OPENINVPERIOD")^ {
+					@name ( 'Open INV Period [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openINVperiodBOE.task ( session = session , scenario = scenario , environment = environment , organization = ^caseRef['ORGANIZATION']^ , status = ^caseRef['STATUS']^ ) 
+				} 
+				@name ( 'Handle [Open PO Periods]' ) if ^testCaseName.contains("OPENPOPERIOD")^ {
+					@name ( 'Open PO Period [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openPOperiod.task ( session = session , scenario = scenario , environment = environment , periodStatus = ^caseRef['PERIODSTATUS']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , value = ^caseRef['VALUE']^ ) 
+				} 
+				@name ( 'Handle [Open PA Periods]' ) if ^testCaseName.contains("OPENPAPERIOD")^ {
+					@name ( 'Open PA Period [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_OpenPeriods/openPAperiod.task ( session = session , scenario = scenario , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , periodStatus = ^caseRef['PERIODSTATUS']^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

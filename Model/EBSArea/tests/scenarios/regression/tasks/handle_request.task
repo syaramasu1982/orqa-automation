@@ -1,0 +1,225 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = testDataSheet ) 
+@param ( name = rootTestCaseID ) 
+@param ( name = refTestCaseID ) 
+@param ( name = testCaseID ) 
+@param ( name = testCase ) 
+@param ( name = session ) 
+@param ( name = summaryTable ) 
+@param ( name = workbookSummary ) 
+@param ( name = usersConfig ) 
+@param ( name = usersConfigLocation ) 
+@param ( name = user ) 
+@param ( name = launchOracleApp ) 
+@param ( name = TestCaseTableDict ) 
+env = environment.read ( name = environment ) 
+@name ( 'Default execution status' ) defaultExecutionStatus = control.evaluate ( expression = 'return "Pass"' ) 
+@name ( 'Fail execution status' ) failExecutionStatus = control.evaluate ( expression = 'return "FAIL"' ) 
+'Handle request [${testDataSheet}]' {
+	@name ( 'Perform Launcher' ) if ^"LAUNCH".equals(testDataSheet)^ {
+		@name ( 'Handle launcher' ) try {
+			@name ( 'Perform launching oracle forms with timeout of 3min' ) control.timeout ( timeout = 180 ) {
+				@name ( 'Resolve users configuration' ) isCustomUserConfig = control.evaluate ( expression = 'if(usersConfig == null || String.valueOf(usersConfig).trim().length() == 0){
+	return false
+} else {
+	return true
+}' ) 
+				@name ( 'Resolve user sheet' ) sheet = control.evaluate ( expression = 'if(isCustomUserConfig){
+	return "User"
+} else{
+	if( String.valueOf(env.openEnv).equalsIgnoreCase("TRUE") ){
+		return "Generic"
+	} else {
+		return env.name
+	}
+
+}
+' ) 
+				isJavaApp = map.new ( ) 
+				map.add ( map = ^=isJavaApp^ , key = 'ISJAVAAPP' , value = 'NO' ) 
+				session = '/Utils/new login session/sub tasks/handle_session.task' ( workbook = usersConfigLocation , sheet = sheet , environment = env , testCase = user , session = session ) 
+				if ^!"TC_LAUNCH_0000".equals(testCaseID)^ {
+					/EBSArea/tests/scenarios/regression/tasks/perform_navigation_web.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , isJavaApp = isJavaApp ) 
+					vIsJavaApp = map.get ( map = ^=isJavaApp^ , key = 'ISJAVAAPP' ) 
+					if ^vIsJavaApp.equals("YES")^ {
+						@name ( 'Close all sessions [Java]' ) /EBSArea/lib/java/basic/close_all_active_sessions.task ( ) 
+						@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+					} 
+				} 
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform Navigation' ) if ^"NAV".equals(testDataSheet)^ {
+		@name ( 'Perform NAV Tests' ) try {
+			/EBSArea/tests/scenarios/regression/tasks/perform_navigation_java.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session ) 
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform P2P Tests' ) if ^"P2P".equals(testDataSheet)^ {
+		@name ( 'Perform P2P Tests' ) try {
+			resultP2P = /EBSArea/tests/scenarios/regression/tasks/perform_p2p_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultP2P != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform AP Tests' ) if ^"AP".equals(testDataSheet)^ {
+		@name ( 'Perform AP Tests' ) try {
+			resultAP = /EBSArea/tests/scenarios/regression/tasks/perform_ap_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultAP != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform AR Tests' ) if ^"AR".equals(testDataSheet)^ {
+		@name ( 'Perform AR Tests' ) try {
+			resultAR = /EBSArea/tests/scenarios/regression/tasks/perform_ar_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultAR != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform GL Tests' ) if ^"GL".equals(testDataSheet)^ {
+		@name ( 'Perform GL Tests' ) try {
+			resultGL = /EBSArea/tests/scenarios/regression/tasks/perform_gl_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultGL != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform CM Tests' ) if ^"CM".equals(testDataSheet)^ {
+		@name ( 'Perform CM Tests' ) try {
+			resultCM = /EBSArea/tests/scenarios/regression/tasks/perform_cm_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultCM != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform GPC and iExp Tests' ) if ^"GPC".equals(testDataSheet)^ {
+		@name ( 'Perform GPC and iExp Tests' ) try {
+			resultGPC = /EBSArea/tests/scenarios/regression/tasks/perform_gpc_iexp_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultGPC != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform HR Tests' ) if ^"HR".equals(testDataSheet) || "PAYROLL".equals(testDataSheet)^ {
+		@name ( 'Perform HR Tests' ) try {
+			resultHR = /EBSArea/tests/scenarios/regression/tasks/perform_hr_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultHR != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform HRSelfService Tests' ) if ^"HRS".equals(testDataSheet) ^ {
+		@name ( 'Perform HRSelfService Tests' ) try {
+			resultHRS = /EBSArea/tests/scenarios/regression/tasks/perform_hrselfservice_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultHRS != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform Open Periods Tests' ) if ^"OP".equals(testDataSheet)^ {
+		@name ( 'Perform Open Periods Tests' ) try {
+			resultOP = /EBSArea/tests/scenarios/regression/tasks/perform_open_periods_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultOP != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform Month End Tests' ) if ^"ME".equals(testDataSheet)^ {
+		@name ( 'Perform Month End Tests' ) try {
+			resultME = /EBSArea/tests/scenarios/regression/tasks/perform_month_end_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultME != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Perform Projects Tests' ) if ^"PRJ".equals(testDataSheet)^ {
+		@name ( 'Perform Projects Tests' ) try {
+			resultPRJ = /EBSArea/tests/scenarios/regression/tasks/perform_projects_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session , environment = env , summaryTable = summaryTable , refTestCaseID = refTestCaseID , TestCaseTableDict = TestCaseTableDict , workbookSummary = workbookSummary ) 
+			@name ( 'Update pass' ) if ^resultPRJ != null^ {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+			else {
+				/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+			} 
+		} 
+		@name ( 'Update failure' ) catch {
+			/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = failExecutionStatus ) 
+		} 
+	} 
+	@name ( 'Handle [Close ALL] sessions' ) if ^"CLOSEALLSESSION".equals(testDataSheet)^ {
+		@name ( 'Close all sessions [Java/Web]' ) /Utils/tools/close_all_orqa_sessions.task ( ) 
+		/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = defaultExecutionStatus ) 
+	} 
+} 

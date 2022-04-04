@@ -1,0 +1,25 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+java.switch ( session = session ) 
+@name ( 'Read text [${field}]' ) try {
+	@name ( 'Populate label' ) if ^label != null && String.valueOf(label).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//*[contains(@label,'" + label + "')]"^ , timeout = 5 ) 
+			valueRead = java.getvalue ( target = ^"//*[contains(@label,'" + label + "')]"^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//*[contains(@name,'" + xPath + "')] | //*[contains(text(),'" + xPath + "')] | //*[contains(@title,'" + xPath + "')]"^ , timeout = 5 ) 
+			valueRead = java.getvalue ( target = ^"//*[contains(@name,'" + xPath + "')] | //*[contains(text(),'" + xPath + "')] | //*[contains(@title,'" + xPath + "')]"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_text_"+ field +"_fail"^ ) 
+	error ^"Failed to read text  [" + field + "] on session [" + session + "]"^ 
+} 

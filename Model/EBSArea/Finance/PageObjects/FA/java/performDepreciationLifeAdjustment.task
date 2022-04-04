@@ -1,0 +1,38 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = closeApp ) 
+@name ( 'Perform Cost Adjustment' ) try {
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Books button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Books' ) 
+	@name ( 'Wait For Books' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Books' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[3]' , value = book ) 
+	@name ( 'Click on Current Cost' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Current Cost' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[6]' ) 
+	@name ( 'Read Life Years' ) years = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Life Years' , title = 'Books' , xPath = 'FScrollBox[1]//VTextField[1]' ) 
+	@name ( 'Calculate life years' ) lifeYears = control.evaluate ( expression = 'int lifeYears = Integer.parseInt(years)
+lifeYears = lifeYears -1' ) 
+	@name ( 'Update Life Years' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Life Years' , title = 'Books' , xPath = 'FScrollBox[1]//VTextField[1]' , value = lifeYears ) 
+	@name ( 'Read Months' ) monthsValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Months' , title = 'Books' , xPath = 'FScrollBox[1]//VTextField[2]' ) 
+	@name ( 'Calculate months' ) months = control.evaluate ( expression = 'int months = Integer.parseInt(monthsValue)
+if (months <= 0){
+ 	return months
+	}
+else{
+	 months = months-1
+	 return months
+	}' ) 
+	@name ( 'Update months' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Months' , title = 'Books' , xPath = 'FScrollBox[1]//VTextField[2]' , value = months ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'perform_depreciation_life_adjustment' ) 
+	@name ( 'Click Done button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Done' ) 
+	@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_perform_deprication_life_adjustment_fail"^ ) 
+} 

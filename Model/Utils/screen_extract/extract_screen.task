@@ -1,0 +1,6 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = xPath ) 
+@param ( name = filePath ) 
+java.switch ( session = session ) 
+java.capturexml ( filePath = filePath , target = xPath ) 

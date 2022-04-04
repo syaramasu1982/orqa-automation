@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = environment ) 
+env = environment.read ( name = environment ) 
+'Run All CR1924_AR&ProjectTesting' {
+	'AR&SpreadsheetTesting' {
+		@disabled /AnushaTasks/CR1924_AR&SpreadsheetTesting/1_CR1924CreateARInvoice.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\CreateARInvoiceTransaction.xlsx' ) 
+		@disabled /AnushaTasks/CR1924_AR&SpreadsheetTesting/2_CR1924CreateARCreditNoteInvoice.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\CreateCreditNoteARInvoice.xlsx' ) 
+		@disabled /AnushaTasks/CR1924_AR&SpreadsheetTesting/3_UploadARExternalInvoices.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\UploadExternalARInvoices.xlsx' ) 
+		/AnushaTasks/CR1924_AR&SpreadsheetTesting/4_RunExternalARInvoicesProcess.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\RunExternalInvoiceProcess.xlsx' ) 
+		/AnushaTasks/CR1924_AR&SpreadsheetTesting/5_RunAutoInvoicingImportProgram.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\RunAutoInvoicingImportProgram.xlsx' ) 
+		/AnushaTasks/CR1924_AR&SpreadsheetTesting/6_CheckARInvoice.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\CR1914ChekARInvoice.xlsx' , testCase = 'TC_0003' ) 
+		@disabled /AnushaTasks/CR1924_AR&SpreadsheetTesting/7_PrintNewInvoices.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\PrintNewInvoices.xlsx' ) 
+		@disabled /AnushaTasks/CR1924_AR&SpreadsheetTesting/8_PrintStatement.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\AR\PrintStatementCycle.xlsx' ) 
+		/AnushaTasks/CR1924_AR&SpreadsheetTesting/9_VAT_AR_Reconcilliation_Report.task ( environment = 'PRJ2' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\CR1914\CR1914_AR_VATReconciliationReport.xlsx' ) 
+	} 
+	'ProjectTesting' {
+		/AnushaTasks/CR1924_SwedishVATRates_ProjectsTesting/1_CR1924ProjectsAndAR.task ( environment = 'PRE1' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\RaiseInvoiceToProjects.xlsx' ) 
+		/AnushaTasks/CR1924_SwedishVATRates_ProjectsTesting/2_CheckARInvoice.task ( environment = 'PRE1' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\Projects Regression\CR1914ChekARInvoice.xlsx' ) 
+		/AnushaTasks/CR1924_SwedishVATRates_ProjectsTesting/3_VAT_AR_Reconcilliation_Report.task ( environment = 'PRE1' , workbook = 'C:\Users\asin11\OneDrive - ph.rc\Desktop\Automation_Testdata\TestData\CR1914\CR1914_AR_VATReconciliationReport.xlsx' ) 
+	} 
+} 

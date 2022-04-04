@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Click checkbox [${xPath}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//*[contains(@id,'" + id + "')]//input[contains(@id,'" + xPath + "')] | //*[contains(@id,'" + id + "')]//input[contains(@name,'" + xPath + "')]"^ , timeout = 5 ) 
+		sleep 0.5 
+		web.click ( target = ^"//*[contains(@id,'" + id + "')]//input[contains(@id,'" + xPath + "')] | //*[contains(@id,'" + id + "')]//input[contains(@name,'" + xPath + "')]"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+ xPath +"_fail"^ ) 
+	error ^"Failed to select checkbox [" + xPath + "] on session [" + session + "]"^ 
+} 

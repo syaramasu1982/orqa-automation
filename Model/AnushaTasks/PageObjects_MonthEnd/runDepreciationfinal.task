@@ -1,0 +1,35 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = launchApp ) 
+@name ( 'Run Depreciation ' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Run Depreciation' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Book' , value = book , label = 'Book' , index = '1' ) 
+	@name ( 'Click CheckBox' ) /EBSArea/lib/java/checkbox/click_checkbox.task ( scenario = scenario , session = session , name = 'Close Period' ) 
+	@name ( 'Click Run' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Run' ) 
+	@name ( 'Wait For Caution pop-up' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Note pop-up' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Navigator' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigator' ) 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'run_depreciation_final' ) 
+	@name ( 'Is forms exist' ) isFormsExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Forms' , title = 'Forms' ) 
+	if isFormsExist {
+		@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@disabled @name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

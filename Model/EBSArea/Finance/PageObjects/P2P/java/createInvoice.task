@@ -1,0 +1,91 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = poNumber ) 
+@param ( name = dateInvRec ) 
+@param ( name = invoiceDate ) 
+@param ( name = invoiceNumber ) 
+@param ( name = invoiceAmount ) 
+@param ( name = quantityInvoiced ) 
+@name ( 'Launch Invoice Forms' ) try {
+	@name ( 'Wait For Invoice Workbench' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Workbench' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Operating Unit' , value = operatingUnit , label = 'Operating Unit' , index = '1' ) 
+	@name ( 'Enter PO Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'PO Number' , value = poNumber , label = 'PO Number' , index = '1' ) 
+	@name ( "Define Date Inv Rec'd" ) dateInvRecd = control.evaluate ( expression = 'def dateInvRecd = "Date Inv Rec''d"
+' ) 
+	@name ( 'Check Date Inv Rec exists' ) isDateInvRecExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = "Date Inv Rec'd" , label = dateInvRecd , index = '1' ) 
+	if ^isDateInvRecExist && isDateInvRecExist != null^ {
+		@name ( 'Enter Date Inv Recd' ) /EBSArea/lib/java/text/set_text_java.task ( scenario = scenario , session = session , field = "Date Inv Rec'd" , value = dateInvRec , label = dateInvRecd , index = '1' ) 
+	} 
+	@name ( 'Enter Invoice Date' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Invoice Date' , value = invoiceDate , label = 'Invoice Date' , index = '1' ) 
+	@name ( 'Enter Invoice Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Invoice Number' , value = invoiceNumber , label = 'Invoice Num' , index = '1' ) 
+	@name ( 'Enter Invoice Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Invoice Amount' , value = invoiceAmount , label = 'Invoice Amount' , index = '1' ) 
+	@name ( 'Wait before clicking match button' ) sleep 0.50 
+	@name ( 'Click Match' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Match' ) 
+	@name ( 'Wait before clicking find button' ) sleep 3 
+	@name ( 'Wait For Find Purchase Orders for Matching' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Purchase Orders for Matching' ) 
+	@name ( 'Click Find' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Match to Purchase Orders' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Match to Purchase Orders' ) 
+	@name ( 'Wait to select match box' ) sleep 0.5 
+	@name ( 'Select Match Checkbox' ) /EBSArea/lib/java/checkbox/click_match_checkbox.task ( scenario = scenario , session = session , frame = 'ExtendedFrame4' , scrollBox = 'FScrollBox7' , name = 'CheckBox53' ) 
+	@name ( 'Read quantity invoiced' ) invoicedQuantity = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Qty Invoiced' , label = 'Qty Invoiced' , index = '1' ) 
+	if ^invoicedQuantity.equals("") || invoicedQuantity== null^ {
+		@name ( 'Enter Qty Invoiced' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Qty Invoiced' , value = quantityInvoiced , label = 'Qty Invoiced' , index = '1' ) 
+		@name ( 'Check Note' ) isNoteExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' ) 
+		if isNoteExists {
+			@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+			@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		} 
+	} 
+	@name ( 'Wait to click Match' ) sleep 0.5 
+	@name ( 'Click Match' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Match' ) 
+	@name ( 'Wait to click Match' ) sleep 0.5 
+	@name ( 'Wait For Invoice Workbench' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Workbench' ) 
+	@name ( 'Wait for total amount update' ) sleep 2 
+	@name ( 'Click Calculate Tax' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Calculate Tax' ) 
+	@name ( 'Wait for total amount update' ) sleep 5 
+	@name ( 'Read Total' ) isTotal = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Total' , label = 'Total' ) 
+	if ^!isTotal.equals(invoiceAmount)^ {
+		@name ( 'Enter Invoice Amount' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Invoice Amount' , value = isTotal , label = 'Invoice Amount' , index = '1' ) 
+		sleep 0.25 
+		/EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Invoice Number' , label = 'Invoice Num' , index = '1' ) 
+		@name ( 'Enter Invoice Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Invoice Amount' , value = isTotal , label = 'Invoice Amount' , index = '1' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	} 
+	@name ( 'Click Actions...1' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Actions' ) 
+	@name ( 'Wait For Invoice Actions Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Actions' ) 
+	@name ( 'Select Invoice Checkbox' ) /EBSArea/lib/java/checkbox/click_checkbox.task ( scenario = scenario , session = session , name = 'Validate' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Invoice Workbench' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , fullXPath = "//*[contains(@label,'Status')]" ) 
+	@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Status' , label = 'Status' ) 
+	if ^isStatus != "Needs Revalidation"^ {
+		control.repeat ( count = 30 ) {
+			@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Status' , label = 'Status' ) 
+			@name ( 'Exit' ) if ^isStatus == "Needs Revalidation"^ {
+				break 
+			} 
+		} 
+	} 
+	if ^isStatus == "Needs Revalidation"^ {
+		@name ( 'Click Holds Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = '3 Holds' ) 
+		@name ( 'Click Release' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Release' ) 
+		@name ( 'Wait For Release Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Release' ) 
+		@name ( 'Enter Release Name' ) /EBSArea/lib/java/text/set_text_java.task ( scenario = scenario , session = session , field = 'Release Name' , xPath = 'VTextField' , value = 'Invoice Quick Released' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Click General Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = '1 General' ) 
+	} 
+	@name ( 'Wait for General Tab' ) sleep 4 
+	@name ( 'Read Status' ) statusValue = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Status' , xPath = 'Validated' ) 
+	assert.true ( expression = 'statusValue.equals("Validated")' ) 
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_success_invoice_number_"+invoiceNumber^ ) 
+	@name ( 'Click All Distributions' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'All Distributions' ) 
+	@name ( 'Wait For Distributions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Distributions' ) 
+	@name ( 'Click All Distributions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Distributions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For Invoice Workbench' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Invoice Workbench' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform create invoice request for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

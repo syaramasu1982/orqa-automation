@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = type ) 
+@param ( name = amount ) 
+@param ( name = expenseAccount ) 
+@param ( name = closeApp ) 
+@name ( 'Perform Cost Adjustment' ) try {
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Books button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Books' ) 
+	@name ( 'Wait For Books' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Books' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[3]' , value = book ) 
+	@name ( 'Click on Current Cost' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Current Cost' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[6]' ) 
+	@name ( 'Click Unplanned Depreciation button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Unplanned Depreciation' ) 
+	@name ( 'Wait For Unplanned Depreciation' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Unplanned Depreciation' ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Type' , title = 'Unplanned Depreciation' , xPath = 'FScrollBox[1]//VTextField[1]' , value = type ) 
+	@name ( 'Enter Amount' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Amount' , title = 'Unplanned Depreciation' , xPath = 'FScrollBox[1]//VTextField[2]' , value = amount ) 
+	@name ( 'Enter Expense Account' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Expense Account' , title = 'Unplanned Depreciation' , xPath = 'FScrollBox[1]//VTextField[3]' , value = expenseAccount ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'unplanned_depreciation_adjustment' ) 
+	@name ( 'Click Done button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Done' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_unplanned_depreciation_adjustment_fail"^ ) 
+} 

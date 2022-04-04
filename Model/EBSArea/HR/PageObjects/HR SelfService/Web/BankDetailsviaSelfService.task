@@ -1,0 +1,39 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empuser ) 
+@param ( name = amount ) 
+@param ( name = sortcode ) 
+@param ( name = bankname ) 
+@param ( name = accountname ) 
+@param ( name = amounttype ) 
+@param ( name = bankbranch ) 
+@param ( name = accountnumber ) 
+@param ( name = accounttype ) 
+@param ( name = societyaccountnumber ) 
+@param ( name = bankbranchlocation ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'Updating Employee Bank Details' ) try {
+	'Navigate Bank Details' {
+		@disabled @name ( 'Navigate Salary Bank Details' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="RCUK Self-Service EmployeeAll Actions Awaiting Your AttentionPersonal InformationDisabilityMy InformationPayslip"' , itemName #= '="Salary Bank Details"' ) 
+		@name ( 'Click Add Bank Payment' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddDeposit' ) 
+		@name ( 'Select AmountType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'AmountType' , xPath = 'AmountType' , value = amounttype ) 
+		@name ( 'Enter Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Amount' , xPath = 'Amount' , value = amount ) 
+		@name ( 'Enter SortCode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'SortCode' , xPath = 'BankDetails0' , value = sortcode ) 
+		@name ( 'Enter BankName' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'BankName' , xPath = 'BankDetails1' , value = bankname ) 
+		@name ( 'Enter BankBranch' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Bank Branch' , xPath = 'BankDetails2' , value = bankbranch ) 
+		@name ( 'Enter Accountnumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AccountNumber' , xPath = 'BankDetails3' , value = accountnumber ) 
+		@name ( 'Enter AccountName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'SortCode' , xPath = 'BankDetails4' , value = accountname ) 
+		@name ( 'Enter AccountType' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'AccountType' , xPath = 'BankDetails5' , value = accounttype ) 
+		@name ( 'Enter AccountNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'SocietyAccountNumber' , xPath = 'BankDetails6' , value = societyaccountnumber ) 
+		@name ( 'Enter BankBranchLocation' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'BankName' , value = bankbranchlocation , xPath = 'BankDetails7' ) 
+		@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply_uixr' ) 
+		@name ( 'Click Continue' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Continue' ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit' ) 
+		@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'BankDetails' ) 
+	error ^"Failed to perform BankDetails[" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = testCaseID ) 
+@name ( 'Define default reference' ) poNumber = control.evaluate ( expression = 'return null' ) 
+@name ( 'Extract reference' ) if ^refTestCaseID != null && String.valueOf(refTestCaseID).trim().length() > 0^ {
+	recordset.use ( recordset = summaryTable ) 
+	referenceData = filter.comparison ( columns = 'Test Case ID' , operation = 'EQUAL' , value = refTestCaseID ) 
+	referenceData = filter.range ( firstRow = ^=referenceData.size() - 1^ ) 
+	referenceData = recordset.save ( ) 
+	if ^referenceData == null || referenceData.size() <=1^ {
+		error ^"Unable to resolve Ref Test Case ID/Reference data [" +refTestCaseID +"] for test case [" + testCaseID + "]"^ 
+	} 
+	poNumber = control.evaluate ( expression = 'return referenceData[1][5]' ) 
+} 
+@name ( 'Return' ) control.evaluate ( expression = 'poNumber' ) 

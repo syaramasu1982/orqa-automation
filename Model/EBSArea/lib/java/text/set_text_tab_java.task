@@ -1,0 +1,45 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+@param ( name = alternateLabel ) 
+@param ( name = index ) 
+@param ( name = fullXPath ) 
+@param ( name = value ) 
+java.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && label != null && String.valueOf(label).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+			label = /EBSArea/lib/java/basic/check_label_exist.task ( scenario = scenario , session = session , name = label , alternateName = alternateLabel , index = index ) 
+			java.waitforcomponent ( target = ^"//VTextField[@label='" + label + "']["+index+"]"^ , timeout = 5 ) 
+			sleep 0.25 
+			java.setvalue ( text = value , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'TAB' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+		} 
+	} 
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && fullXPath != null && String.valueOf(fullXPath).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+			java.waitforcomponent ( target = ^""+ fullXPath +""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.setvalue ( text = value , target = ^""+ fullXPath +""^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'TAB' , target = ^""+ fullXPath +""^ ) 
+		} 
+	} 
+	@name ( 'Populate value' ) if ^xPath != null && String.valueOf(xPath).trim().length() > 0 && value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+			java.waitforcomponent ( target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ , timeout = 5 ) 
+			sleep 0.25 
+			java.setvalue ( text = value , target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'TAB' , target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//VTextField[contains(@name,'"+ xPath +"')]"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "set_text_"+ field +"_fail"^ ) 
+	error ^"Failed to set text [" + field + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,140 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle CM' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		@name ( 'Get invoice number index location' ) invoiceIndexLocation = control.evaluate ( expression = "return cases.getHeader().indexOf('INVOICE NUMBER') + 1" ) 
+		@name ( 'Get po number index location' ) poIndexLocation = control.evaluate ( expression = "return cases.getHeader().indexOf('PO NUMBER') + 1" ) 
+		excelColumnInvoiceNumber = /EBSArea/lib/excel/get_excel_column_name.task ( column = ^invoiceIndexLocation +""^ ) 
+		poIndexLocation = /EBSArea/lib/excel/get_excel_column_name.task ( column = ^poIndexLocation +""^ ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle CM Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Manual Bank Statement Upload]' ) if ^testCaseName.contains("MANUALBANKSTATEMENTUPLOAD")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Manual Bank Statement Upload [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/CM/java/manualBankStmtUpload.task ( scenario = scenario , session = session , accountNumber = ^caseRef['ACCOUNTNUMBER']^ , date = date , receiptsAmount = ^caseRef['RECEIPTAMOUNT']^ , receiptsLines = ^caseRef['RECEIPTLINES']^ , paymentsAmount = ^caseRef['PAYMENTSAMOUNT']^ , paymentsLines = ^caseRef['PAYMENTSLINES']^ , line1 = ^caseRef['LINE1']^ , type1 = ^caseRef['TYPE1']^ , amount1 = ^caseRef['AMOUNT1']^ , line2 = ^caseRef['LINE2']^ , type2 = ^caseRef['TYPE2']^ , amount2 = ^caseRef['AMOUNT2']^ , line3 = ^caseRef['LINE3']^ , type3 = ^caseRef['TYPE3']^ , amount3 = ^caseRef['AMOUNT3']^ , line4 = ^caseRef['LINE4']^ , type4 = ^caseRef['TYPE4']^ , amount4 = ^caseRef['AMOUNT4']^ , line5 = ^caseRef['LINE5']^ , type5 = ^caseRef['TYPE5']^ , amount5 = ^caseRef['AMOUNT5']^ , description1 = ^caseRef['DESCRIPTION1']^ , description2 = ^caseRef['DESCRIPTION2']^ , description3 = ^caseRef['DESCRIPTION3']^ , description4 = ^caseRef['DESCRIPTION4']^ , description5 = ^caseRef['DESCRIPTION5']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Run Transactions For Reconciliation Report]' ) if ^testCaseName.contains("RUNTRANSACTIONSAVAILABLEFORRECONCILIATIONREPORT")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Run Transactions Avialable For Recon Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/CM/java/runTransactionsAvailableForReconReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , transactionType = ^caseRef['TRANSACTIONTYPE']^ , bankAccountNumber = ^caseRef['BANKACCOUNTNUMBER']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [MarkStatementLineAsReconciled]' ) if ^testCaseName.contains("MARKSTATEMENTLINEASRECONCILED")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Mark Statement Line As Reconciled [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/CM/java/markStatementLineAsReconciled.task ( scenario = scenario , session = session , accountNumber = ^caseRef['ACCOUNTNUMBER']^ , glDate = date , dates = date , clearedDate = date , environment = environment ) 
+				} 
+				@name ( 'Handle [Apply Error Setting To Statement Line]' ) if ^testCaseName.contains("APPLYERRORSETTINGTOSTATEMENTLINE")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Apply Error Setting To Statement Line [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/CM/java/applyErrorSettingToStatementLine.task ( scenario = scenario , session = session , accountNumber = ^caseRef['ACCOUNTNUMBER']^ , glDate = date , mark = ^caseRef['MARK']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Modifying Automated Bank Statement Uploads]' ) if ^testCaseName.contains("MODIFYINGAUTOMATEDBANKSTATEMENTUPLOADS")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Modifying Automated Bank Statement Uploads [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/CM/java/modifyingAutomatedBankStmtUploads.task ( scenario = scenario , session = session , accountNumber = ^caseRef['ACCOUNTNUMBER']^ , glDate = date , amount5 = ^caseRef['AMOUNT5']^ , description5 = ^caseRef['DESCRIPTION5']^ , paymentsAmount = ^caseRef['PAYMENTAMOUNT']^ , createType = ^caseRef['CREATETYPE']^ , organization = ^caseRef['ORGANIZATION']^ , activity = ^caseRef['ACTIVITY']^ , method = ^caseRef['METHOD']^ , amount = ^caseRef['AMOUNT']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Enter Miscellaneous Receipts]' ) if ^testCaseName.contains("MISCELLANEOUSRECEIPTS")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Calculate Receipt Number' ) receiptNumber = control.evaluate ( expression = 'def receiptNumber = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptNumber = today
+}
+receiptNumber = receiptNumber.format("ddhhmmss")
+return receiptNumber
+' ) 
+					@name ( 'Miscellaneous Receipts [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AR/java/miscellaneousReceipts.task ( scenario = scenario , session = session , receiptMethod = ^caseRef['RECEIPTMETHOD']^ , receiptNumber = receiptNumber , receiptAmount = ^caseRef['RECEIPTAMOUNT']^ , receiptType = ^caseRef['RECEIPTTYPE']^ , contextValue = ^caseRef['CONTEXTVALUE']^ , receiptInfoMethod = ^caseRef['RECEIPTINFOMETHOD']^ , name = ^caseRef['NAME']^ , activity = ^caseRef['ACTIVITY']^ , taxCode = ^caseRef['TAXCODE']^ , receiptMethodAccount = ^caseRef['RECEIPTMETHODACCOUNT']^ , environment = environment ) 
+					@name ( 'Print Request Number' ) console.write ( data = ^="Receipt [" + receiptNumber + "] created for test case [" + scenario +"]"^ ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Receipt Number'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,receiptNumber];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Process Receipt Unidentified]' ) if ^testCaseName.contains("RECEIPTUNIDENTIFIED")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Read Receipt Number' ) receiptNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Receipt Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Receipt Unidentified [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AR/java/receiptUnidentified.task ( scenario = scenario , session = session , receiptMethod = ^caseRef['RECEIPTMETHOD']^ , receiptNumber = receiptNumber , receiptAmount = ^caseRef['RECEIPTAMOUNT']^ , contextValue = ^caseRef['CONTEXTVALUE']^ , receiptInfoMethod = ^caseRef['RECEIPTINFOMETHOD']^ , receiptMethodAccount = ^caseRef['RECEIPTMETHODACCOUNT']^ , receiptInformation = 'Receipts Method.BACS' , environment = environment ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

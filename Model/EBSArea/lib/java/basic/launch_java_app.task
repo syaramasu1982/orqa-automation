@@ -1,0 +1,36 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = environment ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve source path' ) sourcePath = control.evaluate ( expression = 'String sourcePath = env.sourcePath
+String user = System.getProperty("user.name")
+return sourcePath.replace("<user>", user)' ) 
+@name ( 'Resolve download directory' ) downLoadDir = control.evaluate ( expression = 'String downLoadDir = env.downloadDirectory
+String user = System.getProperty("user.name")
+return downLoadDir.replace("<user>", user)' ) 
+@name ( 'Check launcher file exist' ) control.repeat ( count = 60 ) {
+	isLauncherExist = file.exists ( sourcePath = sourcePath ) 
+	@name ( 'Exist' ) if ^Boolean.valueOf(isLauncherExist)^ {
+		isWorkingDirectoryExists = file.folderexists ( sourcePath = ^env.workingDirectory^ ) 
+		@name ( 'isWorkingDirectortyExists' ) if ^!isWorkingDirectoryExists^ {
+			file.createfolder ( filePath = ^env.workingDirectory^ ) 
+		} 
+		@name ( 'Wait to move file' ) sleep 1 
+		@disabled file.rename ( sourcePath = ^env['downloadDirectory']+"/"+env['servletFilename']^ , targetPath = ^env['workingDirectory']^ ) 
+		file.copy ( sourcePath = ^downLoadDir +"/"+env['servletFilename']^ , targetPath = ^env['workingDirectory']^ , overwrite = true ) 
+		isDownloadServletExists = file.exists ( sourcePath = ^downLoadDir +"/"+env['servletFilename']^ ) 
+		if isDownloadServletExists {
+			file.delete ( filePath = ^ downLoadDir +"/"+env['servletFilename']^ ) 
+		} 
+		break 
+	} 
+} 
+@name ( 'Wait for luncher file' ) sleep 5 
+@name ( 'Lauch Application' ) control.retry ( maxAttempts = 2 ) {
+	java.terminate ( session = session ) 
+	@name ( 'Wait for session to close' ) sleep 2 
+	file.execute ( command = 'javaws -clearcache' , pwd = ^env['jvmPath']^ ) 
+	@name ( 'Wait for cache clear' ) sleep 7 
+	java.start ( command = ^env['applicationStartCommandExecutable'] +" "+env['workingDirectory']+"/"+env['servletFilename']^ , session = session , jvm = ^env['jvmPath']^ , pwd = ^env['workingDirectory']^ ) 
+	@name ( 'Wait for launching application' ) sleep 2 
+} 

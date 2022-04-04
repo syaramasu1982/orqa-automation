@@ -1,0 +1,77 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = closeApp ) 
+@param ( name = periodStatus ) 
+@param ( name = launchApp ) 
+@name ( 'Open PA Period' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For GL Periods for Projects' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'GL Periods for Projects' , scenario = scenario ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Operating Unit' , value = operatingUnit , label = 'Operating Unit' , index = '1' ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For GL Periods for Projects' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'GL Periods for Projects' , scenario = scenario ) 
+	/EBSArea/lib/java/presskey/press_f11_new.task ( scenario = scenario , session = session , field = 'Period Status' , label = 'Period Status' , index = '1' ) 
+	@name ( 'Enter Status' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Period Status' , value = periodStatus , label = 'Period Status' , index = '1' ) 
+	/EBSArea/lib/java/presskey/press_ctrl_f11_new.task ( scenario = scenario , session = session , filed = 'Period Status' , label = 'Period Status' , index = '1' ) 
+	@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , label = 'Period Name' , index = '1' ) 
+	lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+	@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+
+}
+
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+	while ^lastOpenPeriodDate<periodName^ {
+		date1 = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+//String date1=date.format('MMM-yyyy')
+String date1=null
+use (groovy.time.TimeCategory) {
+ date=(date + 1.months)
+date1=date.format('MMM-yyyy')
+}
+//date=date.format('MMM-yyyy')
+
+return date1" ) 
+		/EBSArea/lib/java/presskey/press_f11_new.task ( scenario = scenario , session = session , field = 'Period Name' , label = 'Period Name' , index = '1' ) 
+		@name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Period Name' , value = date1 , label = 'Period Name' , index = '1' ) 
+		/EBSArea/lib/java/presskey/press_ctrl_f11_new.task ( scenario = scenario , session = session , filed = 'Period Name' , label = 'Period Name' , index = '1' ) 
+		@name ( 'Enter Status' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Period Status' , value = periodStatus , label = 'Period Status' , index = '1' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , label = 'Period Name' , index = '1' ) 
+		lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+		@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+
+}
+
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"open_PA_period_name_"+operatingUnit+"_"+timeStamp^ ) 
+	@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , label = 'Period Name' , index = '1' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "open AR periods "+scenario+"_failed"^ ) 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Period Name to Map' ) map.add ( map = result , key = 'PERIODNAME' , value = ^=lastOpenPeriod^ ) 
+	@name ( 'Return Period Name' ) result = control.evaluate ( expression = 'return result' ) 
+} 

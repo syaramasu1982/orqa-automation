@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = number ) 
+@name ( 'Credit Invoice Balance ' ) try {
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@disabled @name ( 'Press F11 key for query mode' ) /EBSArea/lib/java/presskey/press_f11.task ( scenario = scenario , session = session , name = 'Source' , xPath = 'VTextField43' ) 
+	@disabled @name ( 'Enter AR Invoice Number' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Number' , title = 'Transactions' , xPath = 'FScrollBox[2]//VTextField[3]' , value = number ) 
+	@disabled /EBSArea/lib/java/presskey/press_ctrl_f11.task ( scenario = scenario , session = session , name = 'Number' , xPath = 'VTextField45' ) 
+	@name ( 'Click on main menu Actions' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[6]' ) 
+	@name ( 'Click on Control' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Credit' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[5]' ) 
+	@name ( 'Wait For Credit Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Credit Transactions' ) 
+	@name ( 'Click Credit Balance' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Credit Balance' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Credit Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Credit Transactions' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Complete button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Complete' ) 
+	@name ( 'Wait For Credit Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Credit Transactions' ) 
+	@name ( 'Read Complete Checkbox' ) isCheckboxSelected = /EBSArea/lib/java/checkbox/read_checkbox_java.task ( scenario = scenario , session = session , title = 'Credit Transactions' , xPath = "LWCheckbox[@text='Complete']" ) 
+	assert.true ( expression = 'isCheckboxSelected == true' ) 
+	@name ( 'Click Credit Transactions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Credit Transactions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh' ) 
+	@name ( 'Read Balance Due' ) isBalanceDueTotal = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Total' , label = 'Total' ) 
+	assert.true ( expression = 'isBalanceDueTotal == "0.00"' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'credit_invoice_balance' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_credit_invoice_balance_fail"^ ) 
+	error ^"Failed to perform credit invoice balance for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

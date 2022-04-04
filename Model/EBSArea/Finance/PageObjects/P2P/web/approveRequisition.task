@@ -1,0 +1,22 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requestID ) 
+web.switch ( session = session ) 
+@name ( 'Approve Request' ) try {
+	@name ( 'Wait for worklist' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h2' , text = 'Worklist' ) 
+	@name ( 'Click Full List' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'NtfFullList' , scenario = scenario ) 
+	@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requestID ) 
+	@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	while ^!requsitionExists && nextExists^ {
+		@name ( 'Click on Next' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requestID ) 
+		@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	} 
+	@name ( 'Click on Request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = requestID ) 
+	@name ( 'Click Approve' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Approve' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "approve_request_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform approve requisition for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,33 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = user ) 
+@param ( name = password ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = testCaseUser ) 
+if ^session == null^ {
+	session = '/Utils/new login session/sub tasks/get_session_name.task' ( session = user , environment = ^ environment^ ) 
+} 
+@name ( 'Launch EBS [${session}]' ) documentation.teststep ( attributes = ^=[Step:'Launch EBS']^ ) {
+	@name ( 'Update login required' ) loginRequired = control.evaluate ( expression = 'return true' ) 
+	'Login' {
+		@name ( 'Perform Login' ) if loginRequired {
+			@name ( 'Handle secure' ) if ^"PRJ2".equalsIgnoreCase(environment.name)^ {
+				@name ( 'Handle [LOCAL]' ) if ^"UFT_FIN".equals(user)^ {
+					@name ( 'Resolve user' ) userResolved = control.evaluate ( expression = 'return "environment[''user." +user+"'']"' ) 
+					@name ( 'Resolve password' ) passwordResolved = control.evaluate ( expression = 'return ${userResolved}' ) 
+				} 
+				else {
+					@name ( 'Resolve password' ) passwordResolved = control.evaluate ( expression = 'return password' ) 
+				} 
+				@name ( 'decrypt password' ) passwordDecrypted = /Utils/crypto/decrypt.task ( data = passwordResolved ) 
+				@name ( 'Login' ) /EBSArea/Finance/PageObjects/Common/login.task ( password = passwordDecrypted , session = session , user = user , environment = environment , scenario = 'Login' , testCaseUser = testCaseUser ) 
+			} 
+			else {
+				@name ( 'Login' ) /EBSArea/Finance/PageObjects/Common/login.task ( password = password , session = session , user = user , environment = environment , scenario = 'Login' , testCaseUser = testCaseUser ) 
+			} 
+		} 
+	} 
+} 
+control.evaluate ( expression = 'session' ) 

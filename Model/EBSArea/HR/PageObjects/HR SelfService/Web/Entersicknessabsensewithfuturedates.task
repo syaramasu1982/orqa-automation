@@ -1,0 +1,62 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = user ) 
+@param ( name = absensetype ) 
+@param ( name = absensereason ) 
+@param ( name = absenseTypesickness ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=user' , password #= '="Welcome123"' ) 
+@name ( 'Create SickNess Absense' ) try {
+	'Navigate to Sickness Absense' {
+		@disabled @name ( 'Navigate to Create Sickness' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="RCUK Self-Service EmployeeAll Actions Awaiting Your AttentionPersonal InformationDisabilityMy InformationPayslipSalary Bank Details"' , itemName #= '="Attendance Management"' ) 
+		@name ( 'Click Entitlement Absense' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Entitlement Balances' ) 
+		@name ( 'Click Show Accural Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show Accrual Balances' ) 
+		@name ( 'Read UKRI AnnualLeave Scheme' ) UKRIAnnualLeave = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'UKRI AnnualScheme' , xPath = 'UKRI Annual Leave Days Scheme' ) 
+		@name ( 'AssertConfirmationMessage' ) assert.true ( expression = 'UKRIAnnualLeave=="UKRI Annual Leave Days Scheme"' ) 
+		@name ( 'Read AnnuaLeaveBalance' ) ReadAnnualleavebalance = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualLeaveInitialbalance' , xPath = 'Annual leave initial balance' ) 
+		assert.true ( expression = 'ReadAnnualleavebalance=="Annual leave initial balance"' ) 
+		@name ( 'Read AnnualLeaveTaken' ) ReadAnnualleaveTaken = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualleaveTaken' , xPath = 'Annual leave taken' ) 
+		assert.true ( expression = 'ReadAnnualleaveTaken=="Annual leave taken"' ) 
+		@name ( 'Read AnnualLeaveBooked' ) ReadAnnualleavebooked = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Annualleavebooked' , xPath = 'Annual leave booked' ) 
+		assert.true ( expression = 'ReadAnnualleavebooked=="Annual leave booked"' ) 
+		@name ( 'Read AnnualLeaveRemaining' ) ReadAnnualleaveremaining = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'AnnualleaveRemaining' , xPath = 'Annual leave remaining' ) 
+		assert.true ( expression = 'ReadAnnualleaveremaining =="Annual leave remaining"' ) 
+		@name ( 'Click Absense Summary' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Absence Summary' ) 
+		@name ( 'Click Create Absense' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Create Absence' ) 
+		@name ( 'Select Absense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'HrAbsenceType' , value = absensetype ) 
+		@name ( 'SelectAbsensereason' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Sicknessreason' , xPath = 'HrAbsenceReason' , value = absensereason ) 
+		@name ( 'Calculate Start Date' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  StartDate = today+3
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Set StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrAbsenceStartDate' , value = startdate ) 
+		@name ( 'CalculateEndDate' ) enddate = control.evaluate ( expression = 'def EndDate= null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+   EndDate= today+3
+}
+ EndDate=  EndDate.format("dd-MMM-yyy")
+
+return  EndDate' ) 
+		@name ( 'Set EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , xPath = 'HrAbsenceEndDate' , value = enddate ) 
+		@name ( 'ClickCalculateButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Calculate Duration' ) 
+		@name ( 'Select Absense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'HrAbsenceDFF4' , value = absenseTypesickness ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Read Warning Message' ) Iserror = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'sickness ' ) 
+		assert.true ( expression = 'Iserror=="The absence notification date may not be before the sickness start date."' ) 
+		@name ( 'ClickCancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancel' ) 
+		@name ( 'Read Warning Message' ) Iswarningcancel = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Cancel' , xPath = 'cancel ' ) 
+		assert.true ( expression = 'Iswarningcancel=="Do you want to cancel this action?"' ) 
+		@name ( 'ClickYes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+		@name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+	} 
+} 
+@name ( 'HandleFailure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'Sicknessleave' ) 
+	error ^"Failed to perform SicknessAbsense[" + scenario +"] with session ["+ session +"]"^ 
+} 

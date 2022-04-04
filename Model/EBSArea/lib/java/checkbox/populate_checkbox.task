@@ -1,0 +1,36 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = expectedVal ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Populate checkbox [${name}]' ) try {
+	control.retry ( maxAttempts = 3 ) {
+		@name ( 'Read checkbox' ) readVal = /EBSArea/lib/java/checkbox/read_checkbox.task ( session = session , name = name , scenario = scenario , title = title , xPath = xPath ) 
+		@name ( 'check expected value' ) actualVal = control.evaluate ( expression = 'if(expectedVal != null && expectedVal != "") {
+	if(expectedVal.equalsIgnoreCase("Y")) {
+		return true
+	} else {
+		return false
+	}
+} else {
+	return false
+}' ) 
+		@name ( 'check to select or not' ) isToSelect = control.evaluate ( expression = 'if(readVal != actualVal) {
+	return true
+} else {
+	return false
+}' ) 
+		@name ( 'Is checkbox to select' ) if isToSelect {
+			@name ( 'Select checkbox' ) /EBSArea/lib/java/checkbox/select_checkbox.task ( scenario = scenario , session = session , title = title , xPath = xPath ) 
+			@name ( 'Read checkbox' ) readVal = /EBSArea/lib/java/checkbox/read_checkbox.task ( session = session , name = name , scenario = scenario , title = title , xPath = xPath ) 
+			assert.true ( expression = 'readVal' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

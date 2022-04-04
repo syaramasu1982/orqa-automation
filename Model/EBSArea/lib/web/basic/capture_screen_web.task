@@ -1,0 +1,6 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+web.screenshot ( filePath = ^ "artefacts/" + scenario + "_" + session + "_" +name + ".jpg"^ ) 

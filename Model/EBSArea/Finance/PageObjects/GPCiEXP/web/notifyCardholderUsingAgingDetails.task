@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = sentDate ) 
+@param ( name = expensesForPeriodEnded ) 
+@param ( name = expenseType ) 
+@param ( name = justification ) 
+web.switch ( session = session ) 
+@name ( 'Notify Cardholder Using Aging Details' ) try {
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Read Sent Date' ) isSentDate = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Sent' , xPath = sentDate ) 
+	id = web.getelement ( target = ^"//*[contains(text(),'" + sentDate + "')]"^ ) 
+	control.evaluate ( expression = "def att = id.getAttribute('QuoteDate_c');
+
+println('att'+att)" ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ scenario+"_notify_card_holder_using_aging_details_fail"^ ) 
+	error ^"Failed to perform notify card holder using aging details for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+@name ( 'Return account number' ) accountNumber = control.evaluate ( expression = 'return accountNumber' ) 

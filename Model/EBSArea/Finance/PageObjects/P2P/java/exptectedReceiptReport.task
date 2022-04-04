@@ -1,0 +1,57 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = reports ) 
+@param ( name = organizationName ) 
+@param ( name = dynamicPrecisionOption ) 
+@name ( 'Expected Receipt Report' ) try {
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Submit Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit Request' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField' , value = name ) 
+	sleep 2 
+	@disabled @name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+	@disabled @name ( 'Enter Reports' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = '%' , value = reports ) 
+	@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@disabled @name ( 'Get Due Dates From' ) dueDatesFrom = control.evaluate ( expression = 'def dueDatesFrom = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+dueDatesFrom = today
+}
+dueDatesFrom = dueDatesFrom.format("dd-MMM-yyy").toUpperCase()
+
+return dueDatesFrom ' ) 
+	@disabled @name ( 'Enter Due Dates From' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Due Dates From' , value = dueDatesFrom , xPathPosition = '11' ) 
+	@disabled @name ( 'Get Due Dates To' ) dueDatesTo = control.evaluate ( expression = 'def dueDatesTo= null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+dueDatesTo= today 
+}
+dueDatesTo = dueDatesTo .format("dd-MMM-yyy").toUpperCase()
+
+return dueDatesTo' ) 
+	@disabled @name ( 'Enter Due Dates To' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Due Dates From' , value = dueDatesTo , xPathPosition = '12' ) 
+	'Enter Organization Name' {
+		@name ( 'Click on Organization Name iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Organization Name' , xPathPosition = '14' ) 
+		@name ( 'Wait For Organization Name Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Organization Name' ) 
+		@name ( 'Enter Organization Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Organization Name' , xPath = '%' , value = organizationName ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Dynamic Precision Option' {
+		@name ( 'Click on Dynamic Precision Option iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Dynamic Precision Option' , xPathPosition = '15' ) 
+		@name ( 'Wait For Dynamic Precision Option Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Dynamic Precision Option' ) 
+		@name ( 'Enter Dynamic Precision Option' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Dynamic Precision Option' , xPath = '%' , value = dynamicPrecisionOption ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'expected_receipt_report_fail' ) 
+	error ^"Failed to perform expected receipt report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

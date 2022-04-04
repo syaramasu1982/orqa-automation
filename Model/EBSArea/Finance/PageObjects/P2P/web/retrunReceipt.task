@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = receiptNo ) 
+@param ( name = returnQuantity ) 
+@param ( name = reason ) 
+@param ( name = requestNumber ) 
+web.switch ( session = session ) 
+@name ( 'Return Receipt' ) try {
+	@name ( 'Click on Retrun Items' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'ReturnItemsLink1' ) 
+	@name ( 'Enter Receipt Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Receipt Number' , value = receiptNo , name = 'ReceiptNumber' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	/EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = '*' , text = requestNumber ) 
+	@name ( 'Click on Receipt Number' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = receiptNo ) 
+	@name ( 'Click Return Items' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Return Items' , scenario = scenario ) 
+	if ^returnQuantity != null && String.valueOf(returnQuantity).trim().length() > 0^ {
+		@name ( 'Enter Return Quantity' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Return Quantity' , xPath = 'ReturnQuantity' , value = returnQuantity ) 
+	} 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Select Reason' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Reason' , xPath = 'Reason' , value = reason ) 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	'Read Return Confirmation' {
+		@name ( 'Get Receipt Number' ) returnConfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Return Confirmation' , xPath = 'Your returns have been submitted.' ) 
+		assert.true ( expression = 'returnConfirmation == "Your returns have been submitted."' ) 
+	} 
+	@name ( 'Click Return to Receiving' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Receiving' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "receipt_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform return receipt for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,43 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+@param ( name = name ) 
+@param ( name = value ) 
+@param ( name = fullXPath ) 
+web.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//input[contains(@id,'" + xPath + "')] | //input[@name='" + xPath + "']"^ , timeout = 3 ) 
+			web.click ( target = ^"//input[contains(@id,'" + xPath + "')] | //input[@name='" + xPath + "']"^ ) 
+			sleep 0.25 
+			web.setvalue ( value = value , target = ^"//input[contains(@id,'" + xPath + "')] | //input[@name='" + xPath + "']"^ ) 
+			sleep 0.25 
+		} 
+	} 
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//input[@name='" + name + "']"^ , timeout = 3 ) 
+			web.click ( target = ^"//input[@name='" + name + "']"^ ) 
+			sleep 0.25 
+			web.setvalue ( value = value , target = ^"//input[@name='" + name + "']"^ ) 
+			sleep 0.25 
+		} 
+	} 
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && fullXPath != null && String.valueOf(fullXPath).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//"+fullXPath+""^ , timeout = 3 ) 
+			web.click ( target = ^"//"+fullXPath+""^ ) 
+			sleep 0.25 
+			web.setvalue ( value = value , target = ^"//"+fullXPath+""^ ) 
+			sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "set_text_"+ field +"_fail"^ ) 
+	error ^"Failed to set text [" + field + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empuser ) 
+'Login As  Employee' {
+	@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+	@name ( 'Click Full List' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+	@name ( 'Check Moreinfo Exists' ) moreinfoexists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'More Information Requested: Leave of Absence for ' ) 
+	@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	while ^!moreinfoexists&&nextExists^ {
+		@name ( 'Click on Next' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Check Moreinfo Exists' ) moreinfoexists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'More Information Requested: Leave of Absence for ' ) 
+		@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	} 
+	@name ( 'ClickInformation' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'More Information Requested' ) 
+	@name ( 'Enter Response' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Comments' , parentId = 'Response__xc_' , xPath = 'Response' , value = 'Test' ) 
+	@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Ok' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMrequestsprovideinformation' ) 
+	error ^"Failed to perform LMrequestsEmpprovidesmoreinformation[" + scenario +"] with session ["+ session +"]"^ 
+} 

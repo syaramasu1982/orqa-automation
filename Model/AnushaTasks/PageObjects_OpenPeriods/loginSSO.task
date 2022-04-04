@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = user ) 
+@param ( name = password ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve session' ) session = control.evaluate ( expression = "return env['session.web']" ) 
+web.start ( session = session , browser = ^env['browser']^ , executable = ^env['browserPath']^ ) 
+@name ( 'Login' ) try {
+	web.maximize ( ) 
+	web.url ( url = ^env['url']^ ) 
+	@name ( 'Wait for Login Screen' ) /EBSArea/lib/waitForElement.task ( scenario #= '=scenario' , session #= '=session' , text #= '="Username"' , element #= '="*"' ) 
+	@name ( 'Enter User Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Username:' , value = user , xPath = 'username' ) 
+	@name ( 'Enter Password' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Password:' , value = password , xPath = 'password' ) 
+	/EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= '=session' , name #= '="login"' ) 
+	@name ( 'Click Login Button' ) /EBSArea/lib/web/button/click_input_type_button.task ( scenario = scenario , session = session , name = 'Login' ) 
+	@name ( 'Wait for Login Success' ) /EBSArea/lib/waitForElement.task ( scenario #= '=scenario' , session #= '=session' , text #= '="Oracle Applications Home Page"' , element #= '="h1"' ) 
+	/EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= '=session' , name #= '="login_success"' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= "=env['session.web']" , name #= '= "login_"+scenario+"_fail"' ) 
+} 

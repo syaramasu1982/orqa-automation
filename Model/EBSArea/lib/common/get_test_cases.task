@@ -1,0 +1,25 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = convertColumns ) 
+env = environment.read ( name = environment ) 
+@disabled workbookInfo = file.info ( sourcePath = workbook ) 
+@disabled @name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+@disabled file.copy ( sourcePath = workbook , targetPath = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ ) 
+@disabled /EBSArea/lib/java/basic/delete_file_exists.task ( environment = environment ) 
+cases = excel.read ( filePath = workbook , sheetName = sheet ) 
+if ^convertColumns != null && String.valueOf(convertColumns).trim().length() > 0^ {
+	cases = transform.cast ( columns = convertColumns , type = 'java.math.BigDecimal' , pattern = '#' ) 
+} 
+@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+cases = transform.columnrename ( columns = headers ) 
+cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+@name ( 'To run single test case' ) if ^testCase != null && String.valueOf(testCase).trim().length() > 0^ {
+	cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+} 
+@name ( 'Rasie test case not found error' ) if ^cases.size() < 2^ {
+	error ^"Test case[" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]" ^ 
+} 

@@ -1,0 +1,22 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = selectRadioButton ) 
+@param ( name = fullXPath ) 
+web.switch ( session = session ) 
+@name ( 'Click radio button [${selectRadioButton}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		if ^selectRadioButton != null && String.valueOf(selectRadioButton).trim().length() > 0^ {
+			web.wait ( target = ^"//*[contains(text(),'"+ selectRadioButton +"')]//preceding-sibling::input[@type='radio'][position()=1]"^ , timeout = 5 ) 
+			web.click ( target = ^"//*[contains(text(),'"+ selectRadioButton +"')]//preceding-sibling::input[@type='radio'][position()=1]"^ ) 
+		} 
+		else {
+			web.wait ( target = ^"//"+fullXPath+""^ , timeout = 5 ) 
+			web.click ( target = ^"//"+fullXPath+""^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_radio_button_"+ field +"_fail"^ ) 
+	error ^"Failed to click radio button [" +selectRadioButton + "] on session [" + session + "]"^ 
+} 

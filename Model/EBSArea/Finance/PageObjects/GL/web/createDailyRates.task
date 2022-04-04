@@ -1,0 +1,28 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = fromCurrency ) 
+@param ( name = toCurrency ) 
+@param ( name = startDate ) 
+@param ( name = endDate ) 
+@param ( name = rateType ) 
+@param ( name = rate ) 
+web.switch ( session = session ) 
+@name ( 'Foreign Currency Search For Daily Rate' ) try {
+	@name ( 'Click Create Daily Rates button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'createDateRange' , scenario = scenario ) 
+	@name ( 'Select From Currency' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'From Currency' , id = 'region2' , xPath = 'N11:fromCurrency:0' , value = fromCurrency ) 
+	@name ( 'Select To Currency' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'To Currency' , id = 'region2' , xPath = 'N11:toCurrency:0' , value = toCurrency ) 
+	@name ( 'Enter Start Date' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Start Date' , xPath = 'N11:fromConversionDate:0' , value = startDate , id = 'region2' ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'End Date' , xPath = 'N11:toConversionDate:0' , value = endDate , id = 'region2' ) 
+	/EBSArea/lib/web/dropdown/select_dup_dropdown.task ( scenario = scenario , session = session , field = 'Rate Type' , xPath = 'N11:userConversionType:0' , value = rateType , id = 'region2' ) 
+	@name ( 'Enter Rate' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Rate' , xPath = 'N11:conversionRate:0' , value = rate , id = 'region2' ) 
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'create_daily_rates' ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'applyButton' , scenario = scenario ) 
+	@name ( 'Read Confirmation message' ) confirmation = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Confirmation' , element = 'h1' , xPath = 'Confirmation' ) 
+	assert.true ( expression = 'confirmation == "Confirmation: Daily Rates Successfully Saved"' ) 
+	@name ( 'Click on Home Link' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ scenario+"_create_daily_rates_fail"^ ) 
+	error ^"Failed to perform create daily rates for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

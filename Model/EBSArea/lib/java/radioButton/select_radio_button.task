@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Select radio button [${title}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		sleep 2 
+		java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+		sleep 2 
+		java.click ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "select_radio_button_"+ title +"_fail"^ ) 
+	error ^"Failed to select radio button [" + title + "] on session [" + session + "]"^ 
+} 

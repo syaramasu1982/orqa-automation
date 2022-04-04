@@ -1,0 +1,12 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = testCase ) 
+@param ( name = rootTestCaseID ) 
+@param ( name = refTestCaseID ) 
+@param ( name = testCaseID ) 
+@param ( name = result ) 
+'Prepare summary' {
+	recordset.use ( recordset = summaryTable ) 
+	recordset.append ( values = '"${testCase}","${rootTestCaseID}","${refTestCaseID}","${testCaseID}","${result}' ) 
+	@disabled recordset.append ( values = '"${testCase}","${rootTestCaseID}","${refTestCaseID}","${testCaseID}","${result}","${requestID}","${poNumber}","${receiptNumber}' ) 
+} 

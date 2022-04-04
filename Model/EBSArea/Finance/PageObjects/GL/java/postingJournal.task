@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = period ) 
+@param ( name = batch ) 
+@name ( 'Posting Journal' ) try {
+	@name ( 'Wait For Find Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Journal' ) 
+	@name ( 'Enter Batch' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Batch' , value = batch , title = 'Find Journal' , xPath = 'FScrollBox[1]//VTextField[2]' ) 
+	@disabled @name ( 'Enter Period' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Period' , title = 'Find Journal' , xPath = 'FScrollBox[1]//VTextField[1]' , value = period ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Post Journals' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Post Journals' ) 
+	/EBSArea/lib/java/checkbox/select_checkbox.task ( scenario = scenario , session = session , title = 'Post Journals' , xPath = 'CheckBox[1]/LWCheckbox' ) 
+	@name ( 'Click Post button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Post' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	notificationValue = /EBSArea/lib/java/text/read_notification.task ( scenario = scenario , session = session , field = 'Notification' , title = 'Note' , ancestorTag = 'ChoiceBox' , xPath = 'MultiLineLabel[1]' ) 
+	requestId = control.evaluate ( expression = 'String s1 = notificationValue ;
+String[] sp =  s1.split(" ");
+requestID = sp[6].substring(0, sp[6].length()-1);' ) 
+	@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menuItem = 'View' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'posting_journal' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_posting_journal_fail"^ ) 
+	error ^"Failed to perform posting journal for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

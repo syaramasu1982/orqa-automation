@@ -1,0 +1,50 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = launchOF ) 
+@param ( name = name ) 
+@param ( name = operatingUnit ) 
+@param ( name = orderBy ) 
+@param ( name = onHoldByPeriodOption ) 
+@param ( name = fromDate ) 
+@param ( name = toDate ) 
+@name ( 'Invoices On Hold Report ' ) try {
+	@name ( 'Is oracle application not launched ' ) if ^launchOF != null && String.valueOf(launchOF).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait for submit request' ) sleep 3 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	sleep 2 
+	@name ( 'IS Reports exists' ) isReportsExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Reports' , title = 'Reports' ) 
+	if isReportsExist {
+		@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+		@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = '%' , value = operatingUnit ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Order By' {
+		@name ( 'Click on Hold Name iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Order By' , xPathPosition = '3' ) 
+		@name ( 'Wait For Hold Name Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Order By' ) 
+		@name ( 'Enter Hold Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Order By' , xPath = '%' , value = orderBy ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter On Hold by Period Option' {
+		@name ( 'Click on On Hold by Period Option iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'On Hold by Period Option' , xPathPosition = '4' ) 
+		@name ( 'Wait For On Hold by Period Option Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'On Hold by Period Option' ) 
+		@name ( 'Enter On Hold by Period Option' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'On Hold by Period Option' , xPath = '%' , value = onHoldByPeriodOption ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter From Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'From Entered Date' , xPathPosition = '5' , value = fromDate ) 
+	@name ( 'Enter To Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'To Entered Date' , xPathPosition = '6' , value = toDate ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'invoices_on_hold_report' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform invoices on hold report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,176 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle Month End' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle Month End Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Accrual Reconciliation Load Run]' ) if ^testCaseName.contains("ACCRUALRECONCILIATIONLOADRUN")^ {
+					@name ( 'Accrual Reconciliation Load Run [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/accrualReconciliationLoadRun.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ ) 
+				} 
+				@name ( 'Handle [Accrual Write-Off Report or AP and PO Accrual Reconciliation Report or Miscellaneous Accrual Reconciliation Report OR Revenue Recognition Master Program OR Summary Accrual Reconciliation Report]' ) if ^testCaseName.contains("ACCRUALWRITEOFFREPORT") || testCaseName.contains("APANDPOACCRUALRECONCILIATIONREPORT") || testCaseName.contains("MISCELLANEOUSACCRUALRECONCILIATIONREPORT") || testCaseName.contains("REVENUERECOGNITIONMASTERPROGRAM") || testCaseName.contains("SUMMARYACCRUALRECONCILIATIONREPORT") || testCaseName.contains("UNINVOICEDRECEIPTSREPORT")^ {
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Uninvoiced Receipt Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/uninvoicedReceiptsReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , screenshot = ^testCaseName+timeStamp^ ) 
+				} 
+				@name ( 'Handle [Adjustment Register Report]' ) if ^testCaseName.contains("ADJUSTMENTREGISTERREPORT")^ {
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Adjustment Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/adjustmentRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , reportingContext = ^caseRef['REPORTINGCONTEXT']^ , screenshot = ^"Adjustment Register Report_"+caseRef['REPORTINGCONTEXT']+"_"+timeStamp^ ) 
+				} 
+				@name ( 'Handle [Subledger Period Close Exceptions Report]' ) if ^testCaseName.contains("SUBLEDGERPERIODCLOSEEXCEPTIONSREPORT")^ {
+					@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+}
+periodName = periodName.format("MMM-yyy").toUpperCase()
+return periodName' ) 
+					@name ( 'Subledger Period Close Exceptions Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/subledgerPeriodCloseExceptionsReport.task ( session = session , scenario = scenario , environment = environment , periodFrom = periodName , ledgerSet = ^caseRef['LEDGERSET']^ , name = ^caseRef['NAME']^ ) 
+				} 
+				@name ( 'Handle [Create Accounting]' ) if ^testCaseName.contains("CREATEACCOUNTING")^ {
+					@name ( 'Create Accounting [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/createAccounting.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , mode = ^caseRef['MODE']^ , errorsOnly = ^caseRef['ERRORSONLY']^ , report = ^caseRef['REPORT']^ , transferToGL = ^caseRef['TRANSFERTOGL']^ , postInGL = ^caseRef['POSTINGL']^ , userTransactionIdentifier = ^caseRef['USERTRANSACTIONIDENTIFIER']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Applied Receipts Register Report]' ) if ^testCaseName.contains("APPLIEDRECEIPTSREGISTERREPORT")^ {
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Applied Receipts Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/appliedReceiptsRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , reporingContext = ^caseRef['REPORTINGCONTEXT']^ , screenshot = ^"Applied Receipts Register Report_"+caseRef['OPERATINGUNIT']+timeStamp^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOGL")^ {
+					@name ( 'Transfer Journal Entries To GL [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/transferJournalEntriesToGL.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , postInGeneralLedger = ^caseRef['POSTINGENERALLEDGER']^ , environment = environment , mode = ^caseRef['MODE']^ ) 
+				} 
+				@name ( 'Handle [AP Trial Balance Report]' ) if ^testCaseName.contains("APTRIALBALANCEREPORT")^ {
+					@name ( 'AP Trial Balance Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/apTrialBalanceReport.task ( session = session , scenario = scenario , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , reportDefinition = ^caseRef['REPORTDEFINITION']^ , name = ^caseRef['NAME']^ ) 
+				} 
+				@name ( 'Handle [Complete Multiperiod Accounting]' ) if ^testCaseName.contains("COMPLETEMULTIPERIODACCOUNTING")^ {
+					@name ( 'Complete Multipleperiod Accounting [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/completeMultipleperiodAccounting.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , report = ^caseRef['REPORT']^ ) 
+				} 
+				@name ( 'Handle [Expense Report Export]' ) if ^testCaseName.contains("EXPENSEREPORTEXPORT")^ {
+					@name ( 'Expense Report Export [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/expenseReportExport.task ( session = session , scenario = scenario , environment = environment , source = ^caseRef['SOURCE']^ , name = ^caseRef['NAME']^ , organizationName = ^caseRef['ORGANIZATIONNAME']^ ) 
+				} 
+				@name ( 'Handle [Run Depreciation (Draft)]' ) if ^testCaseName.contains("RUNDEPRECIATION(DRAFT)")^ {
+					@name ( 'Run Depreciation [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/runDepreciation.task ( session = session , scenario = scenario , environment = environment , book = ^caseRef['BOOK']^ ) 
+				} 
+				@name ( 'Handle [Run Depreciation (Final)]' ) if ^testCaseName.contains("RUNDEPRECIATION(FINAL)")^ {
+					@name ( 'Run Depreciationfinal [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/runDepreciationfinal.task ( session = session , scenario = scenario , environment = environment , book = ^caseRef['BOOK']^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL Assets]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOTHEGLASSETS")^ {
+					@name ( 'Transfer Journal Entries To GL Assets [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/transferJournalEntriesToGL_Assets.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , bookTypeCode = ^caseRef['BOOKTYPECODE']^ ) 
+				} 
+				@name ( 'Handle [Miscellaneous Receipts Register Report OR Unapplied and Unresolved Receipts Register Report]' ) if ^testCaseName.contains("MISCELLANEOUSRECEIPTSREGISTERREPORT") || testCaseName.contains("UNAPPLIEDANDUNRESOLVEDRECEIPTSREGISTERREPORT")^ {
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Miscellaneous Receipts Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/miscellaneousReceiptsRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , reportingContext = ^caseRef['REPORTINGCONTEXT']^ , screenshot = ^"Miscellaneous Receipts Register Report_"+caseRef['REPORTINGCONTEXT']+"_"+timeStamp^ ) 
+				} 
+				@name ( 'Handle [Generate Draft Revenue]' ) if ^testCaseName.contains("GENERATEDRAFTREVENUE")^ {
+					@name ( 'Generate Draft Revenue [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_ProjectsRegression/generateDraftRevenue.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ ) 
+				} 
+				@name ( 'Handle [Generate Revenue Accounting Events]' ) if ^testCaseName.contains("GENERATEREVENUEACCOUNTINGEVENTS")^ {
+					@name ( 'Generate Revenue Accounting Events [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_ProjectsRegression/generateRevenueAccountingEvents.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL PA]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESPATOGL")^ {
+					@name ( 'Transfer Journal Entries To GL PA [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/transferJournalEntriesToGL_PA.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , postInGL = ^caseRef['POSTINGL']^ ) 
+				} 
+				@name ( 'Handle [Create Accounting PA]' ) if ^testCaseName.contains("CREATEPAACCOUNTING")^ {
+					@name ( 'PA Create Accounting [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/paCreateAccounting.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , mode = ^caseRef['MODE']^ , errorsOnly = ^caseRef['ERRORSONLY']^ , report = ^caseRef['REPORT']^ , transferToGL = ^caseRef['TRANSFERTOGL']^ , postInGL = ^caseRef['POSTINGL']^ , userTransactionIdentifier = ^caseRef['USERTRANSACTIONIDENTIFIER']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ ) 
+				} 
+				@name ( 'Handle [Payables Posted Invoice Register Report OR Payables Posted Payment Register Report]' ) if ^testCaseName.contains("PAYABLESPOSTEDINVOICEREGISTERREPORT") || testCaseName.contains("PAYABLESPOSTEDPAYMENTREGISTERREPORT")^ {
+					@name ( 'Payables Posted Invoice Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/payablesPostedRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , orderBy = ^caseRef['ORDERBY']^ , ledgerSet = ^caseRef['LEDGERSET']^ ) 
+				} 
+				@name ( 'Handle [Pay On Receipt Autoinvoice]' ) if ^testCaseName.contains("PAYONRECEIPTAUTOINVOICE")^ {
+					@name ( 'Pay On Receipt Auto Invoice [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/payOnReceiptAutoInvoice.task ( session = session , scenario = scenario , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , commitInterval = ^caseRef['COMMITINTERVAL']^ , agingPeriod = ^caseRef['AGINGPERIOD']^ , name = ^caseRef['NAME']^ ) 
+				} 
+				@name ( 'Handle [Create Accounting - Receiving]' ) if ^testCaseName.contains("CREATEANACCOUNTINGRECEIVING")^ {
+					@name ( 'Create Accounting Receiving [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/createAccountingReceiving.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , mode = ^caseRef['MOED']^ , errorsOnly = ^caseRef['ERRORSONLY']^ , report = ^caseRef['REPORT']^ , transferToGL = ^caseRef['TRANSFERTOGL']^ , postInGL = ^caseRef['POSTINGL']^ , userTransactionIdentifier = ^caseRef['USERTRANSACTIONIDENTIFIER']^ ) 
+				} 
+				@name ( 'Handle [Transfer Journal Entries to GL - Receiving]' ) if ^testCaseName.contains("TRANSFERJOURNALENTRIESTOAGLRECEIVING")^ {
+					@name ( 'Transfer Journal Entries To GL Additional [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/transferJournalEntriesToGL_Additional.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , postInGeneralLedger = ^caseRef['POSTINGENERALLEDGER']^ , mode = ^caseRef['MODE']^ ) 
+				} 
+				@name ( 'Handle [Receipt Accruals - Period End]' ) if ^testCaseName.contains("RECEIPTACCRUALSPERIODEND")^ {
+					@name ( 'Receipt Accruals Period End [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/receiptAccrualsPeriodEnd.task ( session = session , scenario = scenario , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ ) 
+				} 
+				@name ( 'Handle [Receipt Register Report]' ) if ^testCaseName.contains("RECEIPTREGISTERREPORT")^ {
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Receipt Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/receiptRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , reportingContext = ^caseRef['REPORTINGCONTEXT']^ , screenshot = ^"Receipt Register Report_"+caseRef['REPORTINGCONTEXT']+timeStamp^ ) 
+				} 
+				@name ( 'Handle [Aging  - 7 Buckets Report]' ) if ^testCaseName.contains("AGING7BUCKETSREPORT")^ {
+					@name ( 'Calculate As Of Date' ) asOfDate = control.evaluate ( expression = 'def asOfDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+asOfDate = today
+}
+asOfDate = asOfDate.format("dd-MMM-yyy").toUpperCase()
+return asOfDate' ) 
+					@name ( 'Aged Debt Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AR/java/agedDebtReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , reports = ^caseRef['REPORTS']^ , reportingContext = ^caseRef['REPORTINGCONTEXT']^ , reportSummary = ^caseRef['REPORTSUMMARY']^ , agingBucketName = ^caseRef['AGINGBUCKETNAME']^ , reportFormat = ^caseRef['REPORTFORMAT']^ , showOpenCredits = ^caseRef['SHOWOPENCREDITS']^ , showReceiptsAtRisk = ^caseRef['SHOWRECEIPTATRISK']^ , orderBy = ^caseRef['ORDERBY']^ , asOfDate = asOfDate , environment = environment ) 
+				} 
+				@name ( 'Handle [Invoice On Hold Report]' ) if ^testCaseName.contains("INVOICEONHOLDREPORT")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Invoices On Hold Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/AP/java/invoicesOnHoldReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , orderBy = ^caseRef['ORDERBY']^ , environment = environment , onHoldByPeriodOption = ^caseRef['ONHOLDBYPERIODOPTION']^ ) 
+				} 
+				@name ( 'Handle [Invoice Validation]' ) if ^testCaseName.contains("INVOICEVALIDATION")^ {
+					@name ( 'Calculate Invoice Date' ) invoiceDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+invoiceDate = today
+}
+invoiceDate = invoiceDate.format("dd-MMM-yyy").toUpperCase()
+return invoiceDate' ) 
+					@name ( 'Submit Invoice Validation [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/P2P/java/submitNewRequest.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , option = ^caseRef['OPTION']^ , fromInvoiceDate = invoiceDate , toInvoiceDate = invoiceDate , environment = environment ) 
+				} 
+				@name ( 'Handle [Transaction Register Report]' ) if ^testCaseName.contains("TRANSACTIONREGISTERREPORT")^ {
+					@name ( 'Calculate Date' ) date = control.evaluate ( expression = 'def date = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+date = today
+}
+date = date.format("dd-MMM-yyy").toUpperCase()
+return date' ) 
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					@name ( 'Transaction Register Report [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_MonthEnd/transactionRegisterReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , reportingContext = ^caseRef['REPORTINGCONTEXT']^ , glDateFrom = date , glDateTo = date , screenshot = ^"Transaction Register Report_"+caseRef['REPORTINGCONTEXT']+timeStamp^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

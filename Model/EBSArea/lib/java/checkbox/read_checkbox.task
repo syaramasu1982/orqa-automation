@@ -1,0 +1,46 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Read checkbox [${name}]' ) try {
+	if ^name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWCheckbox[contains(@text,'"+ name +"')]"^ , timeout = 5 ) 
+			checkBoxValueRead = java.getvalue ( target = ^"//LWCheckbox[contains(@text,'"+ name +"')]/@selected"^ ) 
+			@name ( 'Read checkbox value' ) checked = control.evaluate ( expression = 'if(checkBoxValueRead == "false"){
+	return false
+} else {
+	return true
+}' ) 
+		} 
+	} 
+	if ^xPath != null && String.valueOf(xPath).trim().length() > 0 && title != null && String.valueOf(title).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			checkBoxValueRead = java.getvalue ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +"/@selected"^ ) 
+			@name ( 'Read checkbox value' ) checked = control.evaluate ( expression = 'if(checkBoxValueRead == "false"){
+	return false
+} else {
+	return true
+}' ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			java.waitforcomponent ( target = ^"//"+xPath+""^ , timeout = 5 ) 
+			checkBoxValueRead = java.getvalue ( target = ^"//"+xPath+"/@selected"^ ) 
+			@name ( 'Read checkbox value' ) checked = control.evaluate ( expression = 'if(checkBoxValueRead == "false"){
+	return false
+} else {
+	return true
+}' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_checkbox_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

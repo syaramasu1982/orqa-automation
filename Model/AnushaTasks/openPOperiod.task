@@ -1,0 +1,94 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = periodStatus ) 
+@param ( name = closeApp ) 
+@disabled @name ( 'Resolve session' ) session = control.evaluate ( expression = "return env['session.web']" ) 
+web.switch ( session = session ) 
+@name ( 'Open PO Period' ) try {
+	@disabled /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'OULovChoice' , value = 'More...' , field = 'Operating Unit' ) 
+	/EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = 'Search and Select' ) 
+	@name ( 'Add Item Description' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'ItemDescription' , value = itemDescription ) 
+	@name ( 'Enter Ledger' ) /MonthEnd/setTextInOpenPeriods.task ( scenario #= '=scenario' , session #= "=env['session.web']" , field #= '="PayablesPeriod"' , xPath #= '="VTextField72"' , value #= '=ledger' ) 
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Ledger_selected"+ledger^ ) 
+	@name ( 'Click Find' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Periods' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Open and Close Periods' , scenario = scenario ) 
+	@name ( 'Read Latest Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Latest Open' , title = 'Open and Close Periods' , xPath = 'VTextField[2]' ) 
+	lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+	@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+}
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+	if ^lastOpenPeriodDate==periodName^ {
+		/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "Period_"+periodName+"_matches_last_open_period_name"^ ) 
+		if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+			@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+		} 
+	} 
+	if ^lastOpenPeriodDate>periodName^ {
+		/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "Period_"+periodName+"_greater_than_latest_open_period_name"^ ) 
+		if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+			@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+		} 
+	} 
+	if ^lastOpenPeriodDate<periodName^ {
+		@name ( 'Click Open Period' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Open Period' ) 
+		@name ( 'Wait For Ledger Set' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'RCUK - Ledger Set' , scenario = scenario ) 
+		@name ( 'Calculate Target Period Name' ) targetPeriodName = control.evaluate ( expression = 'def targetPeriodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+targetPeriodName = today
+}
+targetPeriodName = targetPeriodName.format("MMM-yyy")
+return targetPeriodName' ) 
+		@name ( 'Enter Target Period' ) /MonthEnd/setTextInTargetPeriodName.task ( session #= '=session' , scenario #= '=scenario' , field #= '="Ledger Set"' , xPath #= '="VTextField79"' , value #= '=targetPeriodName' ) 
+		@name ( 'Click Open' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Open ' ) 
+		'Decision 1' {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'decision_pop_up_1' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+			@disabled @name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' , xPath = 'ChoiceBox[@name="ChoiceBox5"]' ) 
+			@disabled if isDecisionExists {
+			} 
+			@disabled /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "Period_"+targetperiodName+"_opened"^ ) 
+		} 
+		'Note popup' {
+			@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'Note_pop_up' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+			@disabled @name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' , xPath = 'ChoiceBox[@name="ChoiceBox5"]' ) 
+			@disabled if isDecisionExists {
+			} 
+			@disabled /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "Period_"+targetperiodName+"_opened"^ ) 
+		} 
+	} 
+	sleep 2 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'open_GL_periods_concurrent_requests' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	} 
+	@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	while ^isStatus != "Normal"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	} 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 

@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requestID ) 
+@param ( name = response ) 
+web.switch ( session = session ) 
+@name ( 'Define requisition number' ) requisationNumber = control.evaluate ( expression = 'requestID
+//def reqNo = requestID' ) 
+@name ( 'Employee Provides Requested Information' ) try {
+	@name ( 'Wait for worklist' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h2' , text = 'Worklist' ) 
+	@name ( 'Click Full List' ) /EBSArea/lib/web/click/click_verification.task ( scenario = scenario , session = session , xPath = "//button[@id='NtfFullList']" ) 
+	@disabled @name ( 'Click Full List' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'NtfFullList' , scenario = scenario ) 
+	@name ( 'Wait for worklist' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Worklist' ) 
+	@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisationNumber ) 
+	@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	while ^!requsitionExists && nextExists^ {
+		@name ( 'Click on Next' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisationNumber ) 
+		@name ( 'Check Next exists' ) nextExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = 'Next' ) 
+	} 
+	@name ( 'Click on Request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = requisationNumber ) 
+	@name ( 'Enter Information Requested' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Response' , value = response , xPath = 'Response' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'emp_provides_requested_info' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Ok' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "approve_request_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform employee provides requested information for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+@name ( 'Return requisition number' ) requisationNumber = control.evaluate ( expression = 'requisationNumber' ) 

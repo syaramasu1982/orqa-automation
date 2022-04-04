@@ -1,0 +1,7 @@
+@specification 1.1 
+@param ( name = environment ) 
+env = environment.read ( name = environment ) 
+isDownloadServletExists = file.exists ( sourcePath = ^env['downloadDirectory']+"/"+env['servletFilename']^ ) 
+if isDownloadServletExists {
+	file.delete ( filePath = ^env['downloadDirectory']+"/"+env['servletFilename']^ ) 
+} 

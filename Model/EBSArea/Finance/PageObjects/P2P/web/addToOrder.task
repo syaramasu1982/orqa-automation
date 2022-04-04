@@ -1,0 +1,39 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = ou ) 
+@param ( name = type ) 
+@param ( name = requisition ) 
+@param ( name = orderStyle ) 
+web.switch ( session = session ) 
+@name ( 'Add To Order' ) try {
+	@name ( 'Select Unassigned Requisitions' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'customizationsPoplist' , value = 'Unassigned Requisitions' , field = 'View' ) 
+	@name ( 'Click Go' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@name ( 'Select Type as Add To Order' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'ActionSelect' , value = type ) 
+	@name ( 'Select OU' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'OU' , id = 'EmptyDocumentLayoutRN' , xPath = 'OrgNameSelect' , value = ou ) 
+	@name ( 'Select Check Box' ) /EBSArea/lib/web/checkbox/click_checkbox.task ( scenario = scenario , session = session , requisition = requisition ) 
+	@name ( 'Click Add Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddToDocumentBuilder' , scenario = scenario ) 
+	@name ( 'Select Order Style' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Order Style' , id = 'AddToPoFieldsRN' , xPath = 'AddToPo' , value = orderStyle ) 
+	@name ( 'Click Create Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create' , scenario = scenario ) 
+	@name ( 'Select Manage Tax' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'ActionsPoplist' , value = 'Manage Tax' , field = 'View' ) 
+	@name ( 'Click Go Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'GoButton' , scenario = scenario ) 
+	@disabled @name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Yes' , scenario = scenario ) 
+	@name ( 'Click Add Tax Info Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddTaxInfoButton' , scenario = scenario ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	@name ( 'Click on Return to Update Standard Purchase Order' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Update Standard Purchase Order' ) 
+	@name ( 'Click Submit Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'SubmitButton' , scenario = scenario ) 
+	purchaseOrderNo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Purchase Order' , xPath = 'Purchase Order' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'add_to_order_fail' ) 
+	error ^"Failed to perform add to order for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Calculate purchase order number' ) poNumber = control.evaluate ( expression = 'String s1 = purchaseOrderNo;
+String[] sp =  s1.split(" ");
+def pid = sp[3];' ) 
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Request ID to Map' ) map.add ( map = result , key = 'PONUMBER2' , value = ^=poNumber^ ) 
+	@name ( 'Return po number' ) result = control.evaluate ( expression = 'return result' ) 
+	@name ( 'Print Purchase Order Number' ) console.write ( data = ^="Purchase Order Number [" + poNumber + "] created for test case [" + scenario +"]"^ ) 
+} 

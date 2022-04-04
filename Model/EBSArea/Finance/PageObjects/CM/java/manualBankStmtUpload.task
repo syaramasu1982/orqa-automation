@@ -1,0 +1,117 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = accountNumber ) 
+@param ( name = date ) 
+@param ( name = receiptsAmount ) 
+@param ( name = receiptsLines ) 
+@param ( name = paymentsAmount ) 
+@param ( name = paymentsLines ) 
+@param ( name = line1 ) 
+@param ( name = type1 ) 
+@param ( name = amount1 ) 
+@param ( name = line2 ) 
+@param ( name = type2 ) 
+@param ( name = amount2 ) 
+@param ( name = line3 ) 
+@param ( name = type3 ) 
+@param ( name = amount3 ) 
+@param ( name = line4 ) 
+@param ( name = type4 ) 
+@param ( name = amount4 ) 
+@param ( name = line5 ) 
+@param ( name = type5 ) 
+@param ( name = amount5 ) 
+@param ( name = description1 ) 
+@param ( name = description2 ) 
+@param ( name = description3 ) 
+@param ( name = description4 ) 
+@param ( name = description5 ) 
+@name ( 'Manual Bank Statement Upload' ) try {
+	@name ( 'Wait For Find Bank Statements' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Bank Statements' ) 
+	@name ( 'Click New button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'New' ) 
+	@name ( 'Wait For Bank Statement' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement' ) 
+	@name ( 'Enter Account Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Account Number' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[2]' , value = accountNumber ) 
+	@name ( 'Enter Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Date' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[6]' , value = date ) 
+	@name ( 'Enter Receipts Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Receipts Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[13]' , value = receiptsAmount ) 
+	@name ( 'Enter Receipts Lines' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Receipts Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[14]' , value = receiptsLines ) 
+	@name ( 'Enter Payments Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[15]' , value = paymentsAmount ) 
+	@name ( 'Enter Payments Lines' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Payments Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[16]' , value = paymentsLines ) 
+	@name ( 'Click Lines button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Lines' ) 
+	@name ( 'Wait For Bank Statement Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' ) 
+	'Enter Line 1' {
+		@name ( 'Enter Line 1' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line1' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[14]' , value = line1 ) 
+		@name ( 'Select Type 1' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type1' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VPopList[1]' , value = type1 ) 
+		@name ( 'Enter Amount 1' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount1' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[27]' , value = amount1 ) 
+	} 
+	'Enter Line 2' {
+		@name ( 'Enter Line 2' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line2' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[15]' , value = line2 ) 
+		@name ( 'Select Type 2' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type2' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VPopList[2]' , value = type2 ) 
+		@name ( 'Enter Amount 2' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount3' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[28]' , value = amount2 ) 
+	} 
+	'Enter Line 3' {
+		@name ( 'Enter Line 3' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line3' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[16]' , value = line3 ) 
+		@name ( 'Select Type 3' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type3' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VPopList[3]' , value = type3 ) 
+		@name ( 'Enter Amount 3' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount3' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[29]' , value = amount3 ) 
+	} 
+	'Enter Line 4' {
+		@name ( 'Enter Line 4' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line4' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[17]' , value = line4 ) 
+		@name ( 'Select Type 4' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type4' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VPopList[4]' , value = type4 ) 
+		@name ( 'Enter Amount 4' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount4' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[30]' , value = amount4 ) 
+	} 
+	'Enter Line 5' {
+		@name ( 'Enter Line 5' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Line5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VTextField[18]' , value = line5 ) 
+		@disabled @name ( 'Select Type 5' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[2]//VPopList[5]' , value = type5 ) 
+		@name ( 'Enter Amount 5' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Amount5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//VTextField[31]' , value = amount5 ) 
+	} 
+	@name ( 'Click on the Description tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Description' ) 
+	@name ( 'Enter Description 1' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description1' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[1]' , value = description1 ) 
+	@name ( 'Enter Description 2' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description2' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[2]' , value = description2 ) 
+	@name ( 'Enter Description 3' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description3' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[3]' , value = description3 ) 
+	@name ( 'Enter Description 4' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description4' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[4]' , value = description4 ) 
+	@name ( 'Enter Description 5' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description5' , title = 'Bank Statement Lines' , xPath = 'FScrollBox[1]//FScrollBox[1]//VTextField[5]' , value = description5 ) 
+	@name ( 'Click on the Amonts tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Amounts' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'manual_bank_stmt_upload_data' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	'Decision1 Exists' {
+		@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		if isDecisionExists {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+	} 
+	'Decision2 Exists' {
+		@name ( 'Check Decision pop up exists' ) isDecisionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Decision' , title = 'Decision' ) 
+		if isDecisionExists {
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+	} 
+	@name ( 'Click Bank Statement Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Bank Statement Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Read Opening Balance Amount Control Totals' ) openingBalanceCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Opening Balance ' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[12]' ) 
+	@name ( 'Read Receipts Amount in Control Totals' ) receiptsAmountCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Receipts Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[13]' ) 
+	@name ( 'Read Receipts Lines in Control Totals' ) receiptsLinesCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Receipts Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[14]' ) 
+	@name ( 'Read Payments Amount in Control Totals' ) paymentsAmountCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[15]' ) 
+	@name ( 'Read Payments Lines in Control Totals' ) paymentsLinesCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[16]' ) 
+	@name ( 'Read Closing Balance Amount in Control Totals' ) closingBalanceCT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Closing Balance' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[17]' ) 
+	@name ( 'Read Opening Balance Amount Line Totals' ) openingBalanceLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Opening Balance ' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[22]' ) 
+	@name ( 'Read Receipts Amount in Line Totals' ) receiptsAmountLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Receipts Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[23]' ) 
+	@name ( 'Read Receipts Lines in Line Totals' ) receiptsLinesLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Receipts Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[24]' ) 
+	@name ( 'Read Payments Amount in Line Totals' ) paymentsAmountLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Amount' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[25]' ) 
+	@name ( 'Read Payments Lines in Line Totals' ) paymentsLinesLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Payments Lines' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[26]' ) 
+	@name ( 'Read Closing Balance Amount in Control Totals' ) closingBalanceLT = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Closing Balance' , title = 'Bank Statement' , xPath = 'FScrollBox[1]//VTextField[27]' ) 
+	assert.true ( expression = 'openingBalanceCT == openingBalanceLT' ) 
+	assert.true ( expression = 'receiptsAmountCT == receiptsAmountLT' ) 
+	assert.true ( expression = 'receiptsLinesCT == receiptsLinesLT' ) 
+	assert.true ( expression = 'paymentsAmountCT== paymentsAmountLT' ) 
+	assert.true ( expression = 'paymentsLinesCT == paymentsLinesLT' ) 
+	assert.true ( expression = 'closingBalanceCT == closingBalanceLT' ) 
+	@name ( 'Click Bank Statemen Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Bank Statement' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Bank Statemen Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Reconcile Bank Statement' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'manual_bank_stmt_upload_success' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_manual_bank_statement_upload_fail"^ ) 
+	error ^"Failed to perform manual bank statement upload for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

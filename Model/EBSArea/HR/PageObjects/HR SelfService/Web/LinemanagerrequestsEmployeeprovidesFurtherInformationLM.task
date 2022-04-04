@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empname ) 
+@param ( name = lmuser ) 
+'Login as LM' {
+	@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=lmuser' , password #= '="Welcome123"' ) 
+	web.switch ( session = session ) 
+	@name ( 'Clickfulllist' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+	emp = control.evaluate ( expression = 'def action = "//*[text()=''"+today+"'']//parent::td//preceding-sibling::td/a"
+
+return action' ) 
+	@name ( 'Click EmpreqLink' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = emp ) 
+	@disabled @name ( 'ClickApproverlink' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = empname ) 
+	@name ( 'Clickrequestinformation' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfMoreInfo' ) 
+	@name ( 'Enterinformationtext' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Requestinformation' , parentId = 'Comments__xc_' , xPath = 'Comments' , value = 'Test' ) 
+	@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Ok_uixr' ) 
+	@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMrequestsprovideinformation' ) 
+	error ^"Failed to perform LMrequestsEmpprovidesmoreinformation[" + scenario +"] with session ["+ session +"]"^ 
+} 

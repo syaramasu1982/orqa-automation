@@ -1,0 +1,28 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = alternateName ) 
+@param ( name = index ) 
+java.switch ( session = session ) 
+@name ( 'Default label' ) label = control.evaluate ( expression = 'return name' ) 
+@name ( 'Check label exist' ) try {
+	@disabled @name ( 'Wait for label' ) sleep 1 
+	java.waitforcomponent ( target = ^'//VTextField[@label = "' + name + '"]['+index+'] | //VTextField[@label = "' + alternateName + '"]['+index+'] '^ , timeout = 5 ) 
+	@name ( 'Check which label present on screen' ) if ^alternateName != null && String.valueOf(alternateName).trim().length() > 0^ {
+		isNameExist = java.exists ( target = ^'//VTextField[@label = "' + name + '"]['+index+']'^ ) 
+		@name ( 'Check [Alternate Name]' ) if ^!isNameExist^ {
+			isAlternateNameExist = java.exists ( target = ^"//VTextField[@label='" + alternateName + "']["+index+"]"^ ) 
+			@name ( 'Update Label' ) if isAlternateNameExist {
+				@name ( 'Update label' ) label = control.evaluate ( expression = 'return alternateName' ) 
+			} 
+			@name ( 'Report error' ) if ^!isAlternateNameExist^ {
+				error ^"Label with name [" + name + "] or alternate name [" + alternateName + "] not found on screen"^ 
+			} 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "check label"+ name +"_fail"^ ) 
+} 
+@name ( 'Return label' ) control.evaluate ( expression = 'label' ) 

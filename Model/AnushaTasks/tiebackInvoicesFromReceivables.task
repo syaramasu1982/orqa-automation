@@ -1,0 +1,43 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = nameTiebackInvoice ) 
+@name ( 'Accrual Reconciliation Load Run' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@disabled 'Note popup' {
+		@disabled @name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		@disabled @name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@disabled @name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Note_"+timeStamp^ ) 
+		@disabled @name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField6' , value = nameTiebackInvoice ) 
+	@disabled @name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+	@disabled @name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = '%' , value = operatingUnit ) 
+	@disabled @name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@name ( 'Click Cancel' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Cancel' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'VTextField7' , value = operatingUnit ) 
+	'Enter Parameters' {
+		@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"tieback_invoice_from_receivables_"+operatingUnit+"_"+timeStamp^ ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Read Request ID' ) readRequestID = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Request ID' , row = '1' , column = '2' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"Requests_page_"+operatingUnit+"_"+timeStamp^ ) 
+} 
+/EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

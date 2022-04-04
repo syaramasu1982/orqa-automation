@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = parentId ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+web.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0 && parentId != null && String.valueOf(parentId).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//*[contains(@id,'"+ parentId +"')]//textarea[contains(@id,'" + xPath + "')]"^ , timeout = 5 ) 
+			web.click ( target = ^"//*[contains(@id,'"+ parentId +"')]//textarea[contains(@id,'" + xPath + "')]"^ ) 
+			@name ( 'Wait to enter text' ) sleep 0.25 
+			web.setvalue ( value = value , target = ^"//*[contains(@id,'"+ parentId +"')]//textarea[contains(@id,'" + xPath + "')]"^ ) 
+			@name ( 'Wait after entering text' ) sleep 0.25 
+		} 
+	} 
+	else {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//textarea[contains(@id,'" + xPath + "')]"^ , timeout = 5 ) 
+			web.click ( target = ^"//textarea[contains(@id,'" + xPath + "')]"^ ) 
+			@name ( 'Wait to enter text' ) sleep 0.25 
+			web.setvalue ( value = value , target = ^"//textarea[contains(@id,'" + xPath + "')]"^ ) 
+			@name ( 'Wait after entering text' ) sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "set_text_area_"+ field +"_fail"^ ) 
+	error ^"Failed to set text area [" + field + "] on session [" + session + "]"^ 
+} 

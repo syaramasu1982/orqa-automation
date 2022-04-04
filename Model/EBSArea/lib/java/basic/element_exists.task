@@ -1,0 +1,46 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = ancestorTag ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+@param ( name = alternateLabel ) 
+@param ( name = index ) 
+java.switch ( session = session ) 
+@name ( 'Check element[${field}]' ) try {
+	if ^label != null && String.valueOf(label).trim().length() > 0^ {
+		try {
+			label = /EBSArea/lib/java/basic/check_label_exist.task ( scenario = scenario , session = session , name = label , alternateName = alternateLabel , index = index ) 
+			@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+				sleep 5 
+				isExists = java.exists ( target = ^'//VTextField[@label = "' + label + '"]['+index+']'^ ) 
+			} 
+		} 
+		catch {
+		} 
+	} 
+	elseif ^title != null && String.valueOf(title).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() && ancestorTag != null && String.valueOf(ancestorTag).trim().length()^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			sleep 5 
+			isExists = java.exists ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::"+ ancestorTag +"//"+ xPath +""^ ) 
+		} 
+	} 
+	elseif ^title != null && String.valueOf(title).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() && ancestorTag == null ^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			sleep 5 
+			isExists = java.exists ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 5 ) {
+			sleep 5 
+			isExists = java.exists ( target = ^"//LWLabel[contains(text(),'"+ title +"')]"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "check_element_"+ field +"_exists_fail"^ ) 
+	@disabled error ^"Failed to check element exists [" + field + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,57 @@
+@specification 1.1 
+@param ( name = requestoruser ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = costtype ) 
+@param ( name = itemDescription ) 
+@param ( name = category ) 
+@param ( name = amount ) 
+@param ( name = requestType ) 
+@name ( 'Define requisition number' ) requestId = control.evaluate ( expression = 'return null' ) 
+@name ( 'Create SmartFormItemRequisition' ) try {
+	'Navigate to iProcurement HomePage' {
+		@name ( 'Click SmartForm' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Hospitality, Catering & Meeting Rooms Smart Forms' ) 
+		@name ( 'Click Baxter Storey' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Baxter Storey (1) Smart Form' ) 
+		@name ( 'Select Request Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'RequestType' , xPath = 'RequestType' , value = requestType ) 
+		@name ( 'Add Item Description' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'ItemDescription' , xPath = 'ItemDescription' , value = itemDescription ) 
+		@name ( 'Select Category' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Category' , value = category , xPath = 'Category' , scenario = scenario ) 
+		@name ( 'Add Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = amount , field = 'Amount' , xPath = 'Amount' ) 
+		@name ( 'Select cost type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Cost Type' , xPath = 'Poplist' , value = costtype ) 
+		@name ( 'Verify add to cart button exists' ) isButtonExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='AddToCart_uixr']" ) 
+		while isButtonExist {
+			@name ( 'Add to cart' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'AddToCart' , scenario = scenario ) 
+			@name ( 'Verify add to cart button exists' ) isButtonExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[text()='AddToCart']" ) 
+		} 
+		@name ( 'Click View Cart and Checkout' ) /EBSArea/lib/web/button/press_enter_button.task ( scenario = scenario , session = session , name = 'View Cart and Checkout' ) 
+		@name ( 'Click Checkout' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Checkout_uixr' ) 
+		@name ( 'Verify need by date input exists' ) isInputExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'input' , xPath = "[contains(@id,'NeedByDate')]" ) 
+		if isInputExists {
+			@name ( 'CalculateStartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  StartDate = today+4
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Date' , value = startdate , name = 'NeedByDate' ) 
+		} 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+		@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+		@name ( 'Read Requisition' ) requestMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Request' , xPath = 'ApproverText' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "create_non_catlog_req_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform Smart Form Item  Requisition for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Calculate requisition number' ) requestID = control.evaluate ( expression = 'String s1 = requestMessage ;
+String[] sp =  s1.split(" ");
+requestID = sp[1];' ) 
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Request ID to Map' ) map.add ( map = result , key = 'REQUESTID' , value = ^=requestID^ ) 
+	@name ( 'Return requisition number' ) result = control.evaluate ( expression = 'return result' ) 
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "create_catlog_request_success_"+requestID^ ) 
+} 

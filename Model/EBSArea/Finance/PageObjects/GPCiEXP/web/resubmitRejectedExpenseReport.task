@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = rejectedReportNo ) 
+@param ( name = justification ) 
+web.switch ( session = session ) 
+@name ( 'Resubmit Rejected Expense Report' ) try {
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Read rejected report number exists' ) isReportNumberExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = ^"[@title='"+rejectedReportNo+"']"^ ) 
+	@name ( 'Is Report Number Not Exist' ) while ^!isReportNumberExist^ {
+		@name ( 'Click on Rejected Report' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//span[@title='Update Expense Reports table.']//a[text()='Next 5']" ) 
+		@name ( 'Read rejected report number exists' ) isReportNumberExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = ^"[@title='"+rejectedReportNo+"']"^ ) 
+	} 
+	@name ( 'Is Report Number Exist' ) if isReportNumberExist {
+		@name ( 'Click on Rejected Report' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = ^"//a[@title='"+rejectedReportNo+"']"^ ) 
+	} 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Update Justification' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'N50:Justification:0' , value = justification ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Read Justification' ) isJustification = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = justification ) 
+	assert.true ( expression = 'isJustification == justification' ) 
+	@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	@name ( 'Read Warning Message' ) warning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'Expense report number' ) 
+	@name ( 'Click Return button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Return' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^scenario+ "_resubmit_rejected_exp_report_fail"^ ) 
+	error ^"Failed to perform resubmit rejected expense report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

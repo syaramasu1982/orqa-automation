@@ -1,0 +1,89 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = source ) 
+@param ( name = selectClass ) 
+@param ( name = glDate ) 
+@param ( name = currency ) 
+@param ( name = rateType ) 
+@param ( name = type ) 
+@param ( name = name ) 
+@param ( name = number ) 
+@param ( name = description ) 
+@param ( name = quantity ) 
+@param ( name = unitPrice ) 
+@param ( name = taxClassification ) 
+@param ( name = distributions ) 
+@param ( name = closeApp ) 
+@param ( name = closePopup ) 
+@param ( name = taxStatus ) 
+@name ( 'Invoice Transaction' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@disabled sleep 2 
+	@disabled @name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'View' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@disabled @name ( 'Click on Find...' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Find...' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[3]' ) 
+	@disabled @name ( 'Wait For Find Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Transactions' ) 
+	@disabled @name ( 'Enter Transaction Dates From' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Transaction Dates' , xPath = 'VTextField333' , value = invoiceDate ) 
+	@disabled @name ( 'Enter Transaction Dates' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Transaction Dates' , xPath = 'VTextField334' , value = invoiceDate ) 
+	@disabled @name ( 'Enter Sources' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Sources' , xPath = 'VTextField339' , value = ^caseRef['SOURCES']^ ) 
+	@disabled @name ( 'Wait For Batch Sources' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Batch Sources' ) 
+	@disabled @name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@disabled @name ( 'Enter Sources' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Sources' , xPath = 'VTextField340' , value = ^caseRef['SOURCES']^ ) 
+	@disabled @name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@disabled @name ( 'Click Find' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	/EBSArea/lib/java/presskey/press_f11_new.task ( scenario = scenario , session = session , title = 'Transactions' , xPath = 'VTextField[@name="VTextField45"]' , field = 'Number' ) 
+	@name ( 'Enter Transaction' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Number' , xPath = 'VTextField[@name="VTextField45"]' , value = number , title = 'Transactions' ) 
+	/EBSArea/lib/java/presskey/press_ctrl_f11_new.task ( scenario = scenario , session = session , title = 'Transactions' , filed = 'Number' , xPath = "VTextField[@name='VTextField45']" ) 
+	@name ( 'Click Line Items' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Line Items' ) 
+	@name ( 'Wait For Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Lines' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'Lines_item' ) 
+	@disabled @name ( 'Click Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Tax' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Tax' ) 
+	@name ( 'Wait For Detail Tax Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Detail Tax Lines' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'Tax_Lines' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Tax Information' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Tax Information' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'Additional_Tax_Determining_Factors_' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	sleep 2 
+	@name ( 'Click on main menu Tools' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Tools' , menu = 'LWMenuBar' , menuItem = 'LWMenu[5]' ) 
+	@name ( 'Click on Create Accounting' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Create Accounting' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[2]' ) 
+	@name ( 'Wait For Create Accounting' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Create Accounting' ) 
+	@name ( 'Click Ok button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Ok' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Create Accounting Screenshot' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "create_accounting_"+number+"_"^ ) 
+	@name ( 'Click OK ' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@disabled @name ( 'Click OK button' ) '/EBSArea/lib/java/lib/button/Click OK' ( scenario #= '=scenario' , session #= '=session' , name #= '="OK"' ) 
+	sleep 2 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Actions' , menu = 'LWMenuBar' , menuItem = 'LWMenu[3]' ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Requests' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[8]' ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Read Request ID' ) readRequestID = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Request ID' , row = '1' , column = '2' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_row_from_table.task ( scenario = scenario , session = session , fieldValue = readRequestID , fieldColumnIndex = '2' , readColumnIndex = '5' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"create_accounting_report_"+source+"_"+timeStamp^ ) 
+	if ^closePopup != null && String.valueOf(closePopup).trim().length() > 0^ {
+		@name ( 'Click Transactions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Transactions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	} 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+} 
+@disabled 'Return Result' {
+	@disabled @name ( 'Create Result Map' ) result = map.new ( ) 
+	@disabled @name ( 'Add Invoice to Map' ) map.add ( map = result , key = 'INVOICENUMBER' , value = ^=invoiceNumber^ ) 
+	@disabled @name ( 'Return invoice number' ) result = control.evaluate ( expression = 'return result' ) 
+} 
+@disabled @name ( 'Return Number' ) invocieNumber = control.evaluate ( expression = 'return invocieNumber' ) 

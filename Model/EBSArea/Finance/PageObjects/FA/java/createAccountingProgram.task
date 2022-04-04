@@ -1,0 +1,58 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = bookTypeCode ) 
+@param ( name = closeApp ) 
+@name ( 'Aged Debt Report' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Submit Request Set' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit Request Set' ) 
+	@name ( 'Click on Parameters 1' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Parameters' , title = 'Submit Request Set' , xPath = 'VTextField[11]' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Book Type Code' {
+		@name ( 'Click on Book Type Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPathPosition = '1' ) 
+		@name ( 'Wait For Reporting Context Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Book Type Code' ) 
+		@name ( 'Enter  Book Type Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPath = '%' , value = bookTypeCode ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Submit Request Set' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit Request Set' ) 
+	@name ( 'Click on Parameters 2' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Parameters' , title = 'Submit Request Set' , xPath = 'VTextField[12]' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Book Type Code' {
+		@name ( 'Click on Book Type Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPathPosition = '1' ) 
+		@name ( 'Wait For Reporting Context Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Book Type Code' ) 
+		@name ( 'Enter  Book Type Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Book Type Code' , xPath = '%' , value = bookTypeCode ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'submit_request_set_parameters' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click on main menu View' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'View' , menu = 'LWMenuBar' , menuItem = "LWMenu[text()='View']" ) 
+	@name ( 'Click on Requests' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Adjust' , menu = 'LWPopupMenu' , menuItem = "LWMenuItem[text()='Requests']" ) 
+	@name ( 'Wait For Find Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Requests' ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Requests' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Requests' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	} 
+	@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	while ^isStatus != "Normal"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	} 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'requests_report' ) 
+	@name ( 'Click Requests Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Requests' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_create_accounting_program_fail"^ ) 
+} 

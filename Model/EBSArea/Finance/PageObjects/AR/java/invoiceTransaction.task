@@ -1,0 +1,138 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = source ) 
+@param ( name = selectClass ) 
+@param ( name = glDate ) 
+@param ( name = currency ) 
+@param ( name = rateType ) 
+@param ( name = type ) 
+@param ( name = name ) 
+@param ( name = number ) 
+@param ( name = description ) 
+@param ( name = quantity ) 
+@param ( name = unitPrice ) 
+@param ( name = taxClassification ) 
+@param ( name = distributions ) 
+@param ( name = contactName ) 
+@param ( name = contactNumber ) 
+@param ( name = attributeType ) 
+@param ( name = address ) 
+@name ( 'Invoice Transaction' ) try {
+	@name ( 'Wait for Transactions' ) sleep 3 
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@name ( 'Enter Source' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Source' , value = source , label = 'Source' , index = '1' ) 
+	if ^source == "MANUAL-OTHER"^ {
+		@name ( 'Select Class' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Class' , title = 'Transactions' , xPath = 'FScrollBox[2]//VPopList[1]' , value = selectClass ) 
+		@name ( 'Wait For Batch Sources' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Batch Sources' ) 
+		@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Select Class' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Class' , title = 'Transactions' , xPath = 'FScrollBox[2]//VPopList[1]' , value = selectClass ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Type' , value = type , label = 'Type' , index = '1' ) 
+	@name ( 'Enter GL Date' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'GL Date' , value = glDate , label = 'GL Date' , index = '1' ) 
+	@name ( 'Enter Currency' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Currency' , value = currency , label = 'Currency' , index = '1' ) 
+	@name ( 'Wait before tab on Type' ) sleep 3 
+	@name ( 'Press tab on Type' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Invoice' , label = 'Type' , index = '1' ) 
+	@name ( 'Wait after tab on Type' ) sleep 3 
+	@name ( 'Check exchange rate pop up exists' ) isExchangeRateExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Exchange Rate' , title = 'Exchange Rate' ) 
+	if isExchangeRateExists {
+		@name ( 'Wait For Exchange Rate' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Exchange Rate' ) 
+		@name ( 'Enter Rate Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Rate Type' , title = 'Exchange Rate' , xPath = 'VTextField[2]' , value = rateType ) 
+		@name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	if ^session.contains("5")^ {
+		'Enter Transaction Information' {
+			@name ( 'Click on Transaction Information' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Transaction Information' , label = 'Transaction' , index = '1' ) 
+			@name ( 'Wait For Transaction Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Information' ) 
+			@name ( 'Enter Contact Name' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Contact Name' , xPathPosition = '1' , value = contactName ) 
+			@name ( 'Enter Contact Telephone Number' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Contact Telephone Number' , xPathPosition = '2' , value = contactNumber ) 
+			@name ( 'Click on Attribute Type icon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Attribute Type' , xPathPosition = '3' ) 
+			'Enter Attribute Type Info' {
+				@name ( 'Wait For Attribute Type Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Attribute Type' ) 
+				@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Attribute Type' , xPath = '%' , value = attributeType ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			@name ( 'Wait For Transaction Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Information' ) 
+			@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		} 
+	} 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Ship To: Name' , index = '1' ) 
+	@name ( 'Enter Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Number' , value = number , label = 'Ship To: Number' , index = '1' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'invoice_transaction_first_page' ) 
+	@name ( 'Click More Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'More' ) 
+	/EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Address' , label = 'Remit To: Address' , index = '1' , value = address ) 
+	@name ( 'Click Line Items' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Line Items' ) 
+	@name ( 'Wait For Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Lines' ) 
+	@name ( 'Enter Description' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Descrption' , value = description , label = 'Description' , index = '1' ) 
+	@name ( 'Enter Quantity' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Quantity' , value = quantity , label = 'Quantity' , index = '1' ) 
+	@name ( 'Enter Unit Price' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Unit Price' , value = unitPrice , label = 'Unit Price' , index = '1' ) 
+	@name ( 'Enter Tax Classification' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Tax Classification' , value = taxClassification , label = 'Tax Classification' , index = '1' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'invoice_transaction_lines_page' ) 
+	@name ( 'Click Tax' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Tax' ) 
+	@name ( 'Wait For Detail Tax Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Detail Tax Lines' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Distributions' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Distributions' ) 
+	@name ( 'Wait For Distributions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Distributions' ) 
+	@name ( 'Enter GL Account' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'GL Account' , value = distributions , label = 'GL Account' , index = '1' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'invoice_transaction_distributions_page' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Distributions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Distributions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For Lines' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Lines' ) 
+	@name ( 'Click Lines Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Lines' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@disabled if ^source == "Manual Standard - ST"^ {
+		@disabled @name ( 'Read Operating Unit' ) isOperatingUnit = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'VTextField329' ) 
+		@disabled assert.true ( expression = 'isOperatingUnit == "MRC - Operating Unit"' ) 
+		@disabled @name ( 'Read Address Line1' ) isAddressLine1 = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Address' , xPath = 'VTextField344' ) 
+		@disabled @name ( 'Read Address Line2' ) isAddressLine2 = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Address' , xPath = 'VTextField345' ) 
+		@disabled @name ( 'Read Address Line3' ) isAddressLine3 = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Address' , xPath = 'VTextField345' ) 
+	} 
+	@name ( 'Read AR Invoice Number' ) invoiceNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Number' , xPath = "VTextField[@label='Source']/following-sibling::VTextField[@label='Number'][1]" ) 
+	@name ( 'Click Disctibution button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Distributions' ) 
+	@name ( 'Wait For Distributions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Distributions' ) 
+	@name ( 'Read Receivable' ) receivable = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Number' , xPath = "VTextField[contains(@label,'Distribution')][1]" ) 
+	@name ( 'Read Revenue' ) revenue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Revenue' , xPath = "VTextField[contains(@label,'Distribution')][2]" ) 
+	@name ( 'Read Tax' ) tax = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Tax' , xPath = "VTextField[contains(@label,'Distribution')][3]" ) 
+	@name ( 'Click Distributions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Distributions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait For Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transactions' ) 
+	@name ( 'Click Complete button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Complete' ) 
+	line = control.evaluate ( expression = 'unitPrice = unitPrice+".00"' ) 
+	@name ( 'Read Balance Due Line' ) isBalanceDueLine = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Line' , label = 'Line' ) 
+	while ^isBalanceDueLine != line^ {
+		@name ( 'Click Refresh Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Refresh' ) 
+		sleep 5 
+		@name ( 'Read Balance Due Line' ) isBalanceDueLine = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Line' , label = 'Line' ) 
+	} 
+	@name ( 'Tax Calculation' ) tax = control.evaluate ( expression = '//int value= Integer.parseInt(unitPrice)
+//int tax = (double)(value*(20.0f/100.0f));
+//tax = tax+".00"
+
+float stdPer = 20;
+def value = 100;
+def tax = (int)((stdPer * 100.0f) / value);
+tax = tax+".00"' ) 
+	@name ( 'Read Balance Due Tax' ) isBalanceDueTax = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Tax' , label = 'Tax' ) 
+	@disabled assert.true ( expression = 'isBalanceDueTax == tax' ) 
+	@name ( 'Read Balance Due Total' ) isBalanceDueTotal = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Total' , label = 'Total' ) 
+	@disabled @name ( 'Tax Calculation' ) total = control.evaluate ( expression = 'int intUnitPtice = unitPrice as int
+int intTax = tax as int
+
+def total = unitPrice+tax
+
+total = total+".00"
+' ) 
+	@disabled assert.true ( expression = 'isBalanceDueTotal == total' ) 
+	@name ( 'Invoice Screen Shot' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "invoice_transaction_"+invoiceNumber+""^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+	error ^"Failed to perform invoice transaction for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Invoice to Map' ) map.add ( map = result , key = 'INVOICENUMBER' , value = ^=invoiceNumber^ ) 
+	@name ( 'Return invoice number' ) result = control.evaluate ( expression = 'return result' ) 
+	@name ( 'Print Invoice Number' ) console.write ( data = ^="Invoice [" + invoiceNumber + "] created for test case [" + scenario +"]"^ ) 
+} 

@@ -1,0 +1,12 @@
+@specification 1.1 
+'Processing sheet [${sheet}]' {
+	cases = excel.read ( filePath = workbook , sheetName = sheet ) 
+	@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+	@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+	cases = transform.columnrename ( columns = headers ) 
+	cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+	cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+	@name ( 'Rasie test case not found error' ) if ^cases.size() < 2^ {
+		error ^"Test case[" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]" ^ 
+	} 
+} 

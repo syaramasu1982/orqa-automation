@@ -1,0 +1,88 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = expenseTemplate ) 
+@param ( name = expensesForPeriodEnded ) 
+@param ( name = receiptDate ) 
+@param ( name = receiptAmount ) 
+@param ( name = expenseType ) 
+@param ( name = justification ) 
+@param ( name = receiptCurrency ) 
+@param ( name = filePath ) 
+@param ( name = unappliedAdvanceReason ) 
+web.switch ( session = session ) 
+@name ( 'Create Employee Expense Report' ) try {
+	@name ( 'Define report number' ) reportNumber = control.evaluate ( expression = 'return null' ) 
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Click Create Expense Report button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create Expense Report' , scenario = scenario ) 
+	@name ( 'Select Expense Template' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Template' , xPath = 'ExpTemplate' , value = expenseTemplate ) 
+	@name ( 'Enter Expenses for Period Ended' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Expenses for Period Ended' , xPath = 'Purpose' , value = expensesForPeriodEnded ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Enter Receipt Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Date' , xPath = 'N50:Date:0' , value = receiptDate ) 
+	@name ( 'Enter Receipt Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Receipt Amount' , xPath = 'N50:ReceiptCurrencyAmount:0' , value = receiptAmount ) 
+	@name ( 'Select Expense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Type' , xPath = 'N50:WebParameterId:0' , value = expenseType ) 
+	@name ( 'Enter Justification' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'N50:Justification:0' , value = justification ) 
+	@name ( 'Click Show Receipt Currency button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Show Receipt Currency' , scenario = scenario ) 
+	@name ( 'Select Receipt Currency' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Receipt Currency' , xPath = 'N50:ReceiptCurrencyCode:0' , value = receiptCurrency ) 
+	@name ( 'Click Update button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Update' , scenario = scenario ) 
+	@name ( 'Click Save button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Account Allocations Tab' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Account Allocations' ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Is Advance Exists' ) isAdvanceExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Advance Number' ) 
+	if isAdvanceExists {
+		@name ( 'Click advance number search' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Search: Advance Number' ) 
+		@name ( 'Switch browser to select advance number' ) /EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = 'Search and Select*' ) 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+		@name ( 'Click quick select' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Quick Select' ) 
+		@name ( 'Is Unapplied Advance Reason enable' ) isReasonDisabled = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = '*' , xPath = '[@id="Reason"][@disabled]' ) 
+		@name ( 'To enter unapplied advance reason' ) if ^!isReasonDisabled^ {
+			@name ( 'Enter Unapplied Advance Reason' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Unapplied Advance Reason' , parentId = 'AdvancesApplicationRN' , xPath = 'Reason' , value = unappliedAdvanceReason ) 
+		} 
+		@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	} 
+	@name ( 'Click Attachments icon +' ) /EBSArea/lib/web/click/click_verification.task ( scenario = scenario , session = session , xPath = "//*[contains(@id,'OIERevCashTable:LineAttachments:0')]//a" ) 
+	@disabled @name ( 'Click Attachments icon +' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , id = 'OIERevCashTable:LineAttachments:0' ) 
+	@name ( 'Upload File' ) /EBSArea/lib/web/upload/upload.task ( scenario = scenario , session = session , id = 'FileInput_oafileUpload' , filePath = filePath ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	'Read Receipt Information' {
+		@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'create_employee_exp_report' ) 
+		@name ( 'Read Receipt Date' ) isReceiptDate = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Receipt Amount' , xPath = receiptDate ) 
+		assert.true ( expression = 'isReceiptDate == receiptDate' ) 
+		@name ( 'Read Receipt Amount' ) isReceiptAmount = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Receipt Amount' , xPath = 'Review Receipt Amount' ) 
+		assert.true ( expression = 'isReceiptAmount == receiptAmount+" GBP"' ) 
+		@name ( 'Read Expense Type' ) isExpenseType = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = expenseType ) 
+		assert.true ( expression = 'isExpenseType.contains(expenseType) | isExpenseType.equals(expenseType)' ) 
+		@name ( 'Read Justification' ) isJustification = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = justification ) 
+		assert.true ( expression = 'isJustification.contains(justification) | isJustification.equals(justification)' ) 
+	} 
+	@name ( 'Click Expense Allocations Tab' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , name = 'Expense Allocations' , id = 'N79' ) 
+	@name ( 'Click Weekly Summary Tab' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , name = 'Weekly Summary' , id = 'N79' ) 
+	@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'create_employee_exp_report_submit' ) 
+	@name ( 'Read Warning Message' ) confirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Expense report number' ) 
+	@name ( 'Read report number' ) reportNumber = control.evaluate ( expression = 'String value = confirmation;
+String[] sp =  value.split(" ");
+reportNumber = sp[3]' ) 
+	@disabled @name ( 'Click Printable Page button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Printable Page' , scenario = scenario ) 
+	@name ( 'Click Return button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Return' , scenario = scenario ) 
+	@disabled 'Assertions' {
+		@disabled @name ( 'Read Report Number' ) isReportNumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Report Number' , xPath = 'N11:ReportNumberEnabled:0' ) 
+		@disabled assert.true ( expression = 'isReportNumber == reportNumber' ) 
+		@disabled @name ( 'Read Report Status' ) isReportStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Report Status' , xPath = 'N11:FndStatusCode:0' ) 
+		@disabled assert.true ( expression = 'isReportStatus == "Pending Manager Review"' ) 
+		@disabled @name ( 'Read Report Total' ) isReportTotal = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Report Total' , xPath = 'N11:ReportTotal:0' ) 
+		@disabled assert.true ( expression = 'isReportTotal == receiptAmount' ) 
+	} 
+	@disabled @name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^scenario+ "_create_emp_exp_report_fail"^ ) 
+	error ^"Failed to perform create employee expense report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Report Number to Map' ) map.add ( map = result , key = 'REPORTNUMBER' , value = reportNumber ) 
+	@name ( 'Return report number' ) result = control.evaluate ( expression = 'return result' ) 
+	@name ( 'Print Report Number' ) console.write ( data = ^="Expense Report [" + reportNumber + "] created for test case [" + scenario +"]"^ ) 
+} 

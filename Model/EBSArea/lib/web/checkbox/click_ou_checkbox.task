@@ -1,0 +1,15 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = operatingUnit ) 
+web.switch ( session = session ) 
+@name ( 'Click checkbox [${operatingUnit}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//*[contains(text(),'"+ operatingUnit +"')]//parent::td/parent::tr/td/input[@type='checkbox']"^ , timeout = 5 ) 
+		web.click ( target = ^"//*[contains(text(),'"+ operatingUnit +"')]//parent::td/parent::tr/td/input[@type='checkbox']"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+ operatingunit +"_fail"^ ) 
+	error ^"Failed to select checkbox [" + operating + "] on session [" + session + "]"^ 
+} 

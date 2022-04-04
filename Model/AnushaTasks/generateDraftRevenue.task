@@ -1,0 +1,50 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = operatingUnit ) 
+@name ( 'Generate Revenue Accounting Events' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField6' , value = name ) 
+	sleep 3 
+	@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+	'Enter Operating Unit' {
+		@disabled @name ( 'Click on Ledger iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Ledger' , xPathPosition = '1' ) 
+		@disabled @name ( 'Wait For Ledger Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Ledger' ) 
+		@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Find' , xPath = '%' , value = operatingUnit ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@disabled @name ( "Calculate Today's Date" ) todaysDate = control.evaluate ( expression = 'def invoiceDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+todaysDate = today
+}
+todaysDate = todaysDate.format("dd-MMM-yyy").toUpperCase()
+return todaysDate' ) 
+	@disabled @name ( 'Enter From PA Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'From PA Date' , xPathPosition = '1' , value = todaysDate ) 
+	@disabled @name ( 'Enter To PA Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'To PA Date' , xPathPosition = '2' , value = todaysDate ) 
+	@disabled @name ( 'Capture Screen Parameters' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'create_accounting_parameters' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	while ^isPhase !="Completed"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Phase' ) isPhase = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '5' ) 
+	} 
+	@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	while ^isStatus != "Normal"^ {
+		@name ( 'Click Refresh' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Data' ) 
+		sleep 5 
+		@name ( 'Read Status' ) isStatus = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Status' , row = '1' , column = '6' ) 
+	} 
+	@disabled @name ( 'Click View Output' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'View Output' ) 
+} 
+/EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

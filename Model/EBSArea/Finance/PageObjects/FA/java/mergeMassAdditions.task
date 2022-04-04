@@ -1,0 +1,57 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = queue ) 
+@param ( name = changeQueue ) 
+@param ( name = category ) 
+@param ( name = closeApp ) 
+@name ( 'Single Asset Retirement' ) try {
+	@disabled @name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@disabled @name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Mass Additions' ) 
+	@disabled @name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Find Mass Additions' , xPath = 'VTextField[1]' , value = book ) 
+	@disabled @name ( 'Enter Queue' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Queue' , title = 'Find Mass Additions' , xPath = 'VTextField[2]' , value = queue ) 
+	@disabled @name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@disabled @name ( 'Wait For Mass Additions Summary' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Mass Additions Summary' ) 
+	index = 8 
+	@name ( 'Read Invoice Number' ) invoiceValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Invoice Number' , xPath = ^"FolderPrompt[contains(text(),'Invoice Number')]/preceding-sibling::VTextField[last() - "+index+"]"^ , title = 'Mass Additions Summary' ) 
+	if ^String.valueOf(invoiceValue).trim().length() <= 0^ {
+		@name ( 'Click Mass Additions Summary Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Mass Additions Summary' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	} 
+	if ^String.valueOf(invoiceValue).trim().length() >= 0^ {
+		control.repeat ( count = 10 ) {
+			@name ( 'Click Merge button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Merge' ) 
+			@name ( 'Wait For Merge Mass Additions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Merge' ) 
+			@name ( 'Read Queue' ) queueValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Queue' , xPath = ^"FolderPrompt[contains(text(),'Queue')]/preceding-sibling::VTextField["+index+"]"^ , title = 'Merge' ) 
+			switch ^String.valueOf(queueValue).trim().length() <= 0^ {
+				@name ( 'Click Cancel button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Cancel' ) 
+				@name ( 'Wait For Mass Additions Summary' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Mass Additions Summary' ) 
+				@name ( 'Press Down Arrow' ) /EBSArea/lib/java/presskey/press_down_arrow.task ( scenario = scenario , session = session , field = 'Invoice Number' , xPath = ^"FolderPrompt[contains(text(),'Invoice Number')]/preceding-sibling::VTextField[last() - "+index+"]"^ , title = 'Mass Additions Summary' ) 
+			} 
+			switch ^queueValue.equals("Merged")^ {
+				while ^queueValue !="Merged"^ {
+					@name ( 'Press Down Arrow' ) /EBSArea/lib/java/presskey/press_down_arrow.task ( scenario = scenario , session = session , field = 'Queue' , xPath = ^"FolderPrompt[contains(text(),'Queue')]/preceding-sibling::VTextField["+index+"]"^ , title = 'Merge' ) 
+					index = control.evaluate ( expression = 'index = index-1' ) 
+					@name ( 'Read Queue' ) queueValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Queue' , xPath = ^"FolderPrompt[contains(text(),'Queue')]/preceding-sibling::VTextField["+index+"]"^ , title = 'Merge' ) 
+				} 
+			} 
+			@disabled switch ^queueValue !="Merged"^ {
+			} 
+			@disabled else {
+			} 
+			@disabled @name ( 'Click Merge button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Merge' ) 
+			@disabled @name ( 'Wait For Merge Mass Additions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Merge' ) 
+			@disabled @name ( 'Read Queue' ) queueValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Queue' , xPath = "FolderPrompt[contains(text(),'Queue')]/preceding-sibling::VTextField[8]" , title = 'Merge' ) 
+		} 
+	} 
+	@name ( 'Change Queue' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Queue' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-1]" , value = changeQueue ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Category' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-7]" , value = category ) 
+	@name ( 'Wait For Category Flexfield' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Category Flexfield' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_merge_mass_addition_fail"^ ) 
+} 

@@ -1,0 +1,44 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = workflowStarted ) 
+@param ( name = workflowType ) 
+web.switch ( session = session ) 
+@name ( 'Approve Multiple Requests' ) try {
+	@name ( 'Wait for workflows' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h2' , text = 'Workflows' ) 
+	@name ( 'Select workflow started' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Workflow Started' , xPath = 'WfProcessStartList' , value = workflowStarted ) 
+	@name ( 'Select Workflow Type' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Workflow Type' , value = workflowType , xPath = 'WfItemTypeDisplayName' , scenario = scenario ) 
+	@name ( 'Click on Show More Search Options' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show More Search Options' ) 
+	@name ( 'Select Active Status' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Active Status' , xPath = 'WfActivityStatusDisplay' , value = 'Active' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@name ( 'Check page exists' ) isThereAPage = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'div' , xPath = '/span[@title="Workflow Information List"]/table[2]' ) 
+	while isThereAPage {
+		@name ( 'Read results workflow table' ) resultsTable = /EBSArea/lib/web/text/read_table.task ( scenario = scenario , session = session , field = 'Workflow Table' , element = 'div' , xPath = '/span[@title="Workflow Information List"]/table[2]' ) 
+		radiobuttonBaseId = ^return "N19:N83:"^ 
+		control.iteration ( loopSource = resultsTable , loopVar = 'item' , loopIndex = 'itemIndex' ) {
+			radiobuttonId = ^radiobuttonBaseId+(itemIndex-1);^ 
+			selectedRadiobutton = /EBSArea/lib/web/radiobutton/click_input_radio_button.task ( session = session , field = 'Select' , id = 'ResultsRegion' , xPath = radiobuttonId ) 
+			@name ( 'Click Activity History button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Activity History' , scenario = scenario ) 
+			@name ( 'Check Open exists' ) openExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = "[text()='Open']" ) 
+			if openExists {
+				@name ( 'Click on open' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Open' ) 
+				@name ( 'Click Approve button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Approve' , scenario = scenario ) 
+				@name ( 'Click on monitor search' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Monitor Search' ) 
+			} 
+			else {
+				@name ( 'Click on monitor search' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Monitor Search' ) 
+			} 
+		} 
+		@name ( 'Check page exists' ) isNextPageExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'div' , xPath = '/span[@title="Workflow Information List"]/table[1]//a[contains(text(),"Next")]' ) 
+		if isNextPageExist {
+			/EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = '//div/span[@title="Workflow Information List"]/table[1]//a[contains(text(),"Next")]' ) 
+		} 
+		else {
+			isThereAPage = isNextPageExist 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "approve_request_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform status monitor for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,50 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+@param ( name = label ) 
+@param ( name = alternateLabel ) 
+@param ( name = index ) 
+java.switch ( session = session ) 
+@name ( 'Click text [${field}]' ) try {
+	if ^String.valueOf(label).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			label = /EBSArea/lib/java/basic/check_label_exist.task ( scenario = scenario , session = session , name = label , alternateName = alternateLabel , index = index ) 
+			java.waitforcomponent ( target = ^"//VTextField[@label='" + label + "']["+index+"]"^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'A' , ctrl = true , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'DELETE' , target = ^"//VTextField[@label='" + label + "']["+index+"]"^ ) 
+		} 
+	} 
+	elseif ^title != null && String.valueOf(title).trim().length() > 0 && xPath != null && String.valueOf(xPath).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'A' , ctrl = true , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'DELETE' , target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//"+xPath+""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//"+xPath+""^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'A' , ctrl = true , target = ^"//"+xPath+""^ ) 
+			sleep 0.25 
+			java.sendkey ( key = 'DELETE' , target = ^"//"+xPath+""^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_text_"+field+"_fail"^ ) 
+	error ^"Failed to clear [" + field + "] on session [" + session + "]"^ 
+} 

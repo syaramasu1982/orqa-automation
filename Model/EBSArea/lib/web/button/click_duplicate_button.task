@@ -1,0 +1,29 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = name ) 
+@param ( name = title ) 
+web.switch ( session = session ) 
+@name ( 'Click button [${name}]' ) try {
+	if ^name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+			sleep 0.25 
+			web.wait ( target = ^"//*[contains(@id,'" + id + "')]//button[contains(text(),'" + name + "')]"^ , timeout = 5 ) 
+			sleep 0.25 
+			web.click ( target = ^"//*[contains(@id,'" + id + "')]//button[contains(text(),'" + name + "')]"^ ) 
+		} 
+	} 
+	if ^title != null && String.valueOf(title).trim().length() > 0^ {
+		@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+			sleep 0.25 
+			web.wait ( target = ^"//*[contains(@id,'" + id + "')]//button[contains(@title,'" + title + "')]"^ , timeout = 5 ) 
+			sleep 0.25 
+			web.click ( target = ^"//*[contains(@id,'" + id + "')]//button[contains(@title,'" + title + "')]"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_button_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

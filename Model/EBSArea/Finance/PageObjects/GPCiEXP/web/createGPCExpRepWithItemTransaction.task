@@ -1,0 +1,67 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = expenseTemplate ) 
+@param ( name = expensesForPeriodEnded ) 
+@param ( name = expenseType ) 
+@param ( name = justification ) 
+@param ( name = updateExpenseType ) 
+@param ( name = itemReceiptAmount ) 
+@param ( name = filePath ) 
+web.switch ( session = session ) 
+@name ( 'Create GPC Expense Report With Item Transaction' ) try {
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Click Create Expense Report button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create Expense Report' , scenario = scenario ) 
+	@name ( 'Select Expense Template' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Template' , xPath = 'ExpTemplate' , value = expenseTemplate ) 
+	@name ( 'Enter Expenses for Period Ended' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Expenses for Period Ended' , xPath = 'Purpose' , value = expensesForPeriodEnded ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Read Warning Message' ) warning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'Number of transactions on this credit card older than' ) 
+	@name ( 'Select Transactions Check box' ) /EBSArea/lib/web/checkbox/tick_dup_checkbox.task ( scenario = scenario , session = session , id = 'AvailableTrxnList' , xPath = 'AvailableTrxnList:selected:0' ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Select Expense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Type' , xPath = 'N3:ExpenseType:0' , value = expenseType ) 
+	@name ( 'Enter Justification' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = 'N3:Justification:0' , value = justification ) 
+	@name ( 'Click Details icon' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'N3:CCDetails:0' ) 
+	@name ( 'Click Itemize button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'ItemizeButton' , scenario = scenario ) 
+	@name ( 'Click Add Another Row button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Add Another Row' , scenario = scenario ) 
+	@name ( 'Update Expense Type' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Expense Type' , xPath = 'ChildExpTypeChoice' , value = updateExpenseType ) 
+	@name ( 'Read Original Receipt Amount' ) receiptAmount = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Original Receipt Amount' , xPath = "//span[@id='IPL_OriginalReceiptAmount']" ) 
+	itemRate = control.evaluate ( expression = 'receiptAmount = Double.parseDouble(receiptAmount);
+
+def itemRate = receiptAmount/2
+
+itemRate  = (itemRate as double).round(2)
+
+return itemRate' ) 
+	@name ( 'Update Itemized Receipt Amount' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Itemized Receipt Amount' , id = 'ChildLeftColumn' , xPath = 'ChildDetailReceiptAmount' , value = itemRate ) 
+	@name ( 'Select Item1 Radio button ' ) /EBSArea/lib/web/radiobutton/click_input_radio_button.task ( scenario = scenario , session = session , field = 'Item 1' , id = 'DetailsPG' , xPath = 'ItemizationMasterTable:ItemizationSingleSelection:0' ) 
+	itemRate = control.evaluate ( expression = '
+itemRate = receiptAmount - itemRate
+
+return itemRate' ) 
+	@name ( 'Update Itemized Receipt Amount' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Itemized Receipt Amount' , id = 'ChildLeftColumn' , xPath = 'ChildDetailReceiptAmount' , value = itemRate ) 
+	@name ( 'Click Return button' ) /EBSArea/lib/web/button/click_duplicate_button.task ( scenario = scenario , session = session , id = 'DetailsPG' , name = 'Return' ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Account Allocations Tab' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Account Allocations' ) 
+	@name ( 'Click Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Attachments icon +' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , id = 'ReviewBusinessExp:LineAttachments:0' ) 
+	@name ( 'Upload File' ) /EBSArea/lib/web/upload/upload.task ( scenario = scenario , session = session , id = 'FileInput_oafileUpload' , filePath = filePath ) 
+	@name ( 'Click Apply button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	@name ( 'Read Expense Type' ) isExpenseType = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = expenseType ) 
+	assert.true ( expression = 'isExpenseType == expenseType' ) 
+	@name ( 'Read Justification' ) isJustification = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Justification' , xPath = justification ) 
+	assert.true ( expression = 'isJustification == justification' ) 
+	@name ( 'Click Expense Allocations Tab' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , name = 'Expense Allocations' , id = 'N79' ) 
+	@name ( 'Click Weekly Summary Tab' ) /EBSArea/lib/web/click/click_dup_link.task ( scenario = scenario , session = session , name = 'Weekly Summary' , id = 'N79' ) 
+	@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	@name ( 'Read Justification' ) readConfirmMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Expense report number' ) 
+	expRepNo = control.evaluate ( expression = 'String s1 = readConfirmMessage;
+String[] sp =  s1.split(" ");
+def expRepNo = sp[3];' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'gpc_expense_item_transaction' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^scenario+ "_create_gpc_exp_report_item_transaction_fail"^ ) 
+	error ^"Failed to perform create gpc expense report with item transaction for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

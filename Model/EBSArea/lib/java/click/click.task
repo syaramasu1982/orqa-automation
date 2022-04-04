@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+@name ( 'Click [${name}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//Entry[text()='"+ name +"']"^ , timeout = 5 ) 
+		sleep 0.25 
+		java.click ( target = ^"//Entry[text()='"+ name +"']"^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_"+name+"_fail"^ ) 
+	error ^"Failed to click on [" + name + "] on session [" + session + "]"^ 
+} 

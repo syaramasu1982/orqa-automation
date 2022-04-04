@@ -1,0 +1,340 @@
+@specification 1.1 
+@param ( name = empuser ) 
+@param ( name = qualificationtype ) 
+@param ( name = qualificationtitle ) 
+@param ( name = status ) 
+@param ( name = grade ) 
+@param ( name = educationestablishment ) 
+@param ( name = professionalmemebership ) 
+@param ( name = subjectname ) 
+@param ( name = selectmajor ) 
+@param ( name = tutionmethod ) 
+@param ( name = tutionfee ) 
+@param ( name = reimbursement ) 
+@param ( name = comments ) 
+@param ( name = profqualification ) 
+@param ( name = proftitle ) 
+@param ( name = awardingbody ) 
+@param ( name = awardon ) 
+@param ( name = licensenumber ) 
+@param ( name = licenceinformation ) 
+@param ( name = trainingamount ) 
+@param ( name = trainingunit ) 
+@param ( name = totalamount ) 
+@param ( name = professionalbody ) 
+@param ( name = memebershipnumber ) 
+@param ( name = memebershipcategory ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = grouprank ) 
+@param ( name = feecurrency ) 
+@param ( name = licence ) 
+@param ( name = licenceclassification ) 
+@param ( name = licenceissuedby ) 
+@param ( name = licenceverified ) 
+@param ( name = licencecomments ) 
+@param ( name = language ) 
+@param ( name = nativelanguage ) 
+@param ( name = translator ) 
+@param ( name = teacher ) 
+@param ( name = speak ) 
+@param ( name = read ) 
+@param ( name = write ) 
+@param ( name = tutionfee ) 
+@param ( name = tutionfeecurrency ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'Update Personali Professional Details' ) try {
+	'Update Education and Qualifications' {
+		@disabled @name ( 'Navigate Professional Details' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="Professional Details"' , itemName #= '="Education and Qualifications"' , subMenu #= '="Professional Details"' ) 
+		isQualificationexists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'span' , text = qualificationtype ) 
+		if isQualificationexists {
+			update = control.evaluate ( expression = 'def update="//*[text()=''"+qualificationtype+"'']//parent::td//following-sibling::td[6]/a/img"
+
+return update' ) 
+			@name ( 'Click Update' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = update ) 
+			isdeleteQualification = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , text = 'Delete Qualification' ) 
+			if isdeleteQualification {
+				@name ( 'Click DeleteQualification' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Delete Qualification' ) 
+				@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit' ) 
+				@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+				assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+				@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+			} 
+		} 
+		@name ( 'Click Add Qualification' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrAddQualificationButton' ) 
+		@name ( 'Select Qualification Type' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Qualification' , xPath = 'HrQuaQualificationTypeId' , value = qualificationtype ) 
+		@name ( 'Enter QualificationTitle' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Qualification Title' , xPath = 'HrTitles' , value = qualificationtitle ) 
+		@name ( 'Add StartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-5.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaStudyStartDate' , value = startdate ) 
+		@name ( 'Add EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-4.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'HrQuaStudyEndDate' , value = enddate ) 
+		@name ( 'Select Status' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Status' , xPath = 'HrStatus' , value = status ) 
+		@name ( 'Enter Grade' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Grade' , xPath = 'HrGrade' , value = grade ) 
+		'Education Establishment' {
+			@name ( 'Education Establishment' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'EducationEstablishment' , xPath = 'HrSchool' , value = educationestablishment ) 
+			@name ( 'AttendanceStartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-5.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaAttStartDate' , value = startdate ) 
+			@name ( 'Attendance EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-4.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'HrQuaAttEndDate' , value = enddate ) 
+		} 
+		'Qualification Information' {
+			@name ( 'Enter ProfessionalMemberShip' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Professional Institution' , xPath = 'HrAwardBody' , value = professionalmemebership ) 
+			@name ( 'Award Startdate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-1.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaAwardedOn' , value = startdate ) 
+			@name ( 'Enter GroupRank' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Group' , xPath = 'HrGroupRank' , value = grouprank ) 
+		} 
+		'Add Subjects' {
+			@name ( 'Click Add Subject' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaAddSubjectButton' ) 
+			@name ( 'SelectSubjectName' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'SubjectName' , xPath = 'HrSubjectName' , value = subjectname ) 
+			@name ( 'SelectMajor' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Major' , xPath = 'HrMajor' , value = selectmajor ) 
+			@name ( 'Subject StartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-5.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaSubjectStartDate' , value = startdate ) 
+			@name ( 'Subject EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-4.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'HrQuaSubjectEndDate' , value = enddate ) 
+			@name ( 'SelectStatus' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Status' , xPath = 'HrQuaSubjectStatus' , value = status ) 
+			@name ( 'Enter Grade' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Grade' , xPath = 'HrQuaSubjectGrade' , value = grade ) 
+			@name ( 'ClickApply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaContinue_uixr' ) 
+		} 
+		'Add Tution Information' {
+			@name ( 'Select TutionMethod' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'TutionMethod' , xPath = 'HrTuitionMethod' , value = tutionmethod ) 
+			@name ( 'Enter Tution Fee' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Fee' , xPath = 'HrFee' , value = tutionfee ) 
+			@name ( 'Select Fee Currency' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Currency' , xPath = 'HrFeeCurrency' , value = feecurrency ) 
+			@name ( 'Enter Reimbursement' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Reimbursement' , xPath = 'HrReimbursement' , value = reimbursement ) 
+			@name ( 'Enter Comments' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Comments' , parentId = 'HrQuaEditComments' , xPath = 'HrComments' , value = comments ) 
+			@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaContinue_uixr' ) 
+			@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit' ) 
+			@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+			assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+			@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+		} 
+	} 
+	'Other Professional Qualifications' {
+		@name ( 'Navigate Other Professional Qualifications' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="Professional DetailsEducation and Qualifications"' , subMenu #= '="Professional Details"' , itemName #= '="Other Professional Qualifications"' ) 
+		@name ( 'Click Add Professional Qualification' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrAddQualificationButton' ) 
+		@name ( 'Enter Professional Qualification' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'QualificationType' , xPath = 'HrQuaQualificationTypeId' , value = profqualification ) 
+		@name ( 'Enter Professional Title' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Title' , xPath = 'HrTitles' , value = proftitle ) 
+		@name ( 'Add StartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-3.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaStudyStartDate' , value = startdate ) 
+		@name ( 'Add EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-2.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'HrQuaStudyEndDate' , value = enddate ) 
+		@name ( 'Select Status' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Status' , xPath = 'HrStatus' , value = status ) 
+		@name ( 'Enter Grade' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Grade' , xPath = 'HrGrade' , value = grade ) 
+		'Professional Qualification Information' {
+			@name ( 'Enter AwardingExamination' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Awarding' , xPath = 'HrAwardBody' , value = awardingbody ) 
+			@name ( 'Add AwardDate' ) awarddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-1.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter AwardOn' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Awardon' , xPath = 'HrQuaAwardedOn' , value = awarddate ) 
+			@name ( 'Enter Group Rank' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'GroupRanking' , xPath = 'HrGroupRank' , value = grouprank ) 
+		} 
+		'Add Professional Subject' {
+			@name ( 'Click Add Subject' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaAddSubjectButton' ) 
+			@name ( 'SelectSubjectName' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'SubjectName' , xPath = 'HrSubjectName' , value = subjectname ) 
+			@name ( 'SelectMajor' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Major' , xPath = 'HrMajor' , value = selectmajor ) 
+			@name ( 'Add StartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-2.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrQuaSubjectStartDate' , value = startdate ) 
+			@name ( 'Add EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-2.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter EndDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'HrQuaSubjectEndDate' , value = enddate ) 
+			@name ( 'SelectStatus' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Status' , xPath = 'HrQuaSubjectStatus' , value = status ) 
+			@name ( 'Enter Grade' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Grade' , xPath = 'HrQuaSubjectGrade' , value = grade ) 
+			@name ( 'ClickApply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaContinue_uixr' ) 
+		} 
+		'Add Licence Information' {
+			@name ( 'Enter LicenceNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'LicenceNumber' , xPath = 'HrLicenseNumber' , value = licensenumber ) 
+			@name ( 'Add Licence ExpiryDate' ) expirydate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def year= new Date()
+  StartDate = year+5.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+			@name ( 'Enter LicenseExpireDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'ExpireDate' , xPath = 'HrExpiryDate' , value = expirydate ) 
+			@name ( 'Enter LicenceRestriction' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'LicenceInformation' , xPath = 'HrLicenseRestriction' , value = licenceinformation ) 
+		} 
+		'Add Tution Information' {
+			@name ( 'Select TutionMethod' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'TutionMethod' , xPath = 'HrTuitionMethod' , value = tutionmethod ) 
+			@name ( 'Enter Tution Fee' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Fee' , xPath = 'HrFee' , value = tutionfee ) 
+			@name ( 'Select Fee Currency' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Currency' , xPath = 'HrFeeCurrency' , value = tutionfeecurrency ) 
+			@name ( 'Enter Reimbursement' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Reimbursement' , xPath = 'HrReimbursement' , value = reimbursement ) 
+		} 
+		'Training Information' {
+			@name ( 'Enter TrainingAmount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Completed Account' , xPath = 'HrCompletedAmount' , value = trainingamount ) 
+			@name ( 'Enter TrainingUnit' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'TrainingUnit' , xPath = 'HrCompletedUnit' , value = trainingunit ) 
+			@name ( 'Enter TotalAmount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'TotalAmount' , xPath = 'HrTotalAmount' , value = totalamount ) 
+			@name ( 'Enter Comments' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Comments' , parentId = 'HrComments__xc_' , xPath = 'HrComments' , value = comments ) 
+			@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrQuaContinue_uixr' ) 
+			@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit' ) 
+			@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+			assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+			@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+		} 
+	} 
+	'Professional Memberships' {
+		@name ( 'Navigate Professional Memberships' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="Professional DetailsEducation and QualificationsOther Professional Qualifications"' , subMenu #= '="Professional Details"' , itemName #= '="Professional Memberships"' ) 
+		@name ( 'ClickAdd' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddNewEit' ) 
+		@name ( 'Enter Professional Body' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , xPath = 'RCUK_HR_PROF_MEMSHIP1' , value = professionalbody , field = 'Professionalbody' ) 
+		@name ( 'Enter MemberShipNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'MembershipNumber' , xPath = 'RCUK_HR_PROF_MEMSHIP2' , value = memebershipnumber ) 
+		@name ( 'Enter MemberShipCategory' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'MembershipCategory' , xPath = 'RCUK_HR_PROF_MEMSHIP3' , value = memebershipcategory ) 
+		@name ( 'Add Start Date' ) awarddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-2.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter DateAward' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'DateAwarded' , xPath = 'RCUK_HR_PROF_MEMSHIP4' , value = awarddate ) 
+		@name ( 'Add EndDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-1.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter ExpiryDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'ExpiryDate' , xPath = 'RCUK_HR_PROF_MEMSHIP5' , value = enddate ) 
+		@name ( 'ClickApply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+		@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+	} 
+	'Licences and Certificates' {
+		@name ( 'Navigate Professional Memberships' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="Professional DetailsEducation and QualificationsOther Professional QualificationsProfessional Memberships"' , subMenu #= '="Professional Details"' , itemName #= '="Licences and Certificates"' ) 
+		@name ( 'Click Add' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddNewEit' ) 
+		@name ( 'Enter Licence' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , xPath = 'RCUK_LICENCES1' , field = 'Licence' , value = licence ) 
+		@name ( 'Enter LicenceClassification' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'LicenceClassification' , xPath = 'RCUK_LICENCES2' , value = licenceclassification ) 
+		@name ( 'Enter LicenceIssuedBy' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'IssuedBy' , xPath = 'RCUK_LICENCES3' , value = licenceissuedby ) 
+		@name ( 'Add Issue StartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-5.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter Issue StartDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'RCUK_LICENCES4' , value = startdate ) 
+		@name ( 'Add IssueExpirationDate' ) enddate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today= new Date()
+  StartDate = today-3.years
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'Enter Issue ExpirationDate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Complete Date' , xPath = 'RCUK_LICENCES5' , value = enddate ) 
+		@name ( 'Enter Licence Verified' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'LicenceVerified' , xPath = 'RCUK_LICENCES6' , value = licenceverified ) 
+		@name ( 'Enter Licence Comments' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Comments' , xPath = 'RCUK_LICENCES7' , value = licencecomments ) 
+		@name ( 'ClickApply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+		@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+	} 
+	'Languages' {
+		@name ( 'Navigate Languages' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="Professional DetailsEducation and QualificationsOther Professional QualificationsProfessional MembershipsLicences and Certificates"' , subMenu #= '="Professional Details"' , itemName #= '="Languages"' ) 
+		@name ( 'Click Add' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddNewEit' ) 
+		@name ( 'Enter Language' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Language' , xPath = 'RCUK_LANGUAGES1' , value = language ) 
+		@name ( 'Enter Native' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Native' , xPath = 'RCUK_LANGUAGES2' , value = nativelanguage ) 
+		@name ( 'Enter Translator' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Translator' , xPath = 'RCUK_LANGUAGES3' , value = translator ) 
+		@name ( 'Enter Teacher' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Teacher' , xPath = 'RCUK_LANGUAGES4' , value = teacher ) 
+		@name ( 'Enter Speak' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Speak' , xPath = 'RCUK_LANGUAGES5' , value = speak ) 
+		@name ( 'Enter Read' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Read' , xPath = 'RCUK_LANGUAGES6' , value = read ) 
+		@name ( 'Enter Write' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , field = 'Write' , xPath = 'RCUK_LANGUAGES7' , value = write ) 
+		@name ( 'ClickApply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@name ( 'Read Confirmation' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		assert.true ( expression = 'Isconfirm=="Your changes have been applied."' ) 
+		@name ( 'Click Home' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToPortal' ) 
+	} 
+} 
+@name ( 'Handle Failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'UpdatePersonalDetails' ) 
+	error ^"Failed to perform Update Personal Professional Details[" + scenario +"] with session ["+ session +"]"^ 
+} 

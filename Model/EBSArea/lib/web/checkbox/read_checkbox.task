@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Read checkbox [${name}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//*[contains(@id,'" + id + "')]//*[contains(@name,'"+ name +"') and (@type='checkbox')]"^ , timeout = 5 ) 
+		checkBoxValueRead = web.getvalue ( target = ^"//*[contains(@id,'" + id + "')]//*[contains(@name,'"+ name +"') and (@type='checkbox')]/@checked"^ ) 
+		@name ( 'Read checkbox value' ) checked = control.evaluate ( expression = 'if(checkBoxValueRead == null){
+	return false
+} else {
+	return true
+}' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "read_checkbox_"+ name +"_fail"^ ) 
+	error ^"Failed to read checkbox [" + name + "] on session [" + session + "]"^ 
+} 

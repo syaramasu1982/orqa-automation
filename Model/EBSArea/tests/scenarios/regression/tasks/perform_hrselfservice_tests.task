@@ -1,0 +1,198 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle HRSelfService' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle HR Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [EmployeeRequestleave]' ) if ^testCaseName.equals("EMPLOYEEREQUESTLEAVE")^ {
+					@name ( 'EmployeeRequestleave [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/EmployeeRequestleave.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empname','Empnumber'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPNAME,result.EMPNUMBER]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Approve Request]' ) if ^testCaseName.equals("APPROVEREQUEST")^ {
+					@name ( 'Read Employee Name' ) employeeName = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empname' ) 
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empnumber' ) 
+					@name ( 'Calculate Today Date' ) todaydate = control.evaluate ( expression = 'def todayDate=null
+use (groovy.time.TimeCategory) {
+def today=new Date()
+todayDate = today
+}
+todayDate =todayDate .format("dd-MMM-yyy ")
+return todayDate' ) 
+					@name ( 'ApproveRequest  [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/ApproveRequest.task' ( scenario = scenario , session = session , empName = employeeName , empID = employeeNumber , today = todaydate ) 
+				} 
+				@name ( 'Handle[Employee Books Annualleavehours]' ) if ^testCaseName.equals("EMPLOYEE(PART TIME) BOOKS ANNUALLEAVEHOURS")^ {
+					@name ( 'Employee(part time) Books AnnualLeavehours [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/Employee(part time) Books AnnualLeavehours.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empname','Empnumber'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPNAMEPARTTIME,result.EMPNUMBERPART]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Approve Request PartTimeEmployee]' ) if ^testCaseName.equals("APPROVEREQUEST")^ {
+					@name ( 'Read Employee Name' ) employeeName = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'EMPNAMEPARTTIME' ) 
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'EMPNUMBERPART' ) 
+					@name ( 'Calculate Today Date' ) todaydate = control.evaluate ( expression = 'def todayDate=null
+use (groovy.time.TimeCategory) {
+def today=new Date()
+todayDate = today
+}
+todayDate =todayDate .format("dd-MMM-yyy ")
+return todayDate' ) 
+					@name ( 'ApproveRequest  [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/ApproveRequest.task' ( scenario = scenario , session = session , empID = employeeNumber , today = todaydate , empName = employeeName ) 
+				} 
+				@name ( 'Handle [EmployeeRequestsspecialleave]' ) if ^testCaseName.equals("EMPLOYEEREQUESTSSPECIALLEAVE")^ {
+					@name ( 'EmployeeRequestsspecialleave [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/EmployeeRequestsspecialleave.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ , absensereason = ^caseRef['ABSENSEREASON']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empname','Empnumber'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPNAME,result.EMPNUMBER]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [AnnualleaverequestCannotExceedAvailableBalance]' ) if ^testCaseName.equals("ANNUALLEAVEREQUESTCANNOTEXCEEDAVAILABLEBALANCE")^ {
+					@name ( 'AnnualleaverequestCannotExceedAvailableBalance [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/AnnualleaverequestCannotExceedAvailableBalance.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ ) 
+				} 
+				@name ( 'Handle [Entersicknessabsensewithfuturedates]' ) if ^testCaseName.equals("ENTERSICKNESSABSENSEWITHFUTUREDATES")^ {
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/Entersicknessabsensewithfuturedates.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ , absensereason = ^caseRef['ABSENSEREASON']^ , absenseTypesickness = ^caseRef['ABSENSETYPESICKNESS']^ ) 
+				} 
+				@name ( 'Handle [EnterUpdateandApproveSickness]' ) if ^testCaseName.equals("ENTERUPDATEANDAPPROVESICKNESS")|| testCaseName.equals("ENTERUPDATEANDAPPROVESICKNESSEMPLOYEE") || testCaseName.equals("ENTERUPDATEANDAPPROVESICKNESSLM")^ {
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/EnterUpdateandApproveSickness.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ , absensereason = ^caseRef['ABSENSEREASON']^ , absensetypesickness = ^caseRef['ABSENSETYPESICKNESS']^ , emp = ^caseRef['EMPNAME']^ ) 
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/EnterUpdateandApproveSicknessEmployee.task' ( absensetype = ^caseRef['ABSENSETYPE']^ , scenario = scenario , session = session ) 
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/EnterUpdateandApproveSicknessLM.task' ( scenario = scenario , session = session , emp = ^caseRef['EMPNAME']^ ) 
+				} 
+				@name ( 'Handle [LinemanagerbooksAnnualleaveonemployeebehalf]' ) if ^testCaseName.equals("LINEMANAGERBOOKSANNUALLEAVEONEMPLOYEEBEHALF")^ {
+					@name ( 'LinemanagerbooksAnnualleaveonemployeebehalf  [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/LinemanagerbooksAnnualleaveonemployeebehalf.task' ( scenario = scenario , session = sesison , emp = ^caseRef['EMPNAME']^ , absensetype = ^caseRef['ABSENSETYPE']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empname','Empnumber'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPNAME,result.EMPNUMBER]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Linemanagerrejectleaverequest]' ) if ^testCaseName.equals("REJECTLEAVEREQUEST")^ {
+					@name ( 'Read Employee Name' ) employeeName = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empname' ) 
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empnumber' ) 
+					@name ( 'Calculate Today Date' ) todaydate = control.evaluate ( expression = 'def todayDate=null
+use (groovy.time.TimeCategory) {
+def today=new Date()
+todayDate = today
+}
+todayDate =todayDate .format("dd-MMM-yyy ")
+return todayDate' ) 
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/Linemanagerrejectleaverequest.task' ( scenario = scenario , session = session , empname = 'employeeName' , empID = 'employeeNumber' ) 
+				} 
+				@name ( 'Handle [LinemanagerrequestsEmployeeprovidesFurtherInformationEmployee]' ) if ^testCaseName.equals("LINEMANAGERREQUESTSEMPLOYEEPROVIDESFURTHERINFORMATIONEMPLOYEE")^ {
+					@name ( 'LinemanagerrequestsEmployeeprovidesFurtherInformationEmployee [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/LinemanagerrequestsEmployeeprovidesFurtherInformationEmployee.task' ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empname','Empnumber'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPNAME,result.EMPNUMBER]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [LinemanagerrequestsEmployeeprovidesFurtherInformationLM]' ) if ^testCaseName.equals("LINEMANAGERREQUESTSEMPLOYEEPROVIDESFURTHERINFORMATIONLM")^ {
+					@name ( 'Calculate Today Date' ) todaydate = control.evaluate ( expression = 'def todayDate=null
+use (groovy.time.TimeCategory) {
+def today=new Date()
+todayDate = today
+}
+todayDate =todayDate .format("dd-MMM-yyy ")
+return todayDate' ) 
+					@name ( 'Read Employee Name' ) employeeName = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empname' ) 
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empnumber' ) 
+					@name ( 'LinemanagerrequestsEmployeeprovidesFurtherInformationLM [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/LinemanagerrequestsEmployeeprovidesFurtherInformationLM.task' ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [LinemanagerrequestsEmployeeprovidesFurtherInformationEmp]' ) if ^testCaseName.equals("LINEMANAGERREQUESTSEMPLOYEEPROVIDESFURTHERINFORMATIONEMP")^ {
+					@name ( 'LinemanagerrequestsEmployeeprovidesFurtherInformationEmp [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/LinemanagerrequestsEmployeeprovidesFurtherInformationEmp.task' ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [LinemanagerrequestsEmployeeprovidesFurtherInformationLineManager]' ) if ^testCaseName.equals("LINEMANAGERREQUESTSEMPLOYEEPROVIDESFURTHERINFORMATIONLINEMANAGER")^ {
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/LinemanagerrequestsEmployeeprovidesFurtherInformationLineManager.task' ( scenario = scenario , session = session ) 
+				} 
+				@name ( "Handle [LM BooksSpecialleaveonEmployee's Behlaf]" ) if ^testCaseName.equals("LM BOOKSSPECIALLEAVEONEMPLOYEE'S BEHLAF")^ {
+					@name ( "LM BooksSpecialleaveonEmployee's Behlaf [${sheet}]: ID=${caseRef.ID}" ) "/EBSArea/HR/PageObjects/HR SelfService/Web/LM BooksSpecialleaveonEmployee's Behlaf.task" ( scenario = scenario , session = session , absensetype = ^caseRef['ABSENSETYPE']^ , absensereason = ^caseRef['ABSENSEREASON']^ , emp = ^caseRef['EMPNAME']^ ) 
+				} 
+				@name ( 'Handle [MaintainPersonalDetails]' ) if ^testCaseName.equals("MAINTAINPERSONALDETAILS")^ {
+					@name ( 'MaintainPersonalDetails [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/MaintainPersonalDetails.task' ( scenario = scenario , session = session , addressline1 = ^caseRef['ADDRESSLINE1']^ , addressline2 = ^caseRef['ADDRESSLINE2']^ , addressline3 = ^caseRef['ADDRESSLINE3']^ , town = ^caseRef['TOWN']^ , county = ^caseRef['COUNTY']^ , postcode = ^caseRef['POSTCODE']^ , otheraddresstype = ^caseRef['OTHERADDRESSTYPE']^ , phonenumbertype = ^caseRef['PHONENUMBERTYPE']^ , mainaddresstype = ^caseRef['MAINADDRESSTYPE']^ , enterphonenumber = ^caseRef['PHONENUMBER']^ , basicdetailstype = ^caseRef['BASICDETAILSTYPE']^ , firstname = ^caseRef['FIRSTNAME']^ , middlename = ^caseRef['MIDDLENAME']^ , lastname = ^caseRef['LASTNAME']^ , addemergencytitle = ^caseRef['ADDEMERGENCYTITLE']^ , addemergencyfirstname = ^caseRef['ADDEMERGENCYFIRSTNAME']^ , addemergencymiddlename = ^caseRef['ADDEMERGENCYMIDDLENAME']^ , addemergencylastname = ^caseRef['ADDEMERGENCYLASTNAME']^ , addrelationship = ^caseRef['ADDRELATIONSHIP']^ , emergencymainaddresstype = ^caseRef['EMERGENCYMAINADDRESSTYPE']^ , emergencyaddressline1 = ^caseRef['EMERGENCYADDRESSLINE1']^ , emergencyaddressline2 = ^caseRef['EMERGENCYADDRESSLINE2']^ , emergencyaddressline3 = ^caseRef['EMERGENCYADDRESLINE3']^ , Addemergencytown = ^caseRef['TOWN']^ , addemergencycounty = ^caseRef['COUNTY']^ , addemergencypostcode = ^caseRef['POSTCODE']^ , addemergencyphonenumbertype = ^caseRef['PHONENUMBERTYPE']^ , addemergencyphnumber = ^caseRef['ADDEMEPHNUMBER']^ , ethicorigin = ^caseRef['ORIGIN']^ , secondaryaddresstype = ^caseRef['SECONDARYADDRESSTYPE']^ , phonenumber = ^caseRef['ADDEMEPHNUMBER']^ ) 
+				} 
+				@name ( 'Handle [Maintain Personal Professional Details]' ) if ^testCaseName.equals("MAINTAIN PERSONAL PROFESSIONAL DETAILS")^ {
+					@name ( 'Maintain Personal Professional Details  [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/Maintain Personal Professional Details .task' ( qualificationtype = ^caseRef['QUALIFICATIONTYPE']^ , qualificationtitle = ^caseRef['QUALIFICATIONTITLE']^ , status = ^caseRef['STATUS']^ , grade = ^caseRef['GRADE']^ , educationestablishment = ^caseRef['EDUCATIONESTABLISHMENT']^ , professionalmemebership = ^caseRef['PROFESSIONALMEMBERSHIP']^ , subjectname = ^caseRef['SUBJECTNAME']^ , selectmajor = ^caseRef['MAJOR']^ , tutionmethod = ^caseRef['TUTIONMETHOD']^ , tutionfee = ^caseRef['TUTIONFEE']^ , reimbursement = ^caseRef['REIMBURSEMENT']^ , comments = ^caseRef['COMMENTS']^ , profqualification = ^caseRef['PROFQUALIFICATION']^ , proftitle = ^caseRef['PROFTITLE']^ , awardingbody = ^caseRef['AWARDINGBODY']^ , awardon = ^caseRef['AWARDON']^ , licensenumber = ^caseRef['LICENSENUMBER']^ , licenceinformation = ^caseRef['LICENSEINFORMATION']^ , trainingamount = ^caseRef['TRAININGAMOUNT']^ , trainingunit = ^caseRef['TRAININGUNIT']^ , totalamount = ^caseRef['TOTALAMOUNT']^ , professionalbody = ^caseRef['PROFESSIONALBODY']^ , memebershipnumber = ^caseRef['MEMEBERSHIPNUMBER']^ , memebershipcategory = ^caseRef['MEMEBERSHIPCATEGORY']^ , scenario = scenario , session = session , grouprank = ^caseRef['GROUPRANK']^ , feecurrency = ^caseRef['FEECURRENCY']^ , licence = ^caseRef['LICENSE']^ , licenceclassification = ^caseRef['LICENCECLASSIFICATION']^ , licenceissuedby = ^caseRef['LICENCEISSUEDBY']^ , licenceverified = ^caseRef['LICENCEVERIFIED']^ , licencecomments = ^caseRef['LICENCECOMMENTS']^ , language = ^caseRef['LANGUAGE']^ , nativelanguage = ^caseRef['NATIVELANGUAGE']^ , translator = ^caseRef['TRANSLATOR']^ , teacher = ^caseRef['TEACHER']^ , speak = ^caseRef['SPEAK']^ , read = ^caseRef['READ']^ , write = ^caseRef['WRITE']^ , tutionfeecurrency = ^caseRef['TUTIONFEECURRENCY']^ ) 
+				} 
+				@name ( 'Handle [Employeeenrolsonacoursethroughcatlog]' ) if ^testCaseName.equals("EMPLOYEEENROLSONACOURSETHROUGHCATLOG")^ {
+					@name ( 'Employeeenrolsonacoursethroughcatlog [${sheet}]: ID=${caseRef.ID}' ) resultDetails = '/EBSArea/HR/PageObjects/HR SelfService/Web/Employeeenrolsonacoursethroughcatlog.task' ( scenario = scenario , session = session , coursecatlog = ^caseRef['COURSECATLOG']^ , coursecategory = ^caseRef['COURSECATEGORY']^ , selectsubcategories = ^caseRef['SUBCATEGORIES']^ , coursename = ^caseRef['COURSENAME']^ , clickyes = ^caseRef['CLICKYES']^ , enrollmentjustification = ^caseRef['ENROLLMENTJUSTIFICATION']^ , empname = ^caseRef['EMPNAME']^ , comments = ^caseRef['COMMENTS']^ , selectsubcategoriesoption = ^caseRef['SUBCATEGORIESOPTION']^ , coursenameoption = ^caseRef['COURSENAMEOPTION']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Empcourse'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.EMPCOURSE]^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [EmployeeEnrollsCourseCatlogLineManager]' ) if ^testCaseName.equals("EMPLOYEEENROLLSCOURSECATLOGLINEMANAGER")^ {
+					@name ( 'Read Employee Name' ) employeeCourse = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , testCaseTableDict = TestCaseTableDict , tableColumnName = 'Empcourse' ) 
+					'/EBSArea/HR/PageObjects/HR SelfService/Web/EmployeeEnrollsCourseCatlogLineManager.task' ( scenario = scenario , session = session , empname = employeeCourse ) 
+				} 
+				@name ( 'Handle [ISupportQueryRaisedbyEmployee]' ) if ^testCaseName.equals("ISUPPORTQUERYRAISEDBYEMPLOYEE")^ {
+					@name ( 'ISupportQueryRaisedbyEmployee [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/ISupportQueryRaisedbyEmployee.task' ( scenario = scenario , session = session , problemsummary = ^caseRef['PROBLEMSUMMARY']^ , problemtype = ^caseRef['PROBLEMTYPE']^ , note = ^caseRef['NOTE']^ , filepath = ^caseRef['FILEPATH']^ , description = ^caseRef['DESCRIPTION']^ ) 
+				} 
+				@name ( 'Handle [SecuritySettingsRetainedHR]' ) if ^testCaseName.equals("SECURITYSETTINGSRETAINEDHR")^ {
+					@name ( 'SecuritySettingsRetainedHR [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/SecuritySettingsRetainedHR.task' ( fullname = ^caseRef['FULLNAME']^ , scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [BankDetailsviaSelfService]' ) if ^testCaseName.equals("BANKDETAILSVIASELFSERVICE")^ {
+					@name ( 'BankDetailsviaSelfService [${sheet}]: ID=${caseRef.ID}' ) '/EBSArea/HR/PageObjects/HR SelfService/Web/BankDetailsviaSelfService.task' ( scenario = scenario , session = session , amount = ^caseRef['AMOUNT']^ , sortcode = ^caseRef['SORTCODE']^ , bankname = ^caseRef['BANKNAME']^ , accountname = ^caseRef['ACCOUNTNAME']^ , amounttype = ^caseRef['AMOUNTTYPE']^ , bankbranch = ^caseRef['BANKBRANCH']^ , accountnumber = ^caseRef['ACCOUNTNUMBER']^ , accounttype = ^caseRef['ACCOUNTYPE']^ , societyaccountnumber = ^caseRef['SOCIETYACCOUNTNUMBER']^ , bankbranchlocation = ^caseRef['BANKBRANCHLOCATION']^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

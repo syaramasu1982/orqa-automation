@@ -1,0 +1,39 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = sourcePath ) 
+@param ( name = applicationStartCommand ) 
+@param ( name = workingDirectory ) 
+@param ( name = jvmPath ) 
+@param ( name = name ) 
+@param ( name = reports ) 
+@param ( name = reportingContext ) 
+@param ( name = reportSummary ) 
+@param ( name = reportFormat ) 
+@param ( name = agingBucketName ) 
+@param ( name = showOpenCredits ) 
+@param ( name = showReceiptsAtRisk ) 
+@name ( 'Print Statement Cycles' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'VTextField6' , value = name ) 
+	sleep 2 
+	@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+	@name ( 'Enter Report Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = 'LWTextField' , value = reports ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@name ( 'Enter Reporting Context' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Reporting Context' , value = reportingContext , xPathPosition = '2' ) 
+	@name ( 'Enter Report Summary' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Report Summary' , value = reportSummary , xPathPosition = '6' ) 
+	@name ( 'Enter Report Format' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Report Format' , value = reportFormat , xPathPosition = '7' ) 
+	@name ( 'Enter Aging Bucket Name' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Aging Bucket Name' , value = agingBucketName , xPathPosition = '8' ) 
+	@name ( 'Enter Show Open Credits' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Show Open Credits' , value = showOpenCredits , xPathPosition = '9' ) 
+	@name ( 'Enter Show Receipts At Risk' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Show Receipts At Risk' , value = showReceiptsAtRisk , xPathPosition = '10' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'print_statement_cycles' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"print_statement_cycles_fail"^ ) 
+	error ^"Failed to perform print statement cycles for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

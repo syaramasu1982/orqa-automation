@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Launch form [${name}]' ) try {
+	@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+		web.runjs ( javaScript = ^name
+
+//Navigate Invoice 
+//javascript:launchForm('https://ebs.sit.ssc.rcuk.ac.uk:443/OA_HTML/RF.jsp?function_id=1026&resp_id=50627&resp_appl_id=200&security_group_id=0&lang_code=US&oas=AiwEs4ODOy_EwXb20_-3sg..')^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "launch_form_"+name+"_fail"^ ) 
+	error ^"Failed to launch [" + name + "] on session [" + session + "]"^ 
+} 

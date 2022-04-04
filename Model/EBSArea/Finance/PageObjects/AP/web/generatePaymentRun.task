@@ -1,0 +1,105 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = useTemplate ) 
+@param ( name = paymentPRN ) 
+@param ( name = payee ) 
+web.switch ( session = session ) 
+'Submit Payment Process Request' {
+	@name ( 'Click on Submit Single Payment Process Request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Submit Single Payment Process Request' ) 
+	@name ( 'Wait for Submit Payment Process Request' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Submit Payment Process Request' ) 
+	@name ( 'Select Use Template' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Use Template' , value = useTemplate , xPath = 'TemplateName' , scenario = scenario ) 
+	@disabled @name ( 'Generate Payment Process Request Name' ) ppReqName = control.evaluate ( expression = 'def ppReqName = useTemplate+"_"+paymentPRN
+
+return ppReqName' ) 
+	@name ( 'Wait until template is loaded' ) sleep 3 
+	@name ( 'Enter Payment Process Request Name' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'Payment Process Request Name' , id = 'MainRN' , xPath = 'CheckrunName' , value = paymentPRN ) 
+	@name ( 'Calculate pay from date' ) payFromDate = control.evaluate ( expression = 'def payFromDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  payFromDate= today-1.month 
+}
+payFromDate = payFromDate.format("dd-MMM-yyy")
+
+return payFromDate' ) 
+	@name ( 'Select Pay From Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Pay From Date' , xPath = 'PayFromDate' , value = payFromDate ) 
+	@name ( 'Calculate pay through date' ) payThruDate = control.evaluate ( expression = 'def payThruDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  payThruDate = today+1.month
+}
+payThruDate  = payThruDate .format("dd-MMM-yyy")
+ 
+return payThruDate
+' ) 
+	@name ( 'Select Pay Through Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Pay Through Date' , xPath = 'PayThruDate' , value = ^payThruDate ^ ) 
+	/EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , name = 'ZeroInvAllowedFlag' , expectedVal = 'Y' , id = 'ZeroInvAllowedFlag__xc_0' ) 
+	@name ( 'Select Payee' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Payee' , value = payee , xPath = 'Payee' , scenario = scenario ) 
+	@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@disabled @name ( 'Read Requisition' ) requestMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Request' , xPath = 'was submitted for payment' ) 
+	'Search' {
+		@name ( 'Select Payment Process Request' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Payment Process Request' , value = paymentPRN , xPath = 'SearchCheckrunName' , scenario = scenario ) 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Go' ) 
+		@name ( 'Click Refresh Status button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Status' ) 
+		@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp:0' , field = 'Payment Process Request Status' ) 
+		control.repeat ( count = 20 ) {
+			@name ( 'Click Refresh Status button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Status' ) 
+			sleep 3 
+			@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp:0' , field = 'Payment Process Request Status' ) 
+			if ^isPPRStatus.equals("Invoices Pending Review")^ {
+				break 
+			} 
+		} 
+		@name ( 'Click Start Action icon' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//img[@title='Take Action']" ) 
+		@name ( 'Wait for Payment Process Request Selected Scheduled Payments' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Payment Process Request: Selected Scheduled Payments' ) 
+		@name ( 'Click Submit button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+		@name ( 'Read Confirmation message' ) requestMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Payment Process Request' , xPath = 'was submitted for payment. You can query it to monitor its status' ) 
+		@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp' , field = 'Payment Process Request Status' ) 
+		control.repeat ( count = 20 ) {
+			@name ( 'Click Refresh Status button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Status' ) 
+			sleep 3 
+			@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp' , field = 'Payment Process Request Status' ) 
+			if ^isPPRStatus.equals("Pending Proposed Payment Review")^ {
+				break 
+			} 
+		} 
+		@name ( 'Click Start Action icon' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//img[@title='Take Action']" ) 
+		@name ( 'Wait for Review Proposed Payments' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Review Proposed Payments' ) 
+		isActions = /EBSArea/lib/web/dropdown/read_selected_value.task ( scenario = scenario , session = session , field = 'Actions' , xPath = 'PaymentProcessActionsList' ) 
+		if ^isActions != "Run Payment Process"^ {
+			/EBSArea/lib/web/dropdown/select_dropdown.task ( value = 'Run Payment Process' , scenario = scenario , session = session , field = 'Actions' , xPath = 'PaymentProcessActionsList' ) 
+		} 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Go' ) 
+		@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp' , field = 'Payment Process Request Status' ) 
+		control.repeat ( count = 20 ) {
+			@name ( 'Click Refresh Status button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Refresh Status' ) 
+			sleep 3 
+			@name ( 'Read Payment Process Request Status' ) isPPRStatus = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'ResultsTable:StatusCodeDsp' , field = 'Payment Process Request Status' ) 
+			if ^isPPRStatus.equals("Confirmed")^ {
+				break 
+			} 
+		} 
+		@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'payment_status_confirmed' ) 
+		@name ( 'Click on Payment Process Request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = paymentPRN ) 
+		@name ( 'Read Payment Reference Number' ) paymentRefNo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'PaymentsTable:PaymentRefNo:0' , field = 'Payment Reference Number' ) 
+	} 
+	@disabled 'Monitor Requests' {
+		@disabled @name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'AP_PAY_HOME_TAB' ) 
+		@disabled @name ( 'Click Monitor Requests' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Monitor Requests' ) 
+		@disabled @name ( 'Wait for Requests' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Requests' ) 
+		@disabled @name ( 'Click Output' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'N3:item1212:0' ) 
+	} 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'generate_payment_run_success' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "generate_payment_run_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform generate payment run for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	result = map.new ( ) 
+	map.add ( map = ^=result^ , key = 'PAYPROREQNUM' , value = ^=paymentPRN^ ) 
+	map.add ( map = ^=result^ , key = 'PAYREFNUM' , value = ^=paymentRefNo^ ) 
+	@name ( 'Return result' ) control.evaluate ( expression = 'result' ) 
+	@name ( 'Print Payment Process Request Number' ) console.write ( data = ^="Payment Process Request Number [" + paymentPRN + "] created for test case [" + scenario +"]"^ ) 
+	@name ( 'Print Payment Reference Number' ) console.write ( data = ^="Payment Reference Number [" + paymentRefNo + "] created for test case [" + scenario +"]"^ ) 
+} 

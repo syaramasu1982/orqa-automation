@@ -1,0 +1,399 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = firstName ) 
+@param ( name = title ) 
+@param ( name = gender ) 
+@param ( name = action ) 
+@param ( name = personTypes ) 
+@param ( name = birthDate ) 
+@param ( name = status ) 
+@param ( name = addressLine1 ) 
+@param ( name = addressLine2 ) 
+@param ( name = addressLine3 ) 
+@param ( name = town ) 
+@param ( name = postCode ) 
+@param ( name = type ) 
+@param ( name = navigationOptions ) 
+@param ( name = contractStatus ) 
+@param ( name = contractType ) 
+@param ( name = navigationOptions2 ) 
+@param ( name = payslipRequired ) 
+@param ( name = pensionScheme ) 
+@param ( name = leaveScheme ) 
+@param ( name = harmonisationFlag ) 
+@param ( name = termsAndConditions ) 
+@param ( name = position ) 
+@param ( name = assignmentCategory ) 
+@param ( name = employeeCategory ) 
+@param ( name = supervisorName ) 
+@param ( name = miscellaneousReason ) 
+@param ( name = navigationOptions3 ) 
+@param ( name = contractTypeService ) 
+@param ( name = navigationOptions4 ) 
+@param ( name = navigationOptions5 ) 
+@param ( name = runType ) 
+@param ( name = viewResults ) 
+@param ( name = assignmentActions ) 
+@param ( name = changeAmount ) 
+@param ( name = updateSalary ) 
+@param ( name = salary ) 
+@param ( name = reasonForChange ) 
+@name ( 'New Starter' ) try {
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	@name ( 'Calculate Effective Date' ) effectiveDate = control.evaluate ( expression = 'def effectiveDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheMonth = cal.getTime();
+
+effectiveDate = firstDayOfTheMonth.format("dd-MMM-yyyy").toUpperCase()
+
+return effectiveDate' ) 
+	@name ( 'Enter Effective Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Effective Date' , title = 'Alter Effective Date' , xPath = 'VTextField[1]' , value = effectiveDate ) 
+	@name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click New Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'New' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Lastname generator' ) lastName = control.evaluate ( expression = 'char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+StringBuilder sb = new StringBuilder(20);
+Random random = new Random();
+
+for (int i = 0; i < 10; i++) {
+    char c = chars[random.nextInt(chars.length)];
+    sb.append(c);
+}
+
+String lastName =  "Auto"+sb.toString();
+
+return lastName' ) 
+	@name ( 'Enter Last Name' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Last Name' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[1]' , value = lastName ) 
+	@name ( 'Enter First Name' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'First Name' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[2]' , value = firstName ) 
+	@name ( 'Enter Title' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Last Name' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[3]' , value = title ) 
+	@name ( 'Select Gender' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Gender' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VPopList[1]' , value = gender ) 
+	@name ( 'Select Action' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Action' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VPopList[2]' , value = action ) 
+	@name ( 'Wait For Person Types' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Person Types' ) 
+	@name ( 'Enter  Person Types' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Person Types' , xPath = '%' , value = personTypes ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Calculate NI Number' ) niNumber = control.evaluate ( expression = 'def niNumber = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+niNumber = today
+}
+niNumber = "AB"+niNumber.format("ddhhmm")+"D"
+return niNumber
+' ) 
+	@name ( 'Enter NI Number' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'NI Number' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[10]' , value = niNumber ) 
+	@name ( 'Enter Birth Date' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Birth Date' , title = 'People' , xPath = 'FormsTabPanel//FScrollBox[1]//VTextField[1]' , value = birthDate ) 
+	@name ( 'Enter Status' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Status' , title = 'People' , xPath = 'FormsTabPanel//FScrollBox[1]//VTextField[4]' , value = status ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Address Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Address' ) 
+	@name ( 'Wait For Address' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Address' ) 
+	@name ( 'Click on Address Text Field' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Address' , title = 'Address' , xPath = 'VTextField[2]' ) 
+	@name ( 'Wait For Personal Address Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Personal Address Information' ) 
+	@name ( 'Enter Address Line 1' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Address Line 1' , xPathPosition = '2' , value = addressLine1 ) 
+	@name ( 'Enter Address Line 2' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Address Line 2' , value = addressLine2 , xPathPosition = '3' ) 
+	@name ( 'Enter Address Line 3' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Address Line 3' , value = addressLine3 , xPathPosition = '4' ) 
+	@name ( 'Enter Town' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Town' , value = town , xPathPosition = '5' ) 
+	@name ( 'Enter Post Code' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Post Code' , value = postCode , xPathPosition = '7' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Type' , title = 'Address' , xPath = 'VTextField[4]' , value = type ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Address Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Address' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Read Employee Number' ) identification = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Employee Number' , label = 'Employee Number' ) 
+	@name ( 'Read Identification' ) identification = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Identification' , title = 'People' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[9]' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "employee_identification_"+identification^ ) 
+	@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+	@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+	@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Contracts' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Contracts' ) 
+	@name ( 'Reference Value' ) reference = control.evaluate ( expression = 'def reference = identification+"_Automation"
+
+' ) 
+	@name ( 'Enter Reference' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Reference' , title = 'Contracts' , xPath = 'VTextField[1]' , value = reference ) 
+	@name ( 'Enter Status' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Reference' , title = 'Contracts' , xPath = 'VTextField[2]' , value = contractStatus ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Reference' , title = 'Contracts' , xPath = 'VTextField[3]' , value = contractType ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Contracts Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Contracts' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+	@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+	@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions2 ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Person Type Usage' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Person Type Usage' ) 
+	@name ( 'Click on Effective Dates [] text field' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Person Type Usage' , title = 'Person Type Usage' , xPath = 'VTextField[1]' ) 
+	@name ( "Wait For Add'l Person Type Usage Det's" ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Add' ) 
+	@name ( 'Enter Payslip Required' ) /EBSArea/lib/java/text/set_flex_text_enter.task ( scenario = scenario , session = session , field = 'Payslip Required' , xPathPosition = '5' , value = payslipRequired ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Check choose an option exists' ) chooseAnOptionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Choose an option:' , title = 'Choose an option:' ) 
+	if chooseAnOptionExist {
+		@name ( 'Click Correction Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Correction' ) 
+	} 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Person Type Usage Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Person Type Usage' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click Assignment Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Assignment' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Clear organization text' ) /EBSArea/lib/java/text/clear_text.task ( scenario = scenario , session = session , field = 'Organization' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[1]' ) 
+	@name ( 'Click on Group text field' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Organization' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[1]' ) 
+	@name ( 'Check choose an option exists' ) chooseAnOptionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Choose an option:' , title = 'Choose an option:' ) 
+	if chooseAnOptionExist {
+		@name ( 'Click Correction Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Correction' ) 
+	} 
+	@name ( 'Wait For RCUK Pay PeopleGroup Flexfield' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'RCUK Pay PeopleGroup Flexfield' ) 
+	@name ( 'Enter Pension Scheme' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Pension Scheme' , value = pensionScheme , xPathPosition = '2' ) 
+	@name ( 'Calculate Effective Date' ) enrolmentDate = control.evaluate ( expression = 'def enrolmentDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheMonth = cal.getTime();
+
+enrolmentDate = firstDayOfTheMonth .format("dd/MM/yyyy")
+
+return enrolmentDate' ) 
+	@name ( 'Enter Enrolment Date' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Enrolment Date' , value = enrolmentDate , xPathPosition = '3' ) 
+	'Enter Leave Scheme' {
+		@name ( 'Click on Leave Scheme iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Leave Scheme' , xPathPosition = '5' ) 
+		@name ( 'Wait For Leave Scheme Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Leave Scheme' ) 
+		@name ( 'Enter  Leave Scheme' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Leave Scheme' , xPath = '%' , value = leaveScheme ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Calculate Leave Year Start Date' ) leaveYearStartDate = control.evaluate ( expression = 'def leaveYearStartDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_YEAR,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheYear = cal.getTime();
+
+leaveYearStartDate = firstDayOfTheYear .format("dd/MM/yyy")
+
+return leaveYearStartDate' ) 
+	@name ( 'Enter Leave Year Start Date' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Leave Year Start Date' , value = leaveYearStartDate , xPathPosition = '6' ) 
+	@name ( 'Enter Harmonisation Flag' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Harmonisation Flag' , value = harmonisationFlag , xPathPosition = '7' ) 
+	@name ( 'Enter Terms and Conditions' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Terms and Conditions' , value = termsAndConditions , xPathPosition = '9' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'pay_people_group_flexfiled' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Position' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Position' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[4]' , value = position ) 
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Click on Location text field' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Location' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[5]' ) 
+	@name ( 'Check note exists' ) noteExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Note' , title = 'Note' ) 
+	if noteExist {
+		@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Wait For Caution' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Check caution exists' ) cautionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Caution' , title = 'Caution' ) 
+	if cautionExist {
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Enter Assignment Category' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Assignment Category' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[11]' , value = assignmentCategory ) 
+	@name ( 'Check choose an option exists' ) chooseAnOptionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Choose an option:' , title = 'Choose an option:' ) 
+	if chooseAnOptionExist {
+		@name ( 'Click Correction Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Correction' ) 
+	} 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	@name ( 'Enter Employee Category' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Employee Category' , title = 'Assignment' , xPath = 'FormsTabPanel/following-sibling::FScrollBox[1]//VTextField[12]' , value = employeeCategory ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click on Supervisor tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Supervisor' ) 
+	@name ( 'Check choose an option exists' ) chooseAnOptionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Choose an option:' , title = 'Choose an option:' ) 
+	if chooseAnOptionExist {
+		@name ( 'Click Correction Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Correction' ) 
+	} 
+	@name ( 'Enter Employee Category' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Name' , title = 'Assignment' , xPath = 'TabPanelSheet//VTextField[1]' , value = supervisorName ) 
+	@name ( 'Click on Standard Conditions tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Standard Conditions' ) 
+	@name ( 'Check choose an option exists' ) chooseAnOptionExist = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Choose an option:' , title = 'Choose an option:' ) 
+	if chooseAnOptionExist {
+		@name ( 'Click Correction Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Correction' ) 
+	} 
+	@name ( 'Click on Scroller' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Scroller' , xPath = 'TabBar/Scroller' ) 
+	@name ( 'Click on Miscellaneous' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Miscellaneous' , xPath = "LWMenuItem[text()='Miscellaneous']" ) 
+	@name ( 'Enter Miscellaneous Reason' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Reason' , title = 'Assignment' , xPath = 'TabPanelSheet//VTextField[2]' , value = miscellaneousReason ) 
+	@name ( 'Click on Scroller' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Scroller' , xPath = 'TabBar/Scroller' ) 
+	@name ( 'Click on Employment Terms' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , field = 'Employment Terms' , xPath = "LWMenuItem[text()='Employment Terms']" ) 
+	@name ( 'Enter Contract' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Contract' , title = 'Assignment' , xPath = 'TabPanelSheet//VTextField[1]' , value = identification ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+	@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+	@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions3 ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Extra Details Of Service' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Extra Details of Service' ) 
+	@name ( 'Enter Contract Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Contract Type' , title = 'Extra Details of Service' , xPath = 'TabPanelSheet//VTextField[1]' , value = contractTypeService ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Extra Details of Service Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Extra Details of Service' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+	@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+	@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions4 ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Assignment Budget Values' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Budget Values' ) 
+	@name ( 'Read Assignment Budget Value' ) budgetValue = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Value' , title = 'Assignment Budget' , xPath = 'VTextField[26]' ) 
+	@name ( 'ClickAssignment Budget Values Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment Budget Values' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Click Salary Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Salary' ) 
+	@disabled 'Add Salary Information' {
+		@disabled @name ( 'Navigate Salary' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = 'RCUK HR Operational' , itemId = 'FastpathAbsenceAccrualsAddressAdjust' , itemName = 'Salary' , subMenu = 'Fastpath' ) 
+		@disabled @name ( 'Enter Employee Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Employee Number' , value = employeeNumber , xPath = 'SearchEmployeeNumber' ) 
+		@disabled @name ( 'Click Go' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'GoButton' ) 
+		@disabled @name ( 'Select Radio Button' ) /EBSArea/lib/web/radiobutton/click_input_radio_button.task ( scenario = scenario , session = session , field = 'Select Radio button' , id = 'EmployeeResultsRN' , xPath = 'N3:N20:0' ) 
+		@disabled @name ( 'Click Manage Salary' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'CreateAllocation' ) 
+		@disabled @name ( 'Click Add New Salary' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddNewSalary_uixr' ) 
+		@disabled @name ( 'Calculate From Date' ) startDate = control.evaluate ( expression = 'def startDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheMonth = cal.getTime();
+
+startDate = firstDayOfTheMonth .format("dd-MMM-yyy").toUpperCase()
+
+return startDate' ) 
+		@disabled @name ( 'Enter From Date' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'From' , id = 'RowLayoutRN' , xPath = 'From' , value = startDate ) 
+		@disabled @name ( 'Enter New Salary' ) /EBSArea/lib/web/text/set_table_text_tab.task ( scenario = scenario , session = session , field = 'From' , id = 'RowLayoutRN' , xPath = 'ProposedSalary' , value = salary ) 
+		@disabled @name ( 'Select Reason for Change' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Reason for Change' , xPath = 'Reason' , value = reasonForChange ) 
+		@disabled @name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'GoButton' ) 
+		@disabled @name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'salary_created_successfully' ) 
+	} 
+	'Add Entries' {
+		@name ( 'Click Entries Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entries' ) 
+		@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'element_entries' ) 
+		@name ( 'Click Entry Values Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entry Values' ) 
+		@name ( 'Wait For Entry Values' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Entry Values' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'entry_values' ) 
+		@name ( 'Click Entry Values Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Entry Values' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+		@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+		@name ( 'Click Element Entries Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Element Entries' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+		@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+	} 
+	'Quick Pay Month 1 Payroll' {
+		'Navigate to QuickPay' {
+			@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+			@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+			@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions5 ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+		@name ( 'Calculate month end date' ) monthEndDate = control.evaluate ( expression = 'def monthEndDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+Date lastDayOfTheMonth = cal.getTime();
+
+monthEndDate = lastDayOfTheMonth .format("dd-MMM-yyy").toUpperCase()
+
+return monthEndDate' ) 
+		@name ( 'Read date paid' ) datePaid = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = 'VTextField[2]' ) 
+		assert.true ( expression = 'monthEndDate == datePaid' ) 
+		@name ( 'Enter Run Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'RunType' , title = 'QuickPay' , xPath = 'VTextField[6]' , value = runType ) 
+		@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Click Start Run' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Run' ) 
+		@name ( 'Read status' ) status = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = "VTextField[text()='Complete']" ) 
+		assert.true ( expression = 'status == "Complete"' ) 
+		@name ( 'Click Start Pre-payments Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Pre-payments' ) 
+		@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+		@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+		@name ( 'Read pre-payment status' ) quickPayStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = "VTextField[text()='Complete'][2]" ) 
+		assert.true ( expression = 'quickPayStatus == "Complete"' ) 
+		'View Results' {
+			@name ( 'Click View Results Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'View Results...' ) 
+			@name ( 'Wait For View Results' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Results' ) 
+			@name ( 'Enter View Results' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'View Results' , xPath = '%' , value = viewResults ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			'Assignment Actions' {
+				@name ( 'Wait For Assignment Actions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Actions' ) 
+				@name ( 'Enter Assignment Actions' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Assignment Actions' , xPath = '%' , value = assignmentActions ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			@name ( 'Wait For Pay Advice Report' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Pay Advice Report' ) 
+			@name ( 'Click Pay Advice Report Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Pay Advice Report' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+			@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+			@name ( 'Click QuickPay Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'QuickPay' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+			@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+			@name ( 'Click Assignment Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+		} 
+	} 
+	'Month2 HR' {
+		@name ( 'Click on Alter Effective Date from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Alter Effective Date' ) 
+		@name ( 'Wait For Alter Effective Date' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Alter Effective Date' ) 
+		@name ( 'Calculate First Day Of The Next Month' ) firstDayOfTheNextMonth = control.evaluate ( expression = 'def firstDayOfTheNextMonth= null
+
+def cal = Calendar.getInstance();
+
+cal.add(Calendar.MONTH, 1);
+
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+
+firstDayOfTheNextMonth = cal.getTime().format("dd-MMM-yyyy").toUpperCase()
+
+return firstDayOfTheNextMonth' ) 
+		@name ( 'Enter Effective Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Effective Date' , title = 'Alter Effective Date' , xPath = 'VTextField[1]' , value = firstDayOfTheNextMonth ) 
+		@name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+		@name ( 'Click Assignment Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Assignment' ) 
+		@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+		'Quick Pay Month 2 Payroll' {
+			'Navigate to QuickPay' {
+				@name ( 'Click Others Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Others...' ) 
+				@name ( 'Wait For Navigation Options' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Navigation Options' ) 
+				@name ( 'Enter  Navigation Options' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Navigation Options' , xPath = '%' , value = navigationOptions5 ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+			@name ( 'Click on New from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'New' ) 
+			@name ( 'Read date paid' ) datePaid = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = 'VTextField[1]' ) 
+			assert.true ( expression = 'datePaid == firstDayOfTheNextMonth' ) 
+			@name ( 'Enter Run Type' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'RunType' , title = 'QuickPay' , xPath = 'VTextField[6]' , value = runType ) 
+			@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+			@name ( 'Click Start Run' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Run' ) 
+			@name ( 'Read status' ) status = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = "VTextField[text()='Complete']" ) 
+			assert.true ( expression = 'status == "Complete"' ) 
+			@name ( 'Click Start Pre-payments Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Start Pre-payments' ) 
+			@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+			@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+			@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+			@name ( 'Read pre-payment status' ) quickPayStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Date Paid' , title = 'QuickPay' , xPath = "VTextField[text()='Complete'][2]" ) 
+			assert.true ( expression = 'quickPayStatus == "Complete"' ) 
+			'View Results' {
+				@name ( 'Click View Results Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'View Results...' ) 
+				@name ( 'Wait For View Results' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'View Results' ) 
+				@name ( 'Enter View Results' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'View Results' , xPath = '%' , value = viewResults ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+				'Assignment Actions' {
+					@name ( 'Wait For Assignment Actions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment Actions' ) 
+					@name ( 'Enter Assignment Actions' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Assignment Actions' , xPath = '%' , value = assignmentActions ) 
+					@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+				} 
+				@name ( 'Wait For Pay Advice Report' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Pay Advice Report' ) 
+				@name ( 'Click Pay Advice Report Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Pay Advice Report' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+				@name ( 'Wait For QuickPay' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'QuickPay' ) 
+				@name ( 'Click QuickPay Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'QuickPay' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+				@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+				@name ( 'Click Assignment Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Assignment' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+			} 
+		} 
+		'Add salary - web' {
+			@name ( 'Click Correct' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Correct' ) 
+			@name ( 'Update Change Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Change Amount' , xPath = 'SalaryCorrectTableRN:ChgValue:0' , value = changeAmount ) 
+			@name ( 'Update Salary' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Salary' , value = updateSalary , fullXPath = 'td//input[@id="SalaryCorrectTableRN:ProposedSalary1:0"]' ) 
+			@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply_uixr' ) 
+		} 
+		'' {
+			@name ( 'Read Employee Nymber' ) employeeNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Employee Number' , label = 'Employee Number' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Invoice to Map' ) map.add ( map = result , key = 'INVOICENUMBER' , value = ^=invocieNumber^ ) 
+	@name ( 'Return invoice number' ) result = control.evaluate ( expression = 'return result' ) 
+} 
+@disabled @name ( 'Return Number' ) invocieNumber = control.evaluate ( expression = 'return invocieNumber' ) 

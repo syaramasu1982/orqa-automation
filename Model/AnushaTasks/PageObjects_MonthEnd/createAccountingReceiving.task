@@ -1,0 +1,62 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = ledger ) 
+@param ( name = mode ) 
+@param ( name = errorsOnly ) 
+@param ( name = report ) 
+@param ( name = transferToGL ) 
+@param ( name = postInGL ) 
+@param ( name = userTransactionIdentifier ) 
+@param ( name = launchApp ) 
+@name ( 'Create Accounting' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	'Enter Ledger' {
+		@name ( 'Click on Ledger iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Ledger' , xPathPosition = '1' ) 
+		@name ( 'Wait For Ledger Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Ledger' ) 
+		@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Find' , xPath = '%' , value = ledger ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Get Last day of the month' ) lastDayOfTheMonth = control.evaluate ( expression = 'def lastDayOfTheMonth = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
+cal.set(Calendar.DAY_OF_MONTH,
+cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+lastDayOfTheMonth = cal.getTime();
+}
+lastDayOfTheMonth = lastDayOfTheMonth.format("dd-MMM-yyy").toUpperCase()
+
+return lastDayOfTheMonth' ) 
+	@name ( 'Enter End Date' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'End Date' , xPathPosition = '2' , value = lastDayOfTheMonth ) 
+	@name ( 'Enter Mode' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Mode' , value = mode , xPathPosition = '3' ) 
+	@name ( 'Enter Errors Only' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Errors Only' , value = errorsOnly , xPathPosition = '4' ) 
+	'Enter Report' {
+		@name ( 'Click on Report iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Report' , xPathPosition = '5' ) 
+		@name ( 'Wait For Report Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Report' ) 
+		@name ( 'Enter Report' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Find' , xPath = '%' , value = report ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter Transfer to General Ledger' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Transfer to General Ledger' , value = transferToGL , xPathPosition = '6' ) 
+	@name ( 'Enter Post in General Ledger' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Post in General Ledger' , value = postInGL , xPathPosition = '7' ) 
+	@name ( 'Enter Include User Transaction Identifiers' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Include User Transaction Identifiers' , value = userTransactionIdentifier , xPathPosition = '9' ) 
+	@name ( 'Capture Screen Parameters' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'create_accounting_parameters' ) 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"create_accounting_parameters_report_"+ledger+"_"+timeStamp^ ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Read Request ID' ) readRequestID = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Phase' , row = '1' , column = '2' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

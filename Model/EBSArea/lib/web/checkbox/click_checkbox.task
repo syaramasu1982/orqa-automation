@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requisition ) 
+web.switch ( session = session ) 
+@name ( 'Click checkbox [${requisition}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//a[contains(text(),'" + requisition + "')]/ancestor::tr/td/input[contains(@title,'Select')]"^ , timeout = 5 ) 
+		sleep 0.25 
+		web.click ( target = ^"//a[contains(text(),'" + requisition + "')]/ancestor::tr/td/input[contains(@title,'Select')]"^ ) 
+		sleep 0.25 
+		@disabled web.wait ( target = ^"//a[contains(text(),'" + requisition + "')]/ancestor::tr/td/input[@title='Select'][@checked]"^ , timeout = 2 ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_checkbox_"+ requisition +"_fail"^ ) 
+	error ^"Failed to select checkbox [" + requisition + "] on session [" + session + "]"^ 
+} 

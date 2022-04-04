@@ -1,0 +1,57 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet , default = 'TestCases' , type = automatic ) 
+@param ( name = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve scenario' ) scenario = control.evaluate ( expression = 'return "VAT_TC02"' ) 
+@name ( 'Resolve Oracle Forms session' ) session = control.evaluate ( expression = 'return "EBS_FIN_OF"' ) 
+@testcase 'Executing Test Pack [${workbook}]]' {
+	@testcase 'Process sheet [${sheet}] on workbook [${workbook}]' {
+		@name ( 'Execute test cases' ) try {
+			workbookInfo = file.info ( sourcePath = workbook ) 
+			@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+			file.copy ( sourcePath = workbook , targetPath = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ ) 
+			cases = /EBSArea/lib/common/get_test_cases.task ( environment = environment , workbook = workbook , sheet = sheet , testCase = testCase ) 
+			if ^environment.contains("BOE")^ {
+				/AnushaTasks/PageObjects_OpenPeriods/loginSSO.task ( environment = environment , scenario = scenario , session = ^env['session.web']^ , user = ^env['local.username']^ , password = ^env['local.password']^ ) 
+			} 
+			else {
+				@name ( 'Login as Local User' ) /EBSArea/Finance/PageObjects/Common/login_old.task ( password = ^env['local.password']^ , scenario = scenario , environment = environment , user = ^env['local.username']^ , session = ^env['session.web']^ ) 
+			} 
+			@name ( 'Process test cases' ) for caseRef in cases {
+				@name ( 'Resolve ID' ) orqaRef = control.evaluate ( expression = "return caseRef['ID']" ) 
+				@name ( 'Resolve test case' ) testCaseRef = control.evaluate ( expression = "return caseRef['TEST CASE NAME']" ) 
+				@testcase 'Execute test case [${orqaRef}] with reference of [${testCaseRef}] from sheet [${sheet}]' {
+					@name ( 'Navigate RequestsRun' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = ^caseRef['MAINMENU']^ , subMenu = 'Requests' , itemId = 'Requests' , itemName = 'Run' ) 
+					@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+					/AnushaTasks/vatReconciliationReport.task ( session = session , scenario = scenario , environment = environment , name = ^caseRef['NAME']^ , operatingUnit = ^caseRef['OPERATINGUNIT']^ , screenshot = ^"VAT_Report_"+caseRef['OPERATINGUNIT']^ ) 
+				} 
+				'Write results summary' {
+					@name ( 'Define results column' ) resultTable = control.evaluate ( expression = 'def resultTable
+
+return resultTable' ) 
+					@name ( 'Create table' ) summaryTable = /EBSArea/lib/excel/create_table.task ( columns = resultTable ) 
+					@name ( 'Handle prepare summary' ) /EBSArea/lib/excel/handle_prepare_summary.task ( summaryTable = summaryTable ) 
+					@name ( 'Write results to spread sheet' ) /EBSArea/lib/excel/writeSummary.task ( workbookSummary = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ , summaryTable = summaryTable , resultsSheet = 'TestCases' ) 
+				} 
+			} 
+		} 
+		@name ( 'Handle failures' ) catch {
+			@name ( 'Resolve task name' ) taskName = control.evaluate ( expression = "return workbookInfo.Name.substring(0, workbookInfo.Name.indexOf('.')  )" ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/captureScreen.task ( scenario #= '=scenario' , session #= "=env['session.web']" , name #= '=taskName+"_fail"' ) 
+			@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^taskName+"_OF_fail"^ ) 
+		} 
+		'Close all active sessions' {
+			webSessions = web.getsessions ( ) 
+			javaSessions = java.getsessions ( ) 
+			@name ( 'Is web session exist' ) if ^webSessions.contains(env['session.web'])^ {
+				@name ( 'Close Web Session' ) /EBSArea/lib/web/basic/close_web_session.task ( session = ^env['session.web']^ ) 
+			} 
+			@name ( 'Is java session exist' ) if ^javaSessions.contains(session)^ {
+				@name ( 'Close Java Session' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+			} 
+		} 
+		control.evaluate ( expression = 'workbook' ) 
+	} 
+} 

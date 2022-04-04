@@ -1,0 +1,28 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = attribute ) 
+@param ( name = name ) 
+@param ( name = alternateName ) 
+web.switch ( session = session ) 
+@name ( 'Default name' ) label = control.evaluate ( expression = 'return name' ) 
+@name ( 'Check label exist' ) try {
+	web.wait ( target = ^'//*['+attribute+' = "' + name + '"] | //*['+attribute+' = "' + alternateName + '"]'^ , timeout = 5 ) 
+	@name ( 'Check which label present on screen' ) if ^alternateName != null && String.valueOf(alternateName).trim().length() > 0^ {
+		isNameExist = web.exists ( target = ^'//*['+attribute+' = "' + name + '"]'^ ) 
+		@name ( 'Check [Alternate Name]' ) if ^!isNameExist^ {
+			isAlternateNameExist = web.exists ( target = ^'//*['+attribute+' = "' + alternateName + '"]'^ ) 
+			@name ( 'Update Label' ) if isAlternateNameExist {
+				@name ( 'Update name' ) label = control.evaluate ( expression = 'return alternateName' ) 
+			} 
+			@name ( 'Report error' ) if ^!isAlternateNameExist^ {
+				error ^"Label with name [" + name + "] or alternate name [" + alternateName + "] not found on screen"^ 
+			} 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "check label"+ name +"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 
+@name ( 'Return label' ) control.evaluate ( expression = 'label' ) 

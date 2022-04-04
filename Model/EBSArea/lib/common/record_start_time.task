@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@name ( 'Resolve current time' ) startTime = control.evaluate ( expression = 'import java.text.SimpleDateFormat
+
+long startTime = System.currentTimeMillis()
+
+return startTime' ) 
+@name ( 'Format current time' ) formattedValue = control.evaluate ( expression = 'import java.text.SimpleDateFormat
+
+Date date = new Date(startTime)
+
+SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss")
+
+sdf.setTimeZone(TimeZone.getTimeZone("Europe/London"))
+
+return sdf.format(date)' ) 
+console.write ( data = ^="Test case [" + scenario + "] started at [" + formattedValue + "]"^ ) 
+control.evaluate ( expression = 'startTime' ) 

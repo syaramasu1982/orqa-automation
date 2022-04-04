@@ -1,0 +1,115 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle HR' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle HR Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Month1 HR]' ) if ^testCaseName.equals("MONTH1HR")^ {
+					birthDate = control.evaluate ( expression = "caseRef['BIRTH DATE']" ) 
+					if ^birthDate.equals("") || birthDate == null || birthDate == ""^ {
+						@name ( 'Calculate Birth Date' ) birthDate = control.evaluate ( expression = 'def birthDate = null
+
+def cal = Calendar.getInstance()
+cal.add(Calendar.YEAR, -30)
+
+birthDate = cal.format("dd-MMM-yyyy").toUpperCase()
+
+return birthDate' ) 
+					} 
+					@name ( 'Month One HR  [${sheet}]: ID=${caseRef.ID}' ) resultDetails = /EBSArea/HR/PageObjects/Month1HR/forms/monthOneHR.task ( scenario = scenario , session = session , firstName = ^caseRef['FIRST NAME']^ , title = ^caseRef['TITLE']^ , gender = ^caseRef['GENDER']^ , action = ^caseRef['ACTION']^ , personTypes = ^caseRef['PERSON TYPES']^ , birthDate = birthDate , status = ^caseRef['STATUS']^ , addressLine1 = ^caseRef['ADDRESS LINE1']^ , addressLine2 = ^caseRef['ADDRESS LINE2']^ , addressLine3 = ^caseRef['ADDRESS LINE3']^ , town = ^caseRef['TOWN']^ , postCode = ^caseRef['POST CODE']^ , type = ^caseRef['TYPE']^ , navigationOptions = ^caseRef['NAVIGATION OPTIONS']^ , contractStatus = ^caseRef['CONTRACT STATUS']^ , contractType = ^caseRef['CONTRACT TYPE']^ , navigationOptions2 = ^caseRef['NAVIGATION OPTIONS2']^ , payslipRequired = ^caseRef['PAYSLIP REQUIRED']^ , pensionScheme = ^caseRef['PENSION SCHEME']^ , leaveScheme = ^caseRef['LEAVE SCHEME']^ , harmonisationFlag = ^caseRef['HARMONISATION FLAG']^ , termsAndConditions = ^caseRef['TERMS AND CONDITIONS']^ , position = ^caseRef['POSITION']^ , assignmentCategory = ^caseRef['ASSIGNMENT CATEGORY']^ , employeeCategory = ^caseRef['EMPLOYEE CATEGORY']^ , supervisorName = ^caseRef['SUPERVISOR NAME']^ , miscellaneousReason = ^caseRef['MISCELLANEOUS REASON']^ , navigationOptions3 = ^caseRef['NAVIGATION OPTION3']^ , contractTypeService = ^caseRef['CONTRACT TYPE SERVICE']^ , navigationOptions4 = ^caseRef['NAVIGATION OPTIONS4']^ ) 
+					result = control.evaluate ( expression = 'result = resultDetails' ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID',"Title","First Name","Last Name",'Employee Number','NI Number','Enrolment Date'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.TITLE,result.FIRSTNAME,result.LASTNAME,result.EMPLOYEENUMBER,result.NINUMBER,result.ENROLMENTDATE];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Add Salary]' ) if ^testCaseName.equals("ADDSALARY")^ {
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Employee Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Add New Salary Details [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/web/addNewSalaryDetails.task ( scenario = scenario , session = session , employeeNumber = employeeNumber , salary = ^caseRef['SALARY']^ , reasonForChange = ^caseRef['REASON FOR CHANGE']^ ) 
+				} 
+				@name ( 'Handle [Add Entries]' ) if ^testCaseName.equals("ADDENTRIES")^ {
+					@name ( 'Add Entries [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/addEntries.task ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [Month1 Payroll]' ) if ^testCaseName.equals("MONTH1PAYROLL")^ {
+					@name ( 'Month One Payroll [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/monthOnePayroll.task ( scenario = scenario , session = session , navigationOptions5 = ^caseRef['NAVIGATION OPTIONS']^ , runType = ^caseRef['RUN TYPE']^ , viewResults = ^caseRef['VIEW RESULTS']^ , assignmentActions = ^caseRef['ASSIGNMENT ACTIONS']^ ) 
+				} 
+				@name ( 'Handle [Month2 HR]' ) if ^testCaseName.equals("MONTH2HR")^ {
+					@name ( 'Month Two HR [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/monthTwoHR.task ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [Month2 Payroll]' ) if ^testCaseName.equals("MONTH2PAYROLL")^ {
+					@name ( 'Month Two Payroll [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/monthTwoPayroll.task ( scenario = scenario , session = session , runType = ^caseRef['RUN TYPE']^ , viewResults = ^caseRef['VIEW RESULTS']^ , assignmentActions = ^caseRef['ASSIGNMENT ACTIONS']^ , navigationOptions = ^caseRef['NAVIGATION OPTIONS']^ ) 
+				} 
+				@name ( 'Handle [Month3 HR]' ) if ^testCaseName.equals("MONTH3HR")^ {
+					@name ( 'MonthThreeHR [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/monthThreeHR.task ( scenario = scenario , session = session ) 
+				} 
+				@name ( 'Handle [Update Salary]' ) if ^testCaseName.equals("UPDATESALARY")^ {
+					@name ( 'Update Salary [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/web/updateSalary.task ( scenario = scenario , session = session , changeAmount = ^caseRef['CHANGE AMOUNT']^ , updateSalary = ^caseRef['UPDATE SALARY']^ ) 
+				} 
+				@name ( 'Handle [Run Quick Retro]' ) if ^testCaseName.equals("RUNQUICKRETRO")^ {
+					@name ( 'Read Employee Name' ) lastName = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Last Name' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Read Employee Start Date' ) startDate = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Enrolment Date' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Run Quick Retro [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/runQuickRetro.task ( scenario = scenario , session = session , payroll = ^caseRef['PAYROLL']^ , incExc = ^caseRef['INC/EXC']^ , name = ^caseRef['NAME']^ , elementSet = ^caseRef['ELEMENT SET']^ , startDate = startDate , fullName = lastName ) 
+				} 
+				@name ( 'Handle [Find Employee]' ) if ^testCaseName.equals("FINDEMPLOYEE")^ {
+					@name ( 'Read Employee Number' ) employeeNumber = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Employee Number' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Find Employee [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/findEmployee.task ( scenario = scenario , session = session , decision = ^caseRef['DECISION']^ , number = employeeNumber ) 
+				} 
+				@name ( 'Handle [Run Quick Pay Including Prepayments]' ) if ^testCaseName.equals("RUNQUICKPAYANDPREPAYMENTS")^ {
+					@name ( 'Run Quick Pay Including Prepayments [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/runQuickPayAndPrepayments.task ( scenario = scenario , session = session , navigationOptions = ^caseRef['NAVIGATION OPTIONS']^ , runType = ^caseRef['RUN TYPE']^ , viewResults = ^caseRef['VIEW RESULTS']^ , assignmentActions = ^caseRef['ASSIGNMENT ACTIONS']^ ) 
+				} 
+				@name ( 'Handle [Create Sickness Absence]' ) if ^testCaseName.equals("CREATESICKNESSABSENCE")^ {
+					@name ( 'Create Sickness Absence [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/createSicknessAbsence.task ( scenario = scenario , session = session , type = ^caseRef['TYPE']^ , reason = ^caseRef['REASON']^ ) 
+				} 
+				@name ( 'Handle [Create RRA]' ) if ^testCaseName.equals("CREATERRA")^ {
+					@name ( 'Create RRA [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/createRRA.task ( scenario = scenario , session = session , elementName = ^caseRef['ELEMENT NAME']^ , annualAmount = ^caseRef['ANNUAL AMOUNT']^ ) 
+				} 
+				@name ( 'Handle [Terminate Employment]' ) if ^testCaseName.equals("TERMINATEEMPLOYMENT")^ {
+					@name ( 'Terminate Employment  [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/HR/PageObjects/Month1HR/forms/terminateEmployment.task ( scenario = scenario , session = session , navigationOptions = ^caseRef['NAVIGATION OPTIONS']^ , leavingReason = ^caseRef['LEAVING REASON']^ , elementName = ^caseRef['ELEMENT NAME']^ , days = ^caseRef['DAYS']^ , elementNameStarts = ^caseRef['ELEMENT NAME STARTS']^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

@@ -1,0 +1,34 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = reqNumber ) 
+@param ( name = quantity ) 
+@param ( name = reason ) 
+@param ( name = noteToApprover ) 
+web.switch ( session = session ) 
+@name ( 'Define requisition number' ) reqNumber = control.evaluate ( expression = 'reqNumber
+//def reqNo = requestID' ) 
+@name ( 'Requester Amends Existing PO' ) try {
+	@name ( 'Wait for My Requisitions' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'My Requisitions' ) 
+	@name ( 'Click On Full List of My Requisitions' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'FullListReqsButton' , scenario = scenario ) 
+	@name ( 'Wait for Requisitions' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Requisitions' ) 
+	@name ( 'Click On Search button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Search' , scenario = scenario ) 
+	@name ( 'Enter Requisition Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Requisition Number' , xPath = 'ReqNumberInput' , value = reqNumber ) 
+	/EBSArea/lib/web/button/click_multi_button.task ( scenario = scenario , session = session , name = 'Clear' , buttonName = 'Go' ) 
+	@name ( 'Click on Request' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = reqNumber ) 
+	@name ( 'Click On Change button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Change' , scenario = scenario ) 
+	@name ( 'Enter Quantity' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Quantity' , xPath = 'UpdatableQuantity' , value = quantity ) 
+	@name ( 'Enter Reason' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Reason' , xPath = 'Reason' , value = reason , parentId = 'PageLayoutRN' ) 
+	@name ( 'Click On Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Enter Note to Approver' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Note to Approver' , xPath = 'JustificationText' , value = noteToApprover ) 
+	@name ( 'Click On Next button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click On Submit button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Submit' , scenario = scenario ) 
+	@name ( 'Read Requisition' ) requestMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Your change request(s) for Requisition' ) 
+	@name ( 'Assert Confirmation Message' ) assert.true ( expression = 'requestMessage == "Your change request(s) for Requisition $reqNumber have been submitted for processing. View status of the change request(s) from the Requisition Status page."' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'requester_ammends_existing_po_success' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "approve_request_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform requester amends po for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+@name ( 'Return requisition number' ) reqNumber = control.evaluate ( expression = 'reqNumber' ) 

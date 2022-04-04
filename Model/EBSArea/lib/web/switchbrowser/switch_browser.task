@@ -1,0 +1,13 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+web.switch ( session = session ) 
+@name ( 'Switch browser' ) try {
+	web.attach ( name = ^""+ title +""^ , timeout = 5 ) 
+	@disabled web.maximize ( ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "switch_browser_"+ title +"_fail"^ ) 
+	error ^"Failed to switch browser [" + title + "] on session [" + session + "]"^ 
+} 

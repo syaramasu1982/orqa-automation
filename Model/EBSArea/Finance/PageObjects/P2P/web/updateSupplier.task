@@ -1,0 +1,26 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = supplierName ) 
+@param ( name = operatingUnit ) 
+@param ( name = deliveryMethod ) 
+@param ( name = email ) 
+web.switch ( session = session ) 
+@name ( 'Update Supplier' ) try {
+	@name ( 'Enter the Supplier Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = supplierName , field = 'Supplier Name' , xPath = 'SearchSuppName' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@name ( 'Click on Update' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Update' ) 
+	@name ( 'Enter the Operating Unit' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = operatingUnit , field = 'Operating Unit' , xPath = 'posOUName' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@name ( 'Click on Payment Details' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Payment Details' ) 
+	@name ( 'Click on Separate Remittance Advice Delivery' ) /EBSArea/lib/web/launchform/click_launch_form.task ( scenario = scenario , session = session , id = 'subTabBar' , name = 'Separate Remittance Advice Delivery' ) 
+	@name ( 'Click Update under Update Payment Details' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'viewDetails' ) 
+	@name ( 'Select Delivery Method' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Delivery Method' , xPath = 'DlvryMthds' , value = deliveryMethod ) 
+	@name ( 'Enter Email' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = email , field = 'E-mail' , xPath = 'email' ) 
+	@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+	@name ( 'Read Confirmation Message' ) paymentConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'The payment methods and payment attributes have been saved' ) 
+	assert.true ( expression = 'paymentConfMessage=="The payment methods and payment attributes have been saved."' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = ^env['session.web']^ , name = ^ "login_"+scenario+"_fail"^ ) 
+} 

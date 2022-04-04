@@ -1,0 +1,10 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = workbookSummary ) 
+'Write summary' {
+	style.font ( cellRange = 'A1:E1' , bold = true , table = ^=summaryTable^ ) 
+	style.background ( color = 'YELLOW' , cellRange = 'A1:E1' ) 
+	style.columnwidth ( columnRange = 'A1:E1' , columnWidth = 15 ) 
+	style.borders ( cellRange = ^"A1:E" + summaryTable.size()^ , arrangement = 'GRID' ) 
+	excel.write ( filePath = workbookSummary , sheetName = 'Results_Summary' ) 
+} 

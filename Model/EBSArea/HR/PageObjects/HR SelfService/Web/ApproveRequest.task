@@ -1,0 +1,38 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = user ) 
+@param ( name = empName ) 
+@param ( name = empID ) 
+@param ( name = today ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=user' , password #= '="Welcome123"' ) 
+web.switch ( session = session ) 
+@name ( 'Appeove Employee Annual Leave Request' ) try {
+	@disabled @name ( 'Navigate to Approve Home Page' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Manager"' , itemId #= '="RCUK Self-Service ManagerAll Actions Awaiting Your AttentionMy Employee Information"' , itemName #= '="Attendance Management"' ) 
+	action = control.evaluate ( expression = 'def action = "//*[text()=''"+empID+"'']//parent::td//following-sibling::td/a"
+
+return action' ) 
+	@name ( 'ClickAction' ) /EBSArea/lib/web/click/click.task ( xPath = action , scenario = scenario , session = session ) 
+	@name ( 'Click Entitlement Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Entitlement Balances' ) 
+	@name ( 'Click Show Accural Balances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show Accrual Balances' ) 
+	@name ( 'Read Remaining Annual Leaves' ) readRemainingAnnualLeaves = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Annual leave remaining' , xPath = "//*[contains(text(),'Annual leave remaining')]//ancestor::tr[2]/td[3]//span" ) 
+	remainingAnnualLeaves = control.evaluate ( expression = 'def remainingAnnualLeaves = readRemainingAnnualLeaves as int
+
+return remainingAnnualLeaves' ) 
+	if ^remainingAnnualLeaves > 1^ {
+		@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+	@name ( 'Click FullList' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+	emp = control.evaluate ( expression = 'def action = "//*[text()=''"+today+"'']//parent::td//preceding-sibling::td/a"
+
+return action' ) 
+	@name ( 'Click EmpreqLink' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = emp ) 
+	@disabled @name ( 'Click Employee Request Link' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = emp ) 
+	@name ( 'Click Approve Button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Approve' ) 
+	@disabled @name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'HandleFailure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'Approveleave' ) 
+	error ^"Failed to perform ApproveAbsense[" + scenario +"] with session ["+ session +"]"^ 
+} 

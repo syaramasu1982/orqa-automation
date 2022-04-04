@@ -1,0 +1,3 @@
+@specification 1.1 
+@testcase @name ( 'Close all sessions [Web]' ) /EBSArea/lib/web/basic/close_all_active_sessions.task ( ) 
+@testcase @name ( 'Close all sessions [Java]' ) /EBSArea/lib/java/basic/close_all_active_sessions.task ( ) 

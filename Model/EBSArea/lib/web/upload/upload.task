@@ -1,0 +1,20 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = filePath ) 
+web.switch ( session = session ) 
+@name ( 'Click [${filePath}]' ) try {
+	@name ( 'Populate value' ) if ^filePath != null && String.valueOf(filePath).trim().length() > 0 ^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 5 ) {
+			web.wait ( target = ^"//*[contains(@id,'" + id + "')]"^ , timeout = 5 ) 
+			sleep 0.25 
+			web.upload ( filePath = ^""+ filePath +""^ , target = ^"//*[contains(@id,'" + id + "')]"^ ) 
+			sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "upload_"+filePath+"_fail"^ ) 
+	error ^"Failed to upload [" + filePath + "] on session [" + session + "]"^ 
+} 

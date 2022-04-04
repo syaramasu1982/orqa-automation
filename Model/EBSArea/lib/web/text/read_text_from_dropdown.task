@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+web.switch ( session = session ) 
+@name ( 'Read text [${field}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//*[contains(@id,'"+xPath+"')]//option[@selected] "^ , timeout = 5 ) 
+		valueRead = web.getvalue ( target = ^"//*[contains(@id,'"+xPath+"')]//option[@selected] "^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "read_text_"+ field +"_fail"^ ) 
+	error ^"Failed to read [" + field + "] on session [" + session + "]"^ 
+} 

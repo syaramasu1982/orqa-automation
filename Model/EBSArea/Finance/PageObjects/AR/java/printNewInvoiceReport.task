@@ -1,0 +1,57 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = name ) 
+@param ( name = reports ) 
+@param ( name = reportsOperatingUnit ) 
+@param ( name = orderBy ) 
+@param ( name = transactionClass ) 
+@param ( name = transactionType ) 
+@param ( name = printDateLow ) 
+@param ( name = printDateHigh ) 
+@param ( name = openInvoicesOnly ) 
+@name ( 'Print New Invoice Report' ) try {
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	sleep 2 
+	'Enter Reports' {
+		@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+		@name ( 'Enter Report Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = '%' , value = reports ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Reports Operating Unit' {
+		@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+		@name ( 'Enter Report Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Reports' , xPath = '%' , value = reportsOperatingUnit ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Wait For Parameters' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Parameters' ) 
+	@name ( 'Enter Reporting Context' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Order By' , value = orderBy , xPathPosition = '1' ) 
+	'Enter Transaction Class' {
+		@name ( 'Click on Transaction Class iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Transaction Class' , xPathPosition = '2' ) 
+		@name ( 'Wait For  Transaction Class Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Class' ) 
+		@name ( 'Enter Transaction Class' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Transaction Class' , xPath = '%' , value = transactionClass ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Transaction Type' {
+		@name ( 'Click on Transaction Type iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Transaction Type' , xPathPosition = '3' ) 
+		@name ( 'Wait For  Transaction Type Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Type' ) 
+		@name ( 'Enter Transaction Type' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Transaction Type' , xPath = '%' , value = transactionType ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter Print Date Low' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Print Date Low' , xPathPosition = '4' , value = printDateLow ) 
+	@name ( 'Enter Print Date High' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Print Date High' , xPathPosition = '5' , value = printDateHigh ) 
+	@name ( 'Enter Open Invoices Only' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Open Invoices Only' , value = openInvoicesOnly , xPathPosition = '7' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'print_new_invoice_report' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Read Request ID' ) isRequestId = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Request ID' , row = '1' , column = '2' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+	@name ( 'Read Parent' ) isParent = /EBSArea/lib/java/text/read_text_from_table.task ( scenario = scenario , session = session , field = 'Parent' , row = '1' , column = '4' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"print_new_invoice_report_fail"^ ) 
+	error ^"Failed to perform print new invoice report for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

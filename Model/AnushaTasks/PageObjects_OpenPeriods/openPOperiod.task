@@ -1,0 +1,56 @@
+@specification 1.1 
+@param ( name = session ) 
+@param ( name = scenario ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = periodStatus ) 
+@param ( name = value ) 
+web.switch ( session = session ) 
+@name ( 'Open PO Period' ) try {
+	@name ( 'IsOperatingUnitExists' ) isOperatingUnitExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = '*' , text = 'Operating Unit' ) 
+	@name ( 'To select OperatingUnit' ) if isOperatingUnitExists {
+		/EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = 'OULovChoice' , value = 'More...' ) 
+		@name ( 'Switch browser to select dropdown value' ) /EBSArea/lib/web/switchbrowser/switch_browser.task ( scenario = scenario , session = session , title = 'Search and Select*' ) 
+		@name ( 'Enter search text' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Search By' , name = 'searchText' , value = value ) 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+		@name ( 'Click quick select' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Quick Select' ) 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	} 
+	@name ( 'Never Opened Exists' ) neverOpenedExists = control.evaluate ( expression = 'def neverOpenedExists = true' , outputType = 'BOOLEAN' ) 
+	@name ( 'Previous Month' ) previousMonth = 0 
+	while neverOpenedExists {
+		@name ( 'Period Search Calculation' ) periodSearchName = control.evaluate ( expression = 'def periodSearchName;
+Date referenceDate = new Date();
+Calendar c = Calendar.getInstance(); 
+c.setTime(referenceDate); 
+c.add(Calendar.MONTH, -previousMonth);
+
+periodSearchName = c.getTime().format("MMM-yyyy");
+return periodSearchName
+' ) 
+		@name ( 'Enter Period Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Period Name' , xPath = 'SearchPeriodName' , value = periodSearchName ) 
+		@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_multi_button.task ( scenario = scenario , session = session , buttonName = 'Go' , name = 'Clear' ) 
+		@name ( 'Read Period Status' ) periodStatus = /EBSArea/lib/web/dropdown/read_selected_value.task ( scenario = scenario , session = session , xPath = 'PurchPrdTableResults' , field = 'Period Status' ) 
+		if ^periodStatus == "Never Opened"^ {
+			@name ( 'Select Period Status' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'PurchPrdTableResults' , value = 'Open' ) 
+			@name ( 'Click Save button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+			@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+			/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^"open_period_"+operatingUnit^ ) 
+		} 
+		else {
+			@name ( 'No Never Opened Exists' ) neverOpenedExists = control.evaluate ( expression = 'neverOpenedExists == false' ) 
+		} 
+		previousMonth = control.evaluate ( expression = 'previousMonth = previousMonth +1' ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^"open_period_"+operatingUnit^ ) 
+	'Return Result' {
+		@name ( 'Create Result Map' ) result = map.new ( ) 
+		@name ( 'Add Period Name to Map' ) map.add ( map = result , key = 'PERIODNAME' , value = ^=periodSearchName^ ) 
+		@name ( 'Return Period Name' ) result = control.evaluate ( expression = 'return result' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "generate_payment_run_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform generate payment run for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

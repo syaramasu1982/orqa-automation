@@ -1,0 +1,29 @@
+@specification 1.1 
+@param ( name = filePath ) 
+@param ( name = groupByFunctionalArea , default = 'false' , choiceList = 'true,false' , type = boolean ) 
+@testcase @name ( 'Process test cases on [${filePath.getName()}]' ) try {
+	tests = excel.read ( filePath = filePath , sheetName = 'Test Cases' ) 
+	tests = filter.comparison ( columns = 'Test Case ID' , operation = 'NOT_EQUAL' , value = 'TC_CLOSEALLSESSION_ALL' ) 
+	tests = filter.comparison ( columns = 'Test Case ID' , operation = 'NOT_EQUAL' , value = 'TC_CLOSESESSION' ) 
+	tests = filter.blanks ( columns = 'Execute' ) 
+	tests = filter.comparison ( columns = 'Execute' , operation = 'EQUAL' , value = 'Y' ) 
+	@name ( 'Read headers' ) headers = control.evaluate ( expression = 'String headers = tests.getHeader().join(",").toUpperCase()
+
+headers = headers.replaceFirst("TEST CASE","");
+
+if(groupByFunctionalArea){
+	headers = headers.replace(",FUNCTIONAL AREA","")
+}
+
+return headers' ) 
+	@name ( 'Initiate tests' ) tests = control.evaluate ( expression = 'tests' ) 
+	tests = transform.columnremove ( columns = headers ) 
+	@name ( 'Group by functional area' ) if groupByFunctionalArea {
+		resultsSummary = aggregate.summary ( table = ^=tests^ , aggregateColumns = 'Count(TEST CASE)' , keyColumns = 'FUNCTIONAL AREA, TEST CASE' ) 
+	} 
+	else {
+		resultsSummary = aggregate.summary ( table = ^=tests^ , aggregateColumns = 'Count(TEST CASE)' , keyColumns = 'TEST CASE' ) 
+	} 
+	console.write ( data = ^= filePath.getName() + ":" + (resultsSummary.size() -1)^ ) 
+	control.evaluate ( expression = 'resultsSummary.size() - 1' ) 
+} 

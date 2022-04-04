@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = lmuser ) 
+@param ( name = empname ) 
+'Login As LM' {
+	@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=lmuser' , password #= '="Welcome123"' ) 
+	@name ( 'Clickfulllist' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'NtfFullList' ) 
+	@name ( 'ClickApproverlink' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = empname ) 
+	@name ( 'ClickApproveButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Approve' ) 
+	@name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMrequestsprovideinformation' ) 
+	error ^"Failed to perform LMrequestsEmpprovidesmoreinformation[" + scenario +"] with session ["+ session +"]"^ 
+} 

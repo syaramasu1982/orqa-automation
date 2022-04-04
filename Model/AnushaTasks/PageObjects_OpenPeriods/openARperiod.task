@@ -1,0 +1,56 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = source ) 
+@param ( name = environment ) 
+@param ( name = ledger ) 
+@param ( name = closeApp ) 
+@param ( name = launchApp ) 
+@name ( 'Open AR Period' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Open/Close Accounting Periods' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Open/Close Accounting Periods' , scenario = scenario ) 
+	@name ( 'Wait For Receivables Periods' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Find Receivables Periods' , scenario = scenario ) 
+	@name ( 'Enter Ledger' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Ledger' , label = 'Ledger' , index = '1' , value = ledger ) 
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "Ledger_"+ledger+"_populated"^ ) 
+	@name ( 'Click Find' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Open/Close Accounting Periods' ) /EBSArea/lib/java/basic/wait_for_title.task ( session = session , title = 'Open/Close Accounting Periods' , scenario = scenario ) 
+	@name ( 'Read Last Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , title = 'Open/Close Accounting Periods ' , label = 'Latest Open Period' , index = '1' ) 
+	lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+	@name ( 'Calculate Period' ) periodName = control.evaluate ( expression = 'def periodName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+periodName = today
+}
+periodName = periodName.format("yyyyMM")
+return periodName' ) 
+	while ^lastOpenPeriodDate<periodName^ {
+		@name ( 'Click Open Next Period' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Open Next Period' ) 
+		@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+		@name ( 'Read Last Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , title = 'Open/Close Accounting Periods ' , label = 'Latest Open Period' , index = '1' ) 
+		lastOpenPeriodDate = control.evaluate ( expression = "String oldDate = lastOpenPeriod
+Date date = Date.parse( 'MMM-yyyy', oldDate )
+String lastOpenPeriodDate = date.format( 'yyyyMM' )
+return lastOpenPeriodDate" ) 
+	} 
+	@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"open_AR_period_name_"+ledger+"_"+timeStamp^ ) 
+	@name ( 'Read Last Open Period' ) lastOpenPeriod = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Period Name' , title = 'Open/Close Accounting Periods ' , label = 'Latest Open Period' , index = '1' ) 
+	@name ( 'Click Open/Close Accounting Periods Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Open/Close Accounting Periods' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Wait for main menu' ) sleep 3 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+	@name ( 'Handle failure' ) catch {
+		/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "open AR periods "+scenario+"_failed"^ ) 
+	} 
+	'Return Result' {
+		@name ( 'Create Result Map' ) result = map.new ( ) 
+		@name ( 'Add Period Name to Map' ) map.add ( map = result , key = 'PERIODNAME' , value = ^=lastOpenPeriod^ ) 
+		@name ( 'Return Period Name' ) result = control.evaluate ( expression = 'return result' ) 
+	} 
+} 

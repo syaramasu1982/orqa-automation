@@ -1,0 +1,91 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = queue ) 
+@param ( name = changeQueue ) 
+@param ( name = category ) 
+@param ( name = minorCategory ) 
+@param ( name = expenseAccount ) 
+@param ( name = location ) 
+@param ( name = assetKey ) 
+@param ( name = country ) 
+@param ( name = city ) 
+@param ( name = locationUnit ) 
+@param ( name = site ) 
+@param ( name = building ) 
+@param ( name = roomOrArea ) 
+@param ( name = closeApp ) 
+@name ( 'Merge Mass Addition' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Mass Additions' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Find Mass Additions' , xPath = 'VTextField[1]' , value = book ) 
+	@name ( 'Enter Queue' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Queue' , title = 'Find Mass Additions' , xPath = 'VTextField[2]' , value = queue ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Mass Additions Summary' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Mass Additions Summary' ) 
+	@name ( 'Click Open button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Open' ) 
+	@name ( 'Wait For Mass Additions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Mass Additions' ) 
+	@name ( 'Change Queue' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Queue' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-1]" , value = changeQueue ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Category' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-7]" , value = category ) 
+	@name ( 'Wait For Category Flexfield' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Category Flexfield' ) 
+	'Enter Minor Category' {
+		@name ( 'Click on Minor Category iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Minor Category' , xPathPosition = '2' ) 
+		@name ( 'Wait For Minor Category Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Minor Category' ) 
+		@name ( 'Enter Minor Category' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Minor Category' , xPath = '%' , value = minorCategory ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Expense Account' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Expense Account' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-11]" , value = expenseAccount ) 
+	@name ( 'Enter Location' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Location' , title = 'Mass Additions' , xPath = "Button[@text='Done']/preceding-sibling::VTextField[last()-12]" , value = location ) 
+	'Enter Country Field' {
+		@name ( 'Click on Country iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Country' , xPathPosition = '2' ) 
+		@name ( 'Wait For Country Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Country' ) 
+		@name ( 'Enter Country ' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Country' , xPath = '%' , value = country ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	'Enter City Field' {
+		@name ( 'Click on City iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'City' , xPathPosition = '3' ) 
+		@name ( 'Wait For City Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'City' ) 
+		@name ( 'Enter City' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'City' , xPath = '%' , value = city ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		@name ( 'Click on OK button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	'Enter Location Unit Field' {
+		@name ( 'Click on Location Unit iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Location Unit' , xPathPosition = '4' ) 
+		@name ( 'Wait For Location Unit Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Location Unit' ) 
+		@name ( 'Enter Location Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Location Unit' , xPath = '%' , value = locationUnit ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Site' {
+		@name ( 'Click on Site iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Site' , xPathPosition = '5' ) 
+		@name ( 'Wait For Site Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Site' ) 
+		@name ( 'Enter Site' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Site' , xPath = '%' , value = site ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Building Field' {
+		@name ( 'Click on Building iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Building' , xPathPosition = '6' ) 
+		@name ( 'Wait For Building Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Building' ) 
+		@name ( 'Enter Building' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Building' , xPath = '%' , value = building ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Room or Area Field' {
+		@name ( 'Click on Room or Area iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Room or Area' , xPathPosition = '7' ) 
+		@name ( 'Wait For Room or Area Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Room or Area' ) 
+		@name ( 'Enter Room or Area' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Room or Area' , xPath = '%' , value = roomOrArea ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Click on Asset Details tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'Asset Details' ) 
+	@name ( 'Enter Asset Key' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Asset Key' , title = 'Mass Additions' , xPath = 'FScrollBox[1]//VTextField[4]' , value = assetKey ) 
+	@name ( 'Click Done button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Done' ) 
+	@name ( 'Click Mass Additions Summary Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Mass Additions Summary' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^scenario+ "_perform_mass_additions_fail"^ ) 
+} 

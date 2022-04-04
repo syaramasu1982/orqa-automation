@@ -1,0 +1,2 @@
+@specification 1.1 
+@name ( 'Request for garbage collection' ) control.evaluate ( expression = 'System.gc()' ) 

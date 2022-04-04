@@ -1,0 +1,64 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = receiptMethod ) 
+@param ( name = receiptMethodAccount ) 
+@param ( name = receiptNumber ) 
+@param ( name = receiptAmount ) 
+@param ( name = receiptType ) 
+@param ( name = contextValue ) 
+@param ( name = receiptInfoMethod ) 
+@param ( name = name ) 
+@param ( name = activity ) 
+@param ( name = taxCode ) 
+@name ( 'Miscellaneous Receipts' ) try {
+	@name ( 'Wait For Receipts' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Receipts' ) 
+	@name ( 'Wait For Receipts' ) sleep 5 
+	@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Receipt Method' , value = receiptMethod , label = 'Receipt Method' , index = '1' ) 
+	@name ( 'Wait For payment method popup' ) sleep 5 
+	@name ( 'Check Payment Method pop up exists' ) isPaymentMethodExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Payment Methods' , title = 'Payment' ) 
+	if isPaymentMethodExists {
+		@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Ledger' , xPath = '%' , value = receiptMethodAccount ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	@name ( 'Enter Receipt Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Receipt Number' , value = receiptNumber , label = 'Receipt Number' , index = '1' ) 
+	@name ( 'Enter Receipt Amount' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Receipt Amount' , value = receiptAmount , label = 'Receipt Amount' , index = '1' ) 
+	@name ( 'Select Receipt Type' ) /EBSArea/lib/java/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Receipt Type' , title = 'Receipts' , xPath = 'FScrollBox[6]//VPopList[1]' , value = receiptType ) 
+	@name ( 'Wait For Caution' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+	@name ( 'Read Warning Message' ) isWarning = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Warning Message' , xPath = 'Warning' ) 
+	assert.true ( expression = 'isWarning  == """APP-AR-11237: Warning: Changing the receipt type will erase
+your customer information.  You might be required
+to re-enter receipt method and remittance bank information. 
+Do you want to continue?"""' ) 
+	@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	if ^!session.contains("5")^ {
+		'Enter Receipt Information' {
+			@name ( 'Click on Receipt Information' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Receipt Information' , title = 'Receipts' , xPath = 'FScrollBox[7]//VTextField[10]' ) 
+			/EBSArea/lib/java/text/set_text_copy_paste.task ( scenario = scenario , session = session , field = 'Receipt Information' , title = 'Receipts' , xPath = 'FScrollBox[7]//VTextField[11]' , value = contextValue ) 
+			@name ( 'Click on Receipt Information' ) /EBSArea/lib/java/presskey/press_down_arrow.task ( scenario = scenario , session = session , field = 'Receipt Information' , title = 'Receipts' , xPath = 'FScrollBox[7]//VTextField[11]' ) 
+			@name ( 'Wait For Receipt Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Receipt Information' ) 
+			@name ( 'Enter Context Value' ) /EBSArea/lib/java/text/set_flex_text_tab.task ( scenario = scenario , session = session , field = 'Context Value' , xPathPosition = '1' , value = contextValue ) 
+			@name ( 'Click on Context Value icon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Context Value' , xPathPosition = '1' ) 
+			'Enter Receipt Method Info' {
+				@name ( 'Click on Receipt Method icon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Receipt Method' , xPathPosition = '2' ) 
+				@name ( 'Wait For Receipt Method Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Receipt Method' ) 
+				@name ( 'Enter Receipt Method' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Receipt Method' , xPath = '%' , value = receiptInfoMethod ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+			@name ( 'Click OK button' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		} 
+	} 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	@name ( 'Enter Activity' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Name' , value = activity , label = 'Activity' , index = '1' ) 
+	@name ( 'Enter Tax Code' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Tax Code' , value = taxCode , label = 'Tax Code' , index = '1' ) 
+	@name ( 'Read Tax Rate' ) taxRate = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Tax Rate' , label = 'Tax Rate %' , index = '1' ) 
+	assert.true ( expression = 'taxRate == "20"' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'miscellaneous_receipt' ) 
+	@name ( 'Click Receipts Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Receipts' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"miscellaneous_receipts_fail"^ ) 
+	error ^"Failed to perform miscellaneous receipts for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

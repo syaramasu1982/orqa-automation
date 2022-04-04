@@ -1,0 +1,22 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPathClass ) 
+@param ( name = xPathId ) 
+@param ( name = xPathInput ) 
+@param ( name = value ) 
+web.switch ( session = session ) 
+@name ( 'Set text [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//*[contains(@class,'"+xPathClass +"')]//input[@aria-label='"+xPathInput+"'] | //*[contains(@id,'"+xPathId +"')]//input[@id='"+xPathInput+"']"^ , timeout = 5 ) 
+			web.click ( target = ^"//*[contains(@class,'"+xPathClass +"')]//input[@aria-label='"+xPathInput+"'] | //*[contains(@id,'"+xPathId +"')]//input[@id='"+xPathInput+"']"^ ) 
+			web.setvalue ( value = value , target = ^"//*[contains(@class,'"+xPathClass +"')]//input[@aria-label='"+xPathInput+"'] | //*[contains(@id,'"+xPathId +"')]//input[@id='"+xPathInput+"']"^ ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "set_text_"+ field +"_fail"^ ) 
+	error ^"Failed to set text [" + field + "] on session [" + session + "]"^ 
+} 

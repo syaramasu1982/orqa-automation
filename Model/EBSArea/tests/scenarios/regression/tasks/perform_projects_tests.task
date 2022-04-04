@@ -1,0 +1,127 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle Projects' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		resultPO = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle Projects' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [Distribute & Interface Burden Cost to Projects OR Distribute & Interface Labour Cost to Projects OR Misc Cost to Projects OR Supplier Cost to Projects OR Usage Cost to Projects OR Interface Expense Reports from Payables to Projects OR TransactionImport]' ) if ^testCaseName.contains("DISTRIBUTEANDINTERFACEBURDENCOSTTOPROJECTS") || testCaseName.contains("DISTRIBUTEANDINTERFACELABOURCOSTTOPROJECTS") || testCaseName.contains("DISTRIBUTEANDINTERFACEMISCCOSTTOPROJECTS") || testCaseName.contains("DISTRIBUTEANDINTERFACESUPPLIERCOSTTOPROJECTS") || testCaseName.contains("DISTRIBUTEANDINTERFACEUSAGECOSTTOPROJECTS") || testCaseName.contains("INTERFACEEXPENSEREPORTSFROMPAYABLESTOPROJECTS") || testCaseName.contains("TRANSACTIONIMPORTINVENTORYTOPROJECTS") || testCaseName.contains("TRANSACTIONIMPORTMISCELLANEOUSTRANSACTIONTOPROJECTS") || testCaseName.contains("TRANSACTIONIMPORTORACLETIMEANDLABORTOPROJECTS") || testCaseName.contains("TRANSACTIONIMPORTSTFCUSAGESTOPROJECTS")^ {
+					@name ( 'Distribute And Interface [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_ProjectsRegression/distributeAndInterface.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , streamlineOption = ^caseRef['STREAMLINEOPTION']^ , transactionSource = ^caseRef['TRANSACTIONSOURCE']^ ) 
+				} 
+				@name ( 'Handle [Distribute & Interface inventory Cost to Projects]' ) if ^testCaseName.contains("DISTRIBUTEANDINTERFACEINVENTORYCOSTTOPROJECTS")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/distributeAndInterface.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , streamlineOption = ^caseRef['STREAMLINEOPTION']^ ) 
+				} 
+				@name ( 'Handle [Post Expenditure to Projects - Expenses]' ) if ^testCaseName.contains("POSTEXPENDITURETOPROJECTSEXPENSES")^ {
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Post Expenditure To Projects Expenses [${sheet}]: ID=${caseRef.ID}' ) result = /AnushaTasks/PageObjects_ProjectsRegression/postExpenditureToProjectsExpenses.task ( scenario = scenario , session = session , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptDate = receiptDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ , filePath = ^caseRef['FILE PATH']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIEDADVREASON']^ , task = ^caseRef['TASK']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+				} 
+				@name ( 'Handle [Post Expenditure to Projects - Batches (Miscellaneous Transaction)]' ) if ^testCaseName.contains("POSTEXPENDITURETOPROJECTSBATCHES(MISCELLANEOUSTRANSACTION)")^ {
+					@name ( 'Calculate Journal Name' ) batchName = control.evaluate ( expression = 'def batchName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batchName = today
+}
+batchName = "Batch_"+batchName.format("ddhhmmss")
+return batchName
+' ) 
+					@name ( 'Post Expenditure To Projects Miscellaneous [${sheet}]: ID=${caseRef.ID}' ) /AnushaTasks/PageObjects_ProjectsRegression/postExpenditureToProjectsMiscellaneous.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , batchName = batchName , classValue = ^caseRef['CLASSVALUE']^ , organization = ^caseRef['ORGANIZATION']^ , taskNumber = ^caseRef['TASKNUMBER']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ , expndType = ^caseRef['EXPNDTYPE']^ , quantity = ^caseRef['QUANTITY']^ ) 
+				} 
+				@name ( 'Handle [Post Expenditure to Projects - Process]' ) if ^testCaseName.contains("POSTEXPENDITURETOPROJECTSPROCESS")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/distributeAndInterface.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , streamlineOption = ^caseRef['STREAMLINEOPTION']^ ) 
+					@name ( 'Click Submit a New Request button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit a New Request...' ) 
+					result = /AnushaTasks/PageObjects_ProjectsRegression/generateDraftInvoiceforSingleProject.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , streamlineOption = ^caseRef['STREAMLINEOPTION1']^ ) 
+					@name ( 'Click Submit a New Request button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit a New Request...' ) 
+					result = /AnushaTasks/PageObjects_ProjectsRegression/generateDraftInvoiceforSingleProject.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , streamlineOption = ^caseRef['STREAMLINEOPTION2']^ ) 
+				} 
+				@name ( 'Handle [Post Expenditure to Projects - Batches (Usages)]' ) if ^testCaseName.contains("POSTEXPENDITURETOPROJECTSBATCHES(USAGES)")^ {
+					@name ( 'Calculate Journal Name' ) batchName = control.evaluate ( expression = 'def batchName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batchName = today
+}
+batchName = "Batch_"+batchName.format("ddhhmmss")
+return batchName
+' ) 
+					/AnushaTasks/PageObjects_ProjectsRegression/postExpenditureToProjectsUsages.task ( scenario = scenario , session = session , environment = environment , batchName = batchName , operatingUnit = ^caseRef['OPERATINGUNIT']^ , classValue = ^caseRef['CLASSVALUE']^ , organization = ^caseRef['ORGANIZATION']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ , taskNumber = ^caseRef['TASKNUMBER']^ , expndType = ^caseRef['EXPNDTYPE']^ , quantity = ^caseRef['QUANTITY']^ ) 
+				} 
+				@name ( 'Handle [Print New Invoices]' ) if ^testCaseName.contains("PRINTNEWINVOICES")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/printNewInvoiceReportProjects.task ( scenario = scenario , session = session , environment = environment , name = ^caseRef['NAME']^ , reportsOperatingUnit = ^caseRef['REPORTINGOPERATINGUNIT']^ , orderBy = ^caseRef['ORDERBY']^ , transactionType = ^caseRef['TRANSACTIONTYPE']^ ) 
+				} 
+				@name ( 'Handle [Raise Foreign Invoice to Projects OR Raise Invoice to Projects OR Raise Revenue to Projects]' ) if ^testCaseName.contains("RAISEFOREIGNINVOICETOPROJECTS") || testCaseName.contains("RAISEINVOICETOPROJECTS") || testCaseName.contains("RAISEREVENUETOPROJECTS")^ {
+					@name ( 'Calculate Event Date' ) eventDate = control.evaluate ( expression = 'def eventDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+eventDate = today
+}
+eventDate = eventDate.format("dd-MMM-yyy").toUpperCase()
+return eventDate' ) 
+					/AnushaTasks/PageObjects_ProjectsRegression/raiseInvoiceToProjects.task ( scenario = scenario , session = session , environment = environment , projectNumber = ^caseRef['PROJECTNUMBER']^ , eventType = ^caseRef['EVENTTYPE']^ , description = ^caseRef['DESCRIPTION']^ , billAmount = ^caseRef['BILLAMOUNT']^ , revenueAmount = ^caseRef['REVENUEAMOUNT']^ , eventDate = eventDate , operatingUnit = ^caseRef['OPERATINGUNIT']^ , currency = ^caseRef['CURRENCY']^ ) 
+				} 
+				@name ( 'Handle [Generate Draft Invoice For Single Project]' ) if ^testCaseName.contains("GENERATEDRAFTINVOICEFORSINGLEPROJECT")^ {
+					result = /AnushaTasks/PageObjects_ProjectsRegression/generateDraftInvoiceforSingleProject.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , name = ^caseRef['NAME']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+				} 
+				@name ( 'Handle [Finding Single Invoice Review]' ) if ^testCaseName.contains("FINDINGSINGLEINVOICEREVIEW")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/findingSingleInvoiceReview.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+				} 
+				@name ( 'Handle [Finding Single Revenue Review]' ) if ^testCaseName.contains("FINDINGSINGLEREVENUEREVIEW")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/findingSingleRevenueReview.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , projectNumber = ^caseRef['PROJECTNUMBER']^ ) 
+				} 
+				@name ( 'Handle [Submit Interface Streamline Process]' ) if ^testCaseName.contains("SUBMITINTERFACESTREAMLINEPROCESS")^ {
+					/AnushaTasks/PageObjects_ProjectsRegression/submitInterfaceStreamlineProcess.task ( scenario = scenario , session = session , environment = environment , operatingUnit = ^caseRef['OPERATINGUNIT']^ , streamlineOption = ^caseRef['STREAMLINEOPTION']^ , nameDraftInvoice = ^caseRef['NAMEDRAFTINVOICE']^ ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

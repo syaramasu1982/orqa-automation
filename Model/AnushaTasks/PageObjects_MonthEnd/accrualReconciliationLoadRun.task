@@ -1,0 +1,55 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = name ) 
+@param ( name = launchApp ) 
+@name ( 'Accrual Reconciliation Load Run' ) try {
+	@name ( 'Is oracle application not launched' ) if ^launchApp != null && String.valueOf(launchApp).trim().length() > 0 ^ {
+		@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	} 
+	@name ( 'Wait For Submit a New Request' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Submit a New Request' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Name' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Name' , value = name , label = 'Name' , index = '1' ) 
+	@name ( 'Wait For Reports' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Reports' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Operating Unit' , xPath = '%' , value = operatingUnit ) 
+	@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	'Enter Parameters' {
+		@name ( 'Get First day of the month' ) firstDayOfTheMonth = control.evaluate ( expression = 'def firstDayOfTheMonth = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
+cal.set(Calendar.DAY_OF_MONTH,
+cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+firstDayOfTheMonth = cal.getTime();
+}
+firstDayOfTheMonth = firstDayOfTheMonth.format("dd-MMM-yyy").toUpperCase()
+
+return firstDayOfTheMonth' ) 
+		@name ( 'Enter Date From' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Date From' , xPathPosition = '1' , value = firstDayOfTheMonth ) 
+		@name ( 'Get Last day of the month' ) lastDayOfTheMonth = control.evaluate ( expression = 'def lastDayOfTheMonth = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
+cal.set(Calendar.DAY_OF_MONTH,
+cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+lastDayOfTheMonth = cal.getTime();
+}
+lastDayOfTheMonth = lastDayOfTheMonth.format("dd-MMM-yyy").toUpperCase()
+
+return lastDayOfTheMonth' ) 
+		@name ( 'Enter Date To' ) /EBSArea/lib/java/text/set_flex_copy_paste.task ( scenario = scenario , session = session , field = 'Date To' , xPathPosition = '2' , value = lastDayOfTheMonth ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'accrual_reconciliation_load_run' ) 
+		@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"accrual_reconciliation_load_run_"+operatingUnit+"_"+timeStamp^ ) 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click Submit' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+	@name ( 'Validate Status and Phase' ) /EBSArea/lib/java/basic/status_and_phase_check.task ( scenario = scenario , session = session ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "_"+scenario+"_fail"^ ) 
+} 

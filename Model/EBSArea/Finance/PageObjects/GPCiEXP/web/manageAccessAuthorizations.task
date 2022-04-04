@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = authName ) 
+web.switch ( session = session ) 
+@name ( 'Manage Internet Access Authorizations' ) try {
+	@name ( 'Wait for Expenses Home' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h1' , text = 'Expenses Home' ) 
+	@name ( 'Click Access Authorizations Link' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Access Authorizations' ) 
+	@name ( 'Check element exists' ) isNameExist = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , xPath = "[@id='OiePrefDelegationTbl:Y:0']" , element = 'span' ) 
+	@name ( 'Is Exist' ) if isNameExist {
+		@name ( 'Click Remove icon' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'OiePrefDelegationTbl:RemoveImage1:0' ) 
+	} 
+	@name ( 'Click Add Another Row button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Add Another Row' , scenario = scenario ) 
+	@name ( 'Select Authorization Name' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Authorization Name' , id = 'OiePrefDelegationHdr' , xPath = 'OiePrefDelegationTbl:N:0' , value = authName ) 
+	@name ( 'Click Save button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+	@name ( 'Read Confirmation Message ' ) isConfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Your Access Authorizations have been set' ) 
+	assert.true ( expression = 'isConfirmation == "Your Access Authorizations have been set."' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'manage_internet_expenses_access_authorizations' ) 
+	@name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^scenario+ "_manage_access_authorizations_fail"^ ) 
+	error ^"Failed to perform manage access authorizations for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

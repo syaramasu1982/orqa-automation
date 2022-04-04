@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = selectView ) 
+@param ( name = orderNumber ) 
+@param ( name = actions ) 
+web.switch ( session = session ) 
+@name ( 'View Orders' ) try {
+	@name ( 'Select My Open Orders' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , xPath = 'customizationsPoplist' , value = selectView , field = 'View' ) 
+	@name ( 'Click Go' ) /EBSArea/lib/web/button/click_multi_button.task ( scenario = scenario , session = session , buttonName = 'Go' , name = 'Personalize' ) 
+	@name ( 'Click on Order Number' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = orderNumber ) 
+	@name ( 'Select Actions' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Actions' , xPath = 'ActionsPoplist' , value = actions ) 
+	@name ( 'Click Go Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'GoButton' , scenario = scenario ) 
+	@name ( 'Wait until download' ) sleep 5 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "purchase_order_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform view orders for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

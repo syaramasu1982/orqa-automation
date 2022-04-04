@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = ancestorTag ) 
+@param ( name = xPath ) 
+java.switch ( session = session ) 
+@name ( 'Read notification [${field}]' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::"+ ancestorTag +"//"+ xPath +""^ , timeout = 5 ) 
+		valueRead = java.getvalue ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::"+ ancestorTag +"//"+ xPath +""^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "read_notification_"+field+"_fail"^ ) 
+	error ^"Failed to read notification [" + field + "] on session [" + session + "]"^ 
+} 

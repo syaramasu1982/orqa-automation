@@ -1,0 +1,26 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = title ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+java.switch ( session = session ) 
+@name ( 'Select value from drop down [${field}]' ) try {
+	@name ( 'Populate value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath +""^ , timeout = 5 ) 
+			sleep 0.25 
+			java.click ( target = ^"//LWLabel[contains(text(),'"+ title +"')]//ancestor::ExtendedFrame//"+ xPath  +"/ChoiceButton"^ ) 
+			sleep 0.25 
+			java.select ( target = ^"//ChoiceList//Entry[text()='"+ value +"']"^ ) 
+			sleep 0.25 
+			java.click ( target = ^"//ChoiceList//Entry[text()='"+ value +"']"^ ) 
+			sleep 0.25 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "select_dropdown_"+field+"_fail"^ ) 
+	error ^"Failed to click button [" + field + "] on session [" + session + "]"^ 
+} 

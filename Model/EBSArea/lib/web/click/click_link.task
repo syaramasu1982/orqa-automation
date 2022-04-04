@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Click [${name}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		web.wait ( target = ^"//a[contains(text(),'" + name + "')] | //a[contains(@id,'" + name + "')] | //*[contains(@title,'" + name + "')]"^ , timeout = 5 ) 
+		sleep 0.25 
+		web.click ( target = ^"//a[contains(text(),'" + name + "')] | //a[contains(@id,'" + name + "')] | //*[contains(@title,'" + name + "')]"^ ) 
+		sleep 0.25 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_link"+name+"_fail"^ ) 
+	error ^"Failed to click [" + name + "] on session [" + session + "]"^ 
+} 

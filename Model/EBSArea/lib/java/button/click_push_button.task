@@ -1,0 +1,20 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+@name ( 'Click button [${name}]' ) try {
+	@name ( 'Perform action' ) control.retry ( maxAttempts = 5 ) {
+		isPushButtonExists = java.exists ( target = ^"//PushButton[contains(@text,'"+ name +"')]"^ ) 
+		if isPushButtonExists {
+			java.waitforcomponent ( target = ^"//PushButton[contains(@text,'"+ name +"')]"^ , timeout = 5 ) 
+			@name ( 'wait for operation to complete' ) sleep 0.25 
+			java.click ( target = ^"//PushButton[contains(@text,'"+ name +"')]"^ ) 
+			@name ( 'wait for operation to complete' ) sleep 0.5 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_button_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

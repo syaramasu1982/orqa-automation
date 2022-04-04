@@ -1,0 +1,117 @@
+@specification 1.1 
+@param ( name = environment , description = 'Select environment' , type = automatic ) 
+@param ( name = workbook , description = 'Select workbook' , type = file ) 
+@param ( name = testCasesSheet , default = 'Test Cases' , type = automatic ) 
+@param ( name = functionalArea , description = 'Functional area filter' , type = automatic ) 
+@param ( name = usersConfig , description = 'Select custom user configuration' , type = file ) 
+@param ( name = startRow , description = 'Row number to keep rows after' , type = automatic ) 
+@param ( name = endRow , description = 'Row number to keep rows before' , type = automatic ) 
+@param ( name = closeSessions , default = 'true' , type = boolean ) 
+@param ( name = RerunFromStopPointsheet , default = 'RunFromStopPoint' , type = automatic ) 
+@param ( name = dataSummaryPartialResultSheet , default = 'DataSummary' , type = automatic ) 
+env = environment.read ( name = environment ) 
+@name ( 'Execute test pack' ) try {
+	'Initialize and validate test parameters' {
+		@name ( 'Resolve users configuration location' ) usersConfigLocation = control.evaluate ( expression = 'if(usersConfig == null || String.valueOf(usersConfig).trim().length() == 0) {
+	return "EBSArea/tests/scenarios/users/Users.xlsx"
+} else {
+	return usersConfig
+}' ) 
+		@name ( 'Check workbook parameter' ) if ^workbook == null || String.valueOf(workbook).trim().length() == 0^ {
+			error "Workbook parameter can't be blank, please make sure parameter [Workbook] populated while running the task" 
+		} 
+		@name ( 'Check test cases workbook exist' ) isWorkbookNotExist = file.notfound ( sourcePath = workbook ) 
+		@name ( 'Raise test cases workbook not found failure' ) if isWorkbookNotExist {
+			error ^"Workbook [" +workbook +"] not found, please verify the workbook exist before executing the task"^ 
+		} 
+		@name ( 'Check custom users workbook exist' ) isWorkbookNotExist = file.notfound ( sourcePath = usersConfigLocation ) 
+		@name ( 'Raise custom users workbook notfound failure' ) if isWorkbookNotExist {
+			error ^"Users configuration workbook [" + usersConfigLocation +"] not found, please verify the workbook exist before executing the task"^ 
+		} 
+		@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMdd_HHMMSS").format(new Date())' ) 
+		workbookSummary = file.path ( filePath = ^env['artefacts'] + "/Regression_Summary_${timeStamp}.xlsx"^ ) 
+		file.copy ( sourcePath = workbook , targetPath = workbookSummary ) 
+		@name ( 'Define main excel sheet' ) sheet = control.evaluate ( expression = 'if (testCasesSheet == null || String.valueOf(testCasesSheet).trim().length() == 0 || "Test Cases".equalsIgnoreCase(testCasesSheet) ){
+	return "Test Cases"
+} else {
+	return testCasesSheet
+}' ) 
+	} 
+	@testcase @name ( 'Executing Test Pack [${workbook}]' ) try {
+		@testcase 'Process sheet [${sheet}] on workbook [${workbook}]' {
+			'Check test cases defined in excel' {
+				sheets = excel.getSheets ( filePath = workbook ) 
+				@name ( 'Check sheet [${sheet}]' ) control.iteration ( loopSource = ^=sheets^ , loopVar = 'currentSheet' , loopIndex = 'currentSheetID' ) {
+					@name ( 'Check sheet found' ) if ^currentSheet.equals(sheet)^ {
+						break 
+					} 
+					@name ( 'Report sheet not found error' ) if ^sheets.size() == currentSheetID^ {
+						error ^"Expected sheet [" + sheet + "] not found"^ 
+					} 
+				} 
+				@name ( 'Check Rerun from Stop Point Sheet[${sheet}]' ) control.iteration ( loopSource = ^=sheets^ , loopVar = 'currentSheet' , loopIndex = 'currentSheetID' ) {
+					@name ( 'Check sheet found' ) if ^currentSheet.equals(RerunFromStopPointsheet)^ {
+						RerunFromStopPointsheetObject = excel.read ( filePath = ^ workbook^ , sheetName = ^ RerunFromStopPointsheet^ , hasHeader = false ) 
+						RerunFromStopPointsheetFlag = ^RerunFromStopPointsheetObject[1][0]^ 
+						break 
+					} 
+					@name ( 'Report sheet not found error' ) if ^sheets.size() == currentSheetID^ {
+						error ^"Expected sheet [" + sheet + "] not found"^ 
+					} 
+				} 
+			} 
+			TestCaseTableDict = map.new ( ) 
+			@name ( 'Rerun from stopping point' ) if ^RerunFromStopPointsheetFlag=="Y"^ {
+				@name ( 'Rerun test cases from stoping point' ) /EBSArea/tests/scenarios/regression/tasks/get_data_summary_results.task ( workbook = ^ workbook^ , sheet = ^ dataSummaryPartialResultSheet^ , inputDictionary = TestCaseTableDict ) 
+			} 
+			'Define result summary table' {
+				@name ( 'Create summary table' ) recordset.create ( columns = 'Test Case,Root Test Case ID,Ref Test Case ID,Test Case ID, Status' ) 
+				summaryTable = recordset.save ( ) 
+			} 
+			@name ( 'Execute test cases' ) try {
+				data = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+				@name ( 'Read headers' ) headers = control.evaluate ( expression = 'data.getHeader().join(",").toUpperCase()' ) 
+				@name ( 'Initiate data' ) control.evaluate ( expression = 'data' ) 
+				data = transform.columnrename ( columns = headers ) 
+				data = transform.expression ( expression = 'EXECUTE= String.valueOf(EXECUTE).trim().toUpperCase()' ) 
+				@name ( 'Filter by functional area' ) if ^functionalArea != null && String.valueOf(functionalArea).trim().length() > 0^ {
+					data = filter.comparison ( columns = 'FUNCTIONAL_AREA' , operation = 'EQUAL' , value = functionalArea ) 
+				} 
+				@name ( 'Filter by row range' ) if ^startRow != null && String.valueOf(startRow).trim().length() > 0^ {
+					data = filter.range ( firstRow = ^=startRow^ , lastRow = ^=endRow^ ) 
+				} 
+				data = filter.comparison ( columns = 'EXECUTE' , operation = 'EQUAL' , value = 'Y' ) 
+				data = filter.blanks ( columns = 'TEST_CASE_ID' ) 
+				@name ( 'Process test cases' ) control.iteration ( loopSource = ^=data^ , loopVar = 'row' , loopIndex = 'rowID' ) {
+					@name ( 'Evaluate test case' ) testCase = control.evaluate ( expression = "return row['TEST CASE']" ) 
+					@name ( 'Evaluate root test case' ) rootTestCaseID = control.evaluate ( expression = "return row['ROOT TEST CASE ID']" ) 
+					@name ( 'Evaluate reference test case' ) refTestCaseID = control.evaluate ( expression = "return row['REF TEST CASE ID']" ) 
+					@name ( 'Evaluate test case identifier' ) testCaseID = control.evaluate ( expression = "return row['TEST CASE ID']" ) 
+					@name ( 'Evaluate test case login' ) user = control.evaluate ( expression = "return row['USER']" ) 
+					@name ( 'Evaluate test case sheet name' ) testDataSheet = control.evaluate ( expression = "testSheet = testCaseID.substring(testCaseID.indexOf('_') + 1, testCaseID.length() )
+testSheet = testSheet.substring(0, testSheet.lastIndexOf('_') )
+return testSheet" ) 
+					@name ( 'Define default execution status' ) executionStatus = control.evaluate ( expression = 'return "Fail"' ) 
+					@testcase @name ( 'Execute test case [${testCase}] with reference of [${testCaseID}] from sheet [${testDataSheet}]' ) try {
+						@name ( 'Generate session name' ) session = '/Utils/new login session/sub tasks/get_session_name.task' ( session = user , environment = env ) 
+						@name ( 'Handle action' ) /EBSArea/tests/scenarios/regression/tasks/handle_request.task ( environment = environment , workbook = workbook , testDataSheet = testDataSheet , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , testCase = testCase , session = session , summaryTable = summaryTable , workbookSummary = workbookSummary , usersConfig = usersConfig , usersConfigLocation = usersConfigLocation , user = user , TestCaseTableDict = TestCaseTableDict ) 
+					} 
+					@name ( 'Handle failures' ) catch {
+						/EBSArea/tests/scenarios/regression/tasks/handle_prepare_summary.task ( summaryTable = summaryTable , testCase = testCase , rootTestCaseID = rootTestCaseID , refTestCaseID = refTestCaseID , testCaseID = testCaseID , result = 'FAIL' ) 
+					} 
+					'Write results summary' {
+						/EBSArea/tests/scenarios/regression/tasks/write_summary.task ( summaryTable = summaryTable , workbookSummary = workbookSummary ) 
+					} 
+					@name ( 'Request for garbage collection' ) control.evaluate ( expression = 'System.gc()' ) 
+				} 
+			} 
+			@name ( 'Close all active sessions' ) control.try ( showFailure = false ) {
+				@name ( 'Close sessions' ) if closeSessions {
+					@name ( 'Close all sessions [Java]' ) /EBSArea/lib/java/basic/close_all_active_sessions.task ( ) 
+					@name ( 'Close all sessions [Web]' ) /EBSArea/lib/web/basic/close_all_active_sessions.task ( ) 
+				} 
+			} 
+		} 
+	} 
+} 
+@name ( 'Return summary' ) control.evaluate ( expression = 'summaryTable' ) 

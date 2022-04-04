@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = expenseEmployee ) 
+@param ( name = response ) 
+web.switch ( session = session ) 
+@name ( 'Employee Approves Expenses' ) try {
+	@name ( 'Wait for Worklist' ) /EBSArea/lib/web/basic/wait_for_element.task ( scenario = scenario , session = session , element = 'h2' , text = 'Worklist' ) 
+	@name ( 'Click on Full List' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'NtfFullList' , scenario = scenario ) 
+	@name ( 'Click Expense for an Employee Link' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = expenseEmployee ) 
+	@name ( 'Click Approve button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Approve' , scenario = scenario ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ scenario+"_emp_approves_expense_fail"^ ) 
+	error ^"Failed to perform employee approves expense for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,21 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+java.switch ( session = session ) 
+'Add Entries' {
+	@name ( 'Click Entries Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entries' ) 
+	@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+	@name ( 'Click on UKRI Basic Pay' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , text = 'UKRI Basic Pay' , field = 'Element Name' , label = 'Element Name' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'element_entries' ) 
+	@name ( 'Click Entry Values Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Entry Values' ) 
+	@name ( 'Wait For Entry Values' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Entry Values' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'entry_values' ) 
+	@name ( 'Click Entry Values Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Entry Values' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For Element Entries' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Element Entries' ) 
+	@name ( 'Click Element Entries Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Element Entries' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For Assignment' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assignment' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "add_entries_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform add entries for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

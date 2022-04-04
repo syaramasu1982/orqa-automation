@@ -1,0 +1,12 @@
+@specification 1.1 
+@param ( name = tableNameOrRefCaseName ) 
+@param ( name = tableColumnName ) 
+@param ( name = testCaseTableDict ) 
+refDataTable = map.get ( map = ^=testCaseTableDict^ , key = ^=tableNameOrRefCaseName.trim()^ ) 
+@name ( 'Loop through table Columns' ) for rowRef in ^=refDataTable^ {
+	cellValue = control.evaluate ( expression = 'return rowRef[tableColumnName];' ) 
+	if ^cellValue != null && cellValue != '' && cellValue.trim() != ''^ {
+		break 
+	} 
+} 
+cellValue = control.evaluate ( expression = 'return cellValue' ) 

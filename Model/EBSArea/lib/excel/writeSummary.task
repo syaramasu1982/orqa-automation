@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = workbookSummary ) 
+@param ( name = resultsSheet ) 
+@param ( name = resultsCellName ) 
+@param ( name = cellRange ) 
+@param ( name = boarders ) 
+'Write summary' {
+	@name ( 'Result column exists' ) if ^resultsCellName != null && String.valueOf(resultsCellName).trim().length() > 0 && cellRange != null && String.valueOf(cellRange).trim().length() > 0 && boarders != null && String.valueOf(boarders).trim().length() > 0^ {
+		style.font ( cellRange = cellRange , bold = true , table = ^=summaryTable^ ) 
+		style.background ( color = 'YELLOW' , cellRange = cellRange , table = ^=summaryTable^ ) 
+		style.columnwidth ( columnRange = cellRange , columnWidth = 15 , table = ^=summaryTable^ ) 
+		style.borders ( cellRange = ^boarders + summaryTable.size()^ , arrangement = 'GRID' , table = ^=summaryTable^ ) 
+		excel.write ( filePath = workbookSummary , sheetName = resultsSheet , cellName = resultsCellName , table = ^=summaryTable^ ) 
+	} 
+	else {
+		excel.write ( filePath = workbookSummary , sheetName = resultsSheet , table = ^=summaryTable^ ) 
+	} 
+} 

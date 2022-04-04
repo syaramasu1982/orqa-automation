@@ -1,0 +1,23 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = element ) 
+@param ( name = text ) 
+web.switch ( session = session ) 
+@name ( 'Wait for component' ) try {
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		isErrorExists = web.exists ( target = ^"//" + element +"[contains(text(),'" + text + "')]"^ ) 
+		if isErrorExists {
+			@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'error_exists_before_refresh' ) 
+			currentURL = web.geturl ( ) 
+			web.url ( url = currentURL ) 
+			sleep 3 
+			@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'error_exists_after_refresh' ) 
+		} 
+		web.wait ( target = ^"//" + element +"[contains(text(),'" + text + "')]"^ , operation = 'NOT_EXIST' , timeout = 5 ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "error_exists_"+text+"_fail"^ ) 
+	error ^"Failed to find component [" + element + "] with [" + text + "] on session [" + session + "]"^ 
+} 

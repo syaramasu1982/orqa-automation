@@ -1,0 +1,22 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requestoruser ) 
+@param ( name = requisition ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=requestoruser' , password #= '="RoeUpgd21"' ) 
+@name ( 'Create SmartFormItemRequisition' ) try {
+	'Navigate to iProcurement HomePage' {
+		@disabled @name ( 'Navigate to Smart Form' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="STFC iProcurement User"' , itemId #= '="STFC iProcurement User"' , itemName #= '="iProcurement Home Page"' ) 
+		@name ( 'Click Requisitions' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Requisitions' ) 
+		reqnum = control.evaluate ( expression = 'def reqnum="//a[contains(text(),''"+ requisition +"'')]"
+return  reqnum' ) 
+		@name ( 'Click RequestNumber' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = reqnum ) 
+		sleep 10 
+		@name ( 'ReadPONumber' ) IspoNum = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'PurchaseOrder' , xPath = 'PurchaseOrderNumber' ) 
+		@name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "purchase_order_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform smartformrequisitionvalidation [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,6 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+java.screenshot ( filePath = ^ "artefacts/" + scenario + "_" + session + "_" +name + ".jpg"^ ) 

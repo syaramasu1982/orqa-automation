@@ -1,0 +1,22 @@
+@specification 1.1 
+@param ( name = session ) 
+web.switch ( session = session ) 
+expectedMenuItems = excel.read ( filePath = 'EBSArea\tests\scenarios\smoke_tests\tasks\ResponsibilityList.xlsx' ) 
+try {
+	expectedMenuItems = filter.comparison ( columns = 'USER' , operation = 'EQUAL' , value = session ) 
+	@name ( 'Check Responsibility [${expectedMenuItem}]' ) control.iteration ( loopSource = ^=expectedMenuItems^ , loopVar = 'expectedMenuItem' , loopIndex = 'menuItemID' ) {
+		@name ( 'Resolve responsibility  name' ) responsibilityName = control.evaluate ( expression = 'return expectedMenuItem.Responsibility' ) 
+		@testcase 'Check [${responsibilityName}]' {
+			isResponsibilityExists = web.exists ( target = "//a[text()='${responsibilityName}']" ) 
+			if isResponsibilityExists {
+				assert.true ( expression = 'true' ) 
+			} 
+			else {
+				error ^"Expected Responsibility ["+ responsibilityName +"] not found"^ 
+			} 
+		} 
+	} 
+} 
+@name ( 'Handle Failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "Responsibility ["+responsibilityName +"] fail"^ ) 
+} 

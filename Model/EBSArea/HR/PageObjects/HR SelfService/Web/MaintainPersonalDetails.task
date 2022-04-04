@@ -1,0 +1,285 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empuser ) 
+@param ( name = addressline1 ) 
+@param ( name = addressline2 ) 
+@param ( name = addressline3 ) 
+@param ( name = town ) 
+@param ( name = county ) 
+@param ( name = postcode ) 
+@param ( name = otheraddresstype ) 
+@param ( name = phonenumbertype ) 
+@param ( name = mainaddresstype ) 
+@param ( name = enterphonenumber ) 
+@param ( name = basicdetailstype ) 
+@param ( name = firstname ) 
+@param ( name = middlename ) 
+@param ( name = lastname ) 
+@param ( name = addemergencytitle ) 
+@param ( name = addemergencyfirstname ) 
+@param ( name = addemergencymiddlename ) 
+@param ( name = addemergencylastname ) 
+@param ( name = addrelationship ) 
+@param ( name = emergencymainaddresstype ) 
+@param ( name = emergencyaddressline1 ) 
+@param ( name = emergencyaddressline2 ) 
+@param ( name = emergencyaddressline3 ) 
+@param ( name = Addemergencytown ) 
+@param ( name = addemergencycounty ) 
+@param ( name = addemergencypostcode ) 
+@param ( name = addemergencyphonenumbertype ) 
+@param ( name = addemergencyphnumber ) 
+@param ( name = ethicorigin ) 
+@param ( name = selectamendaddress ) 
+@param ( name = selectamenddeleteaddress ) 
+@param ( name = secondaryaddresstype ) 
+@param ( name = phonenumber ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'UpdatePersonalDetails' ) try {
+	web.switch ( session = session ) 
+	'Update Personal Details' {
+		@disabled @name ( 'Navigate Personal Information' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Employee"' , itemId #= '="RCUK Self-Service EmployeeAll Actions Awaiting Your Attention"' , itemName #= '="Personal Information"' ) 
+		@name ( 'Verify Main AddressUpdate' ) IsmainAddress = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='MainAddressUpdate']" ) 
+		if IsmainAddress {
+			@name ( 'ClickUpdate' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//button[@id='MainAddressUpdate']" ) 
+			@name ( 'Select Amend Address' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Correct  or amend this address.' ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'SelectAdresstype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'HrAddressType' , value = mainaddresstype ) 
+			@name ( 'UpdateAddressline1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline1 , xPath = 'HrAddressFlex1' ) 
+			@name ( 'UpdateAddressline2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline2 , xPath = 'HrAddressFlex2' ) 
+			@name ( 'UpdateAddressline3' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline3 , xPath = 'HrAddressFlex3' ) 
+			@name ( 'UpdateTown' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town' , xPath = 'HrAddressFlex4' , value = town ) 
+			@name ( 'SelectCounty' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'County' , xPath = 'HrAddressFlex5' , value = county ) 
+			@name ( 'UpdatePostcode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PostCode' , xPath = 'HrAddressFlex6' , value = postcode ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'Verify Submit exists' ) Issubmit = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrSubmit_uixr']" ) 
+			if Issubmit {
+				@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+				@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+				if Isconfirmation {
+					assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+				} 
+				@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+			} 
+			else {
+				@name ( 'Click Cancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancelButton_uixr' ) 
+				@name ( 'Read Warning' ) Iswarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'cancel' ) 
+				assert.true ( expression = 'Iswarning.equals("Do you want to cancel this action?")' ) 
+				@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+			} 
+			@name ( 'Verify Cancel button' ) Iscancel = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrCancelButton_uixr']" ) 
+			if Iscancel {
+			} 
+		} 
+	} 
+	'Add Other Address' {
+		@name ( 'Verify Secondary Address Add' ) IsSecondaryAddressAdd = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='SecondaryAddressAdd']" ) 
+		if IsSecondaryAddressAdd {
+			@name ( 'Click Add' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//button[@id='SecondaryAddressAdd']" ) 
+			@name ( 'SelectAddresstype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'HrAddressType' , value = otheraddresstype ) 
+			@name ( 'Add Addressline1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline1 , xPath = 'HrAddressFlex1' ) 
+			@name ( 'Add Addressline2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline2 , xPath = 'HrAddressFlex2' ) 
+			@name ( 'Add Addressline3' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine3' , value = addressline3 , xPath = 'HrAddressFlex3' ) 
+			@name ( 'Add Town' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town' , xPath = 'HrAddressFlex4' , value = town ) 
+			@name ( 'SelectCounty' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'County' , xPath = 'HrAddressFlex5' , value = county ) 
+			@name ( 'AddPostCode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PostCode' , xPath = 'HrAddressFlex6' , value = postcode ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'Verify Submit exists' ) Issubmit = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrSubmit_uixr']" ) 
+			if Issubmit {
+				@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+				@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+				if Isconfirmation {
+					assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+				} 
+				@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+			} 
+		} 
+		@name ( 'Verify Cancel button' ) Iscancel = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrCancelButton_uixr']" ) 
+		if Iscancel {
+			@name ( 'Click Cancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancelButton_uixr' ) 
+			@name ( 'Read Warning' ) Iswarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'cancel' ) 
+			assert.true ( expression = 'Iswarning.equals("Do you want to cancel this action?")' ) 
+			@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+		else {
+			@name ( 'Verify Secondary Address Update' ) IsSecondaryAddress = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='SecondaryAddressUpdate']" ) 
+			if IsSecondaryAddress {
+				@name ( 'ClickUpdate' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//button[@id='SecondaryAddressUpdate']" ) 
+			} 
+			@name ( 'Select Correct or Complete' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Correct, amend or delete this address.' ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'SelectAdresstype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'HrAddressType' , value = secondaryaddresstype ) 
+			@name ( 'UpdateAddressline1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline1 , xPath = 'HrAddressFlex1' ) 
+			@name ( 'UpdateAddressline2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline2 , xPath = 'HrAddressFlex2' ) 
+			@name ( 'UpdateAddressline3' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = addressline3 , xPath = 'HrAddressFlex3' ) 
+			@name ( 'UpdateTown' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town' , xPath = 'HrAddressFlex4' , value = town ) 
+			@name ( 'SelectCounty' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'County' , xPath = 'HrAddressFlex5' , value = county ) 
+			@name ( 'UpdatePostcode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PostCode' , xPath = 'HrAddressFlex6' , value = postcode ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'Verify Submit exists' ) Issubmit = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrSubmit_uixr']" ) 
+			if Issubmit {
+				@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+				@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+				if Isconfirmation {
+					assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+				} 
+				@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+			} 
+		} 
+		@name ( 'Verify Cancel button' ) Iscancel = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrCancelButton_uixr']" ) 
+		if Iscancel {
+			@name ( 'Click Cancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancelButton_uixr' ) 
+			@name ( 'Read Warning' ) Iswarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'cancel' ) 
+			assert.true ( expression = 'Iswarning.equals("Do you want to cancel this action?")' ) 
+			@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+	} 
+	'UpdatePhoneNumbers' {
+		@name ( 'Verify PhoneNumber Update' ) IsPhoneNumbersUpdate = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='PhoneNumbersUpdate']" ) 
+		if IsPhoneNumbersUpdate {
+			@name ( 'Click PhoneNumberUpdate' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//button[@id='PhoneNumbersUpdate']" ) 
+		} 
+		@name ( 'Click Add Another Row' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Add Another Row' ) 
+		@name ( 'Select PhoneNumberType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'N17:HrPhoneType:3' , value = phonenumbertype ) 
+		@name ( 'Set PhoneNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PhoneNumber' , xPath = 'N17:HrPhoneNumber:3' , value = phonenumber ) 
+		@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+		@name ( 'Verify Submit exists' ) Issubmit = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrSubmit_uixr']" ) 
+		if Issubmit {
+			@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+			@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+			if Isconfirmation {
+				assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+			} 
+			@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+		} 
+		@disabled @name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@disabled @name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		@disabled if Isconfirmation {
+			@disabled assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+		} 
+		@disabled @name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+	} 
+	@name ( 'Verify Cancel button' ) Iscancel = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrCancelButton_uixr']" ) 
+	if Iscancel {
+		@name ( 'Click Cancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancelButton_uixr' ) 
+		@name ( 'Read Warning' ) Iswarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'cancel' ) 
+		assert.true ( expression = 'Iswarning.equals("Do you want to cancel this action?")' ) 
+		@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	} 
+	'Update Basic details' {
+		@name ( 'Verify Basic Details Update' ) IsBasicDetail = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='BasicDetailsUpdate']" ) 
+		if IsBasicDetail {
+			@name ( 'ClickBasicDetailsUpdate' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'BasicDetailsUpdate' ) 
+		} 
+		@name ( 'Select Correct or Complete' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Correct or complete the current' ) 
+		@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+		@name ( 'SelectTitle' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Title' , xPath = 'HrTitle' , value = basicdetailstype ) 
+		@name ( 'SetFirstName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Firtstname' , xPath = 'HrFirstName' , value = firstname ) 
+		@name ( 'SetMiddleName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'MiddleName' , xPath = 'HrMiddleName' , value = middlename ) 
+		@name ( 'SetLastName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Lastname' , xPath = 'HrLastName' , value = lastname ) 
+		@name ( 'SelectEthicOrigin' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'EthicOrigin' , xPath = 'HrPersonDevDfFlex1' , value = ethicorigin ) 
+		@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+		@name ( 'Verify Submit exists' ) Issubmit = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrSubmit_uixr']" ) 
+		if Issubmit {
+			@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+			@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+			if Isconfirmation {
+				assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+			} 
+			@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+		} 
+		@name ( 'Verify Cancel button' ) Iscancel = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrCancelButton_uixr']" ) 
+		if Iscancel {
+			@name ( 'Click Cancel' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrCancelButton_uixr' ) 
+			@name ( 'Read Warning' ) Iswarning = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Warning' , xPath = 'cancel' ) 
+			assert.true ( expression = 'Iswarning.equals("Do you want to cancel this action?")' ) 
+			@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+		} 
+	} 
+	'Add Emergency Contacts' {
+		@name ( 'Verify Add Emergency Contact' ) IsAddEmergency = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='AddEmergContact']" ) 
+		if IsAddEmergency {
+			@name ( 'ClickAddEmergency' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = "//button[@id='AddEmergContact']" ) 
+		} 
+		@name ( 'Verify Continue' ) Iscontinue = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'button' , xPath = "[@id='HrNext_uixr']" ) 
+		@name ( 'Click Continue' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNext_uixr' ) 
+		@name ( 'Select Add Emergency Title' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Title' , xPath = 'HrTitle' , value = addemergencytitle ) 
+		@name ( 'Set First Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddEmergencyFirstName' , xPath = 'HrFirstName' , value = addemergencyfirstname ) 
+		@name ( 'Set MiddleName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddMiddleName' , xPath = 'HrMiddleName' , value = addemergencymiddlename ) 
+		@name ( 'Set Last Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddLastname' , xPath = 'HrLastName' , value = addemergencylastname ) 
+		@name ( 'Select Relationship' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Add Relation Ship' , xPath = 'HrRelationshipType' , value = addrelationship ) 
+		@name ( 'Select Use my Address' ) /EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , id = 'HrSharedResidenceFlag' , name = 'HrSharedResidenceFlag' , expectedVal = 'N' ) 
+		'Add Emergency Main Address' {
+			@name ( 'SelectEmergencyType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Add Emergency Main Address' ) 
+			@name ( 'SelectAddresstype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'HrAddressType' , value = emergencymainaddresstype ) 
+			@name ( 'Add Addressline1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = emergencyaddressline1 , xPath = 'HrAddressFlex1' ) 
+			@name ( 'Add Addressline2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = emergencyaddressline2 , xPath = 'HrAddressFlex2' ) 
+			@name ( 'Add Addressline3' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine3' , value = emergencyaddressline3 , xPath = 'HrAddressFlex3' ) 
+			@name ( 'Add Town' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town' , xPath = 'HrAddressFlex4' , value = Addemergencytown ) 
+			@name ( 'SelectCounty' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'County' , xPath = 'HrAddressFlex5' , value = addemergencycounty ) 
+			@name ( 'AddPostCode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PostCode' , xPath = 'HrAddressFlex6' , value = addemergencypostcode ) 
+		} 
+		'Add Emergency Phone Numbers' {
+			@name ( 'AddPhoneNumberType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'AddPhonenumberType' , xPath = 'N113:HrPhoneType:0' , value = addemergencyphonenumbertype ) 
+			@name ( 'AddPhoneNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddEmergencyPhonenumber' , xPath = 'N113:HrPhoneNumber:0' , value = addemergencyphnumber ) 
+			@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+			@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+			@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+			if Isconfirmation {
+				assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+			} 
+			@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+		} 
+	} 
+	'Update Secondary Emergency Address ' {
+		@name ( 'Select Secondary Emergency Contact' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , fullXPath = ^"*[contains(text(),'"+addemergencylastname+"')]//parent::td//preceding-sibling::td/input"^ ) 
+		@name ( 'UpdateEmergencyContact' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'UpdateEmergContact' ) 
+		@name ( 'Select Add Emergency Title' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Title' , xPath = 'HrTitle' , value = addemergencytitle ) 
+		@name ( 'Set First Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddEmergencyFirstName' , xPath = 'HrFirstName' , value = addemergencyfirstname ) 
+		@name ( 'Set MiddleName' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddMiddleName' , xPath = 'HrMiddleName' , value = addemergencymiddlename ) 
+		@name ( 'Set Last Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddLastname' , xPath = 'HrLastName' , value = addemergencylastname ) 
+		@name ( 'Select Relationship' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Add Relation Ship' , xPath = 'HrRelationshipType' , value = addrelationship ) 
+		@name ( 'SelectEmergencyType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Add Emergency Main Address' ) 
+		@name ( 'SelectAddresstype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Type' , xPath = 'HrAddressType' , value = emergencymainaddresstype ) 
+		@name ( 'Add Addressline1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = emergencyaddressline1 , xPath = 'HrAddressFlex1' ) 
+		@name ( 'Add Addressline2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine1' , value = emergencyaddressline2 , xPath = 'HrAddressFlex2' ) 
+		@name ( 'Add Addressline3' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddressLine3' , value = emergencyaddressline3 , xPath = 'HrAddressFlex3' ) 
+		@name ( 'Add Town' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Town' , xPath = 'HrAddressFlex4' , value = Addemergencytown ) 
+		@name ( 'SelectCounty' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'County' , xPath = 'HrAddressFlex5' , value = addemergencycounty ) 
+		@name ( 'AddPostCode' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'PostCode' , xPath = 'HrAddressFlex6' , value = addemergencypostcode ) 
+		@name ( 'AddPhoneNumberType' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'AddPhonenumberType' , xPath = 'N113:HrPhoneType:0' , value = addemergencyphonenumbertype ) 
+		@name ( 'AddPhoneNumber' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'AddEmergencyPhonenumber' , xPath = 'N113:HrPhoneNumber:0' , value = addemergencyphnumber ) 
+		@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+		@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		if Isconfirmation {
+			assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+		} 
+		@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+	} 
+	'Remove Secondary Emergency Address' {
+		@name ( 'Select Secondary Emergency Contact' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , fullXPath = ^"*[contains(text(),'"+addemergencylastname+"')]//parent::td//preceding-sibling::td/input"^ ) 
+		@name ( 'Delete Secondary Emergency Contact' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'DeleteEmergContacts' ) 
+		@name ( 'Enter Date' ) enddate = control.evaluate ( expression = 'def EndDate= null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+   EndDate= today
+}
+ EndDate=  EndDate.format("dd-MMM-yyy")
+
+return  EndDate' ) 
+		@name ( 'Update End Date' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'EmergencyEndDate' , xPath = 'PerEndDate' , value = enddate ) 
+		@name ( 'Clicknext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrNextButton' ) 
+		@name ( 'Clicksubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrSubmit_uixr' ) 
+		@name ( 'Read Confirmation' ) Isconfirmation = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'HrMsgApply' ) 
+		if Isconfirmation {
+			assert.true ( expression = 'Isconfirmation="Your changes have been applied"' ) 
+		} 
+		@name ( 'ClickreturntoOverview' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'HrReturnToOverview' ) 
+	} 
+} 
+@name ( 'Handle Failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'UpdatePersonalDetails' ) 
+	error ^"Failed to perform Update Personal Details[" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,124 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = operatingUnit ) 
+@param ( name = supplier ) 
+@param ( name = site ) 
+@param ( name = description ) 
+@param ( name = categoryFamily ) 
+@param ( name = category ) 
+@param ( name = subCategory ) 
+@param ( name = quantity ) 
+@param ( name = price ) 
+@param ( name = requester ) 
+@param ( name = deliverTo ) 
+@param ( name = poChargeAccount ) 
+@param ( name = businessUnit ) 
+@param ( name = costCentre ) 
+@param ( name = accountCode ) 
+@param ( name = programme ) 
+@name ( 'Define purchase order number' ) poNumber = control.evaluate ( expression = 'return null' ) 
+@name ( 'Buyer Creates PO' ) try {
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Find Purchase Orders' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Purchase Orders - [New]' ) 
+	@name ( 'Enter Operating Unit' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Operating Unit' , value = operatingUnit , title = 'Purchase Orders - [New]' , xPath = 'FScrollBox[4]//VTextField[1]' ) 
+	@name ( 'Enter Supplier' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Supplier' , value = supplier , title = 'Purchase Orders - [New]' , xPath = 'FScrollBox[4]//VTextField[6]' ) 
+	@name ( 'Enter Site' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Site' , value = site , title = 'Purchase Orders - [New]' , xPath = 'FScrollBox[4]//VTextField[7]' ) 
+	@name ( 'Enter Description' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description' , title = 'Purchase Orders - [New]' , xPath = 'FScrollBox[4]//VTextField[15]' , value = description ) 
+	@name ( 'Click Num field in the first blank row' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Num' , label = 'Num' , index = '1' ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Category' , value = categoryFamily , label = 'Category' , index = '1' ) 
+	@name ( 'Wait For PO Item Category' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'PO Item Category' ) 
+	'Enter Category' {
+		@name ( 'Click on Category iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Category' , xPathPosition = '2' ) 
+		@name ( 'Wait For Category Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Category' ) 
+		@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Category' , xPath = '%' , value = category ) 
+		@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	} 
+	'Enter Sub-Category' {
+		@name ( 'Click on Sub-Category iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Sub-Category' , xPathPosition = '3' ) 
+		isSubCategoryExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Sub-Category' , title = 'Sub-Category' ) 
+		if isSubCategoryExists {
+			@name ( 'Wait For Sub Category Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Sub-Category' ) 
+			@name ( 'Enter Sub Category' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Sub-Category' , xPath = '%' , value = subCategory ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+	} 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Enter Description' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Description' , title = 'Purchase Orders - [New]' , xPath = 'FScrollBox[1]//VTextField[46]' , value = description ) 
+	@name ( 'Enter Quantity' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Quantity' , value = quantity , label = 'Quantity' , index = '1' ) 
+	@name ( 'Enter Price' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Price' , value = price , label = 'Price' , index = '1' ) 
+	@name ( 'Click Shipments' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Shipments' ) 
+	@name ( 'Wait For Shipments - [New]' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Shipments - [New]' ) 
+	@name ( 'Click on More Tab' ) /EBSArea/lib/java/click/click_tab_by_index.task ( scenario = scenario , session = session , name = 'More' ) 
+	@name ( 'Click Distributions' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Distributions' ) 
+	@name ( 'Wait For Distributions - [New]' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Distributions - [New]' ) 
+	@name ( 'Enter Requester' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Requester' , value = requester , label = 'Requester' , index = '1' ) 
+	@name ( 'Enter Deliver-To' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Deliver-To' , value = deliverTo , label = 'Deliver-To' , index = '1' ) 
+	@name ( 'Enter PO Charge Account' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Quantity' , label = 'Quantity' , index = '1' ) 
+	'Enter PO Charge Account' {
+		sleep 2 
+		@name ( 'Enter PO Charge Account' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'PO Charge Account' , value = poChargeAccount , label = 'PO Charge Account' , index = '1' ) 
+		sleep 2 
+		@name ( 'Click on Tab' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'PO Charge Account' , label = 'PO Charge Account' , index = '1' ) 
+		sleep 2 
+		@name ( 'Wait For Charge Account' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Charge Account' ) 
+		'Enter Business Unit Field' {
+			@name ( 'Click on Business Unit iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Business Unit' , xPathPosition = '2' ) 
+			@name ( 'Wait For Business Unit Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Business Unit' ) 
+			@name ( 'Enter Business Unit' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Business Unit' , xPath = '%' , value = businessUnit ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		'Enter Cost Centre Field' {
+			@name ( 'Click on Cost Centre iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPathPosition = '3' ) 
+			@name ( 'Wait For Cost Centre Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Cost Centre' ) 
+			@name ( 'Enter Cost Centre' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Cost Centre' , xPath = '%' , value = costCentre ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		'Enter Account Code Field' {
+			accountLabel = /EBSArea/lib/java/basic/check_text_exist.task ( scenario = scenario , session = session , name = 'Account Code' , alternateName = 'Account' ) 
+			@name ( 'Click on Account Code iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = accountLabel , xPathPosition = '4' ) 
+			@name ( 'Wait For Account Code Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = accountLabel ) 
+			@name ( 'Enter Account Code' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = accountLabel , xPath = '%' , value = accountCode ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+		@name ( 'Check Programme' ) programmeExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Programme' , title = 'Programme' ) 
+		if programmeExists {
+			'Enter Programme Field' {
+				@name ( 'Click on Programme iCon button' ) /EBSArea/lib/java/button/click_icon_button.task ( scenario = scenario , session = session , field = 'Programme' , xPathPosition = '5' ) 
+				@name ( 'Wait For Programme Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Programme' ) 
+				@name ( 'Enter Programme' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Programme' , xPath = '%' , value = programme ) 
+				@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+			} 
+		} 
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+		@name ( 'Wait For Distributions - [New]' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Distributions - [New]' ) 
+	} 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Distributions Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Distributions' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Shipments' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Shipments' ) 
+	@name ( 'Wait For Shipments' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Shipments' ) 
+	@name ( 'Click Shipments Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Shipments' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	@name ( 'Click Tool Bar Save Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Approve' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Approve' ) 
+	@name ( 'Wait For Approve Document' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Approve Document' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Find Purchase Orders' ) sleep 3 
+	@name ( 'Wait For Find Purchase Orders' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Purchase Orders' ) 
+	@name ( 'Read PO Number' ) poNumber = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'PO Rev' , label = 'Purchase Order Number' , index = '1' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "buyer_creates_po_"+poNumber^ ) 
+	@name ( 'Read Status' ) readStatus = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Status' , label = 'Status' , index = '1' ) 
+	assert.true ( expression = 'readStatus.equals("Approved")' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'buyer_creates_po_fail' ) 
+	error ^"Failed to perform buyer creates po for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Purchase Order to Map' ) map.add ( map = result , key = 'PONUMBER' , value = ^=poNumber^ ) 
+	@name ( 'Return purchase order number' ) result = control.evaluate ( expression = 'return result' ) 
+	@name ( 'Print Purchase Order Number' ) console.write ( data = ^="Purchase Order Number [" + poNumber + "] created for test case [" + scenario +"]"^ ) 
+} 

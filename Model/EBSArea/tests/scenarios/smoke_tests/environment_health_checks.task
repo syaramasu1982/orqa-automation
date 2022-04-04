@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = environment ) 
+@name ( 'Define test case name' ) testCase = control.evaluate ( expression = 'return "ENV_HEALTH_CHK"' ) 
+scenario = control.evaluate ( expression = 'return testCase' ) 
+startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve user sheet' ) sheet = control.evaluate ( expression = 'if( String.valueOf(env.openEnv).equalsIgnoreCase("TRUE") ){
+	return "Generic"
+} else {
+	return env.name
+}' ) 
+@testcase @name ( 'Check [LOGIN]' ) control.parallel ( poolSize = 2 ) {
+	@name ( 'Get Local Session' ) localSession = '/Utils/new login session/sub tasks/handle_session.task' ( environment = env , scenario = testCase , workbook = 'EBSArea\tests\scenarios\users\Users.xlsx' , sheet = sheet , testCase = 'LOCAL' , session = 'LOCAL' ) 
+	@name ( 'Get Requester Session' ) requesterSession = '/Utils/new login session/sub tasks/handle_session.task' ( environment = env , scenario = testCase , workbook = 'EBSArea\tests\scenarios\users\Users.xlsx' , sheet = sheet , testCase = 'REQUESTER' , session = 'REQUESTER' ) 
+	@name ( 'Get Approver Session' ) approverSession = '/Utils/new login session/sub tasks/handle_session.task' ( environment = env , scenario = testCase , workbook = 'EBSArea\tests\scenarios\users\Users.xlsx' , sheet = sheet , testCase = 'APPROVER' , session = 'APPROVER' ) 
+	@name ( 'Get Buyer Session' ) buyerSession = '/Utils/new login session/sub tasks/handle_session.task' ( environment = env , scenario = testCase , workbook = 'EBSArea\tests\scenarios\users\Users.xlsx' , sheet = sheet , testCase = 'BUYER' , session = 'BUYER' ) 
+} 
+@testcase @name ( 'Check [Responsibility]' ) control.parallel ( poolSize = 2 ) {
+	@name ( 'Responsibility checks for Requester' ) /EBSArea/tests/scenarios/smoke_tests/tasks/responsibility_checks.task ( session = requesterSession ) 
+	@name ( 'Responsibility checks for Buyer' ) /EBSArea/tests/scenarios/smoke_tests/tasks/responsibility_checks.task ( session = buyerSession ) 
+	@name ( 'Responsibility checks for Local' ) /EBSArea/tests/scenarios/smoke_tests/tasks/responsibility_checks.task ( session = localSession ) 
+} 
+/Utils/tools/close_all_orqa_sessions.task ( ) 
+/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 

@@ -1,0 +1,6 @@
+@specification 1.1 
+@param ( name = data ) 
+@name ( 'Decrypt' ) decodedData = control.evaluate ( expression = 'import java.util.Base64
+
+byte[] decodedBytes = Base64.getDecoder().decode(data)
+return new String(decodedBytes)' ) 

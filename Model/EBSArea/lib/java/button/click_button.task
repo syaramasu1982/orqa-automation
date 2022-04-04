@@ -1,0 +1,25 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@param ( name = fullName ) 
+java.switch ( session = session ) 
+@name ( 'Click Button [${name}]' ) try {
+	@name ( 'Populate value' ) if ^name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//Button[contains(@text,'"+ name +"')]"^ , timeout = 5 ) 
+			java.click ( target = ^"//ExtendedFrame[contains(@name,'ExtendedFrame')]//Button[contains(@text,'"+ name +"')]"^ ) 
+		} 
+	} 
+	else {
+		@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+			java.waitforcomponent ( target = ^"//Button[@text ='"+ fullName +"']"^ , timeout = 5 ) 
+			java.click ( target = ^"//Button[@text ='"+ fullName +"']"^ ) 
+			name = control.evaluate ( expression = 'fullName = name' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_button_"+ name +"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,24 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = field ) 
+@param ( name = xPath ) 
+@param ( name = value ) 
+web.switch ( session = session ) 
+@name ( 'Select value from drop down [${field}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	@name ( 'Perform operation' ) control.retry ( maxAttempts = 3 ) {
+		@name ( 'select value' ) if ^value != null && String.valueOf(value).trim().length() > 0^ {
+			web.wait ( target = ^"//select[contains(@id,'" + xPath + "')]"^ , timeout = 3 ) 
+			sleep 0.25 
+			value = control.evaluate ( expression = 'value = value.trim()' ) 
+			web.select ( target = ^"//select[contains(@id,'" + xPath + "')]/option[contains(text(),'" + value + "')]"^ ) 
+			sleep 0.25 
+			web.wait ( target = ^"//select[contains(@id,'" + xPath + "')]/option[contains(text(),'" + value + "')]"^ , timeout = 1 ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "select_dropdown_"+ field +"_fail"^ ) 
+	error ^"Failed to select [" + field + "] on session [" + session + "]"^ 
+} 

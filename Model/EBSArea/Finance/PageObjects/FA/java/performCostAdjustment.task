@@ -1,0 +1,37 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = datesInServiceFrom ) 
+@param ( name = datesInServiceTo ) 
+@param ( name = closeApp ) 
+@name ( 'Perform Cost Adjustment' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Find Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Assets' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Find Assets' , xPath = 'VTextField[10]' , value = book ) 
+	@name ( 'Enter Dates in service from' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates In Service from' , title = 'Find Assets' , xPath = 'VTextField[12]' , value = datesInServiceFrom ) 
+	@name ( 'Enter Dates in service to' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Dates In Service from' , title = 'Find Assets' , xPath = 'VTextField[13]' , value = datesInServiceTo ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	@name ( 'Click Books button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , fullName = 'Books' ) 
+	@name ( 'Wait For Books' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Books' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[3]' , value = book ) 
+	@name ( 'Click on Current Cost' ) /EBSArea/lib/java/presskey/press_tab.task ( scenario = scenario , session = session , field = 'Current Cost' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[6]' ) 
+	@name ( 'Read Current Cost' ) currentCost = /EBSArea/lib/java/text/read_text_from_input_field.task ( scenario = scenario , session = session , field = 'Current Cost' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[6]' ) 
+	updateCost = control.evaluate ( expression = 'int updateCost = Double.parseDouble(currentCost);
+updateCost = updateCost +100' ) 
+	@name ( 'Update Current Cost' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Current Cost' , title = 'Books' , xPath = 'FScrollBox[2]//VTextField[6]' , value = updateCost ) 
+	@name ( 'Select Amortize Adjustment CheckBox' ) /EBSArea/lib/java/checkbox/populate_checkbox.task ( scenario = scenario , session = session , expectedVal = 'Y' , title = 'Books' , name = 'Amortize Adjustment' , xPath = "LWCheckbox[@text='Amortize Adjustment']" ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'perform_cost_adjustment' ) 
+	@name ( 'Click Done button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Done' ) 
+	@name ( 'Wait For Forms' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Forms' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Assets' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Assets' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_perform_cost_adjustment_fail"^ ) 
+} 

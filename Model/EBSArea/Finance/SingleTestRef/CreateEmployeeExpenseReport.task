@@ -1,0 +1,53 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = sheet , default = 'TestCases' , type = automatic ) 
+@param ( name = testCase ) 
+env = environment.read ( name = environment ) 
+@name ( 'Resolve scenario' ) scenario = control.evaluate ( expression = 'return "GPC_iExp_TC08"' ) 
+@testcase 'Executing Test Pack [${workbook}]]' {
+	@testcase 'Process sheet [${sheet}] on workbook [${workbook}]' {
+		@name ( 'Execute test cases' ) try {
+			workbookInfo = file.info ( sourcePath = workbook ) 
+			@name ( 'Resolve timestamp' ) timeStamp = control.evaluate ( expression = 'return new java.text.SimpleDateFormat("yyyyMMddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+			file.copy ( sourcePath = workbook , targetPath = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ ) 
+			cases = /EBSArea/lib/common/get_test_cases.task ( environment = environment , workbook = workbook , sheet = sheet , testCase = testCase , convertColumns = 'RECEIPTAMOUNT' ) 
+			@name ( 'Create All Results List' ) results = list.new ( ) 
+			list.add ( list = results , entry = ^["REPORTNUMBER"]^ ) 
+			@name ( 'Login as GPC Employee User' ) /EBSArea/Finance/PageObjects/Common/login_old.task ( password = ^env['gpcemp.password']^ , scenario = scenario , environment = environment , user = ^env['gpcemp.username']^ , session = ^env['session.web']^ ) 
+			@name ( 'Process test cases' ) for caseRef in cases {
+				@name ( 'Resolve ID' ) orqaRef = control.evaluate ( expression = "return caseRef['ID']" ) 
+				@name ( 'Resolve test case' ) testCaseRef = control.evaluate ( expression = "return caseRef['TEST CASE NAME']" ) 
+				@testcase 'Execute test case [${orqaRef}] with reference of [${testCaseRef}] from sheet [${sheet}]' {
+					@name ( 'Navigate Expenses Home' ) /EBSArea/Finance/PageObjects/Common/navigate_menu_items_old.task ( scenario = scenario , session = ^env['session.web']^ , mainMenu = ^caseRef['MAIN MENU']^ ) 
+					@name ( 'Calculate Month End Date' ) periodEndDate = control.evaluate ( expression = 'def periodEndDate = null
+Calendar cal = Calendar.getInstance();
+cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DATE));
+Date lastDayOfMonth = cal.getTime();
+periodEndDate = lastDayOfMonth.format("dd-MMM-yy")
+return periodEndDate ' ) 
+					@name ( 'Calculate Receipt Date' ) receiptDate = control.evaluate ( expression = 'def receiptDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+receiptDate = today-5
+}
+receiptDate = receiptDate.format("dd-MMM-yyy")
+return receiptDate' ) 
+					@name ( 'Create Employee Expense Report' ) result = /EBSArea/Finance/PageObjects/GPCiEXP/web/createEmpExpReport.task ( scenario = scenario , session = ^env['session.web']^ , expenseTemplate = ^caseRef['EXPENSE TEMPLATE']^ , expensesForPeriodEnded = periodEndDate , receiptAmount = ^caseRef['RECEIPT AMOUNT']^ , expenseType = ^caseRef['EXPENSE TYPE']^ , justification = ^caseRef['JUSTIFICATION']^ , receiptCurrency = ^caseRef['RECEIPT CURRENCY']^ , receiptDate = receiptDate , filePath = ^caseRef['FILE PATH']^ , unappliedAdvanceReason = ^caseRef['UNAPPLIEDADVREASON']^ ) 
+				} 
+				@name ( 'Add Result to List' ) list.add ( list = results , entry = ^[result.REPORTNUMBER]^ ) 
+			} 
+			'Write results summary' {
+				@name ( 'Write results to spread sheet' ) /EBSArea/lib/excel/writeSummary.task ( workbookSummary = ^env['artefacts'] + "/Result_Summary_" +timeStamp + "_" + workbookInfo.Name^ , summaryTable = results , resultsSheet = 'TestCases' , resultsCellName = 'M' , cellRange = 'A1:M1' , boarders = 'A1:M' ) 
+			} 
+		} 
+		@name ( 'Handle failures' ) catch {
+			@name ( 'Resolve task name' ) taskName = control.evaluate ( expression = "return workbookInfo.Name.substring(0, workbookInfo.Name.indexOf('.')  )" ) 
+			@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = ^env['session.web']^ , name = ^taskName+"_fail"^ ) 
+		} 
+		'Close all active sessions' {
+			@name ( 'Close Web Session' ) /EBSArea/lib/web/basic/close_web_session.task ( session = ^env['session.web']^ ) 
+		} 
+		control.evaluate ( expression = 'workbook' ) 
+	} 
+} 

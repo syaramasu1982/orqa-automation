@@ -1,0 +1,79 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = type ) 
+@param ( name = reason ) 
+java.switch ( session = session ) 
+'Create sickness absence' {
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click on Alter Effective Date from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Alter Effective Date' ) 
+	@name ( 'Wait For Alter Effective Date' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Alter Effective Date' ) 
+	@name ( 'Calculate First Day Of Fourth Month' ) firstDayOfFourthMonth = control.evaluate ( expression = 'def firstDayOfFourthMonth = null
+
+def cal = Calendar.getInstance();
+
+cal.add(Calendar.MONTH, 3);
+
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+
+firstDayOfFourthMonth = cal.getTime().format("dd-MMM-yyyy").toUpperCase()
+
+return firstDayOfFourthMonth' ) 
+	@name ( 'Enter Effective Date' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Effective Date' , title = 'Alter Effective Date' , xPath = 'VTextField[1]' , value = firstDayOfFourthMonth ) 
+	@name ( 'Click OK Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+	@name ( 'Click Absence Button' ) /EBSArea/lib/java/button/click_button_java.task ( scenario = scenario , session = session , name = 'Absence' ) 
+	@name ( 'Wait For Absence  Detail' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Absence  Detail' ) 
+	@name ( 'Enter Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Type' , value = type , label = 'Type' , index = '1' ) 
+	@name ( 'Enter Reason' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Reason' , value = reason , label = 'Reason' , index = '1' ) 
+	@name ( 'Wait For Additional Absence  Detail Information' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Additional Absence Detail Information' ) 
+	@name ( 'Click Cancel' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Cancel' ) 
+	@name ( 'Wait For Absence  Detail' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Absence  Detail' ) 
+	@name ( 'Calculate Absence Date' ) absenceStartDate = control.evaluate ( expression = 'def today = new Date()
+def absenceStartDate = new Date()
+
+today = today.format("EE").toUpperCase()
+
+
+if(today.equals("MON")){
+absenceStartDate = absenceStartDate-3
+}
+else{
+absenceStartDate = absenceStartDate-1
+}
+
+absenceStartDate = absenceStartDate.format("dd-MMM-yyy")
+
+return absenceStartDate' ) 
+	@name ( 'Enter Absence Start Date' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Absence Start Date' , label = 'Absence Start: Date' , index = '1' , value = absenceStartDate ) 
+	@name ( 'Press tab on time' ) /EBSArea/lib/java/click/click_text_tab.task ( scenario = scenario , session = session , field = 'Time' , label = 'Absence Start: Time' , index = '1' ) 
+	@name ( 'Enter Absence End Date' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Absence End Date' , label = 'Absence End: Date' , index = '1' , value = absenceStartDate ) 
+	@name ( 'Wait For Caution' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Caution' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Absence  Detail' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Absence  Detail' ) 
+	@name ( 'Calculate Notified Date' ) notifiedDate = control.evaluate ( expression = 'def notifiedDate = new Date()
+
+notifiedDate = notifiedDate.format("dd-MMM-yyy")
+
+return notifiedDate' ) 
+	@name ( 'Enter Notified Date' ) /EBSArea/lib/java/text/set_text_tab.task ( scenario = scenario , session = session , field = 'Notified' , label = 'Notified' , index = '1' , value = notifiedDate ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Is caution exists' ) isCautionExists = /EBSArea/lib/java/basic/element_exists.task ( scenario = scenario , session = session , field = 'Caution' , title = 'Caution' ) 
+	@name ( 'isCautionExists' ) if isCautionExists {
+		@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	} 
+	@name ( 'Click Enroll Absences Button' ) /EBSArea/lib/java/button/click_button_by_width_hight.task ( scenario = scenario , session = session , name = 'Enroll Absences (G)' ) 
+	@name ( 'Wait For Decision' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Decision' ) 
+	@name ( 'Click Yes' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'Yes' ) 
+	@name ( 'Wait for note' ) sleep 10 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Absence  Detail' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Absence  Detail' ) 
+	@name ( 'Click on Save from tool bar' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Save' ) 
+	@name ( 'Click Absence  Detail Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = 'Absence  Detail' , xPath = 'ToolBar/ToolBarButton[3]' ) 
+	@name ( 'Wait For People' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'People' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_invoice_transaction_fail"^ ) 
+	error ^"Failed to perform month2 hr for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

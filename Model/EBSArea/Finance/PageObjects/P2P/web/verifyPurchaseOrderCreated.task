@@ -1,0 +1,35 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requisition ) 
+@param ( name = poNumber ) 
+web.switch ( session = session ) 
+@name ( 'Verify Purchase Order Created' ) try {
+	@disabled @name ( 'Click on Summary' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Summary' ) 
+	@disabled @name ( 'Select Show table data when any condition is met RadioButton' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Show table data when any condition is met' ) 
+	@disabled @name ( 'Select Requisition' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Requisition' , value = requisition , xPath = 'Value_0' , scenario = scenario ) 
+	@disabled @name ( 'Click Go' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Go' , scenario = scenario ) 
+	@disabled @name ( 'Click on Requisition Number' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = requisition ) 
+	@disabled @name ( 'Read Order Number' ) purchaseOrderNo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Order' , xPath = 'PurchaseOrderNumber' ) 
+	@name ( 'Click on Orders' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Orders' ) 
+	@name ( 'Click Search Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Search' , scenario = scenario ) 
+	@name ( 'Select Show table data when any condition is met RadioButton' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , selectRadioButton = 'Show table data when any condition is met' ) 
+	@name ( 'Select Order' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Order' , value = poNumber , xPath = 'Value_0' , scenario = scenario ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_multi_button.task ( scenario = scenario , session = session , name = 'Clear' , buttonName = 'Go' ) 
+	@name ( 'Click on Order Number' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = poNumber ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "verify_po_header_info_"+poNumber^ ) 
+	@name ( 'Click on Lines' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Lines' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "verify_line_info_"+poNumber^ ) 
+	@name ( 'Click on Schedules' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Schedules' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "verify_schedule_info_"+poNumber^ ) 
+	@name ( 'Click on Distributions' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Distributions' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "verify_distributions_info_"+poNumber^ ) 
+	@name ( 'Click on Return to Orders' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Orders' ) 
+	@name ( 'Select order to View PDF' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Select Order' , xPath = 'ActionsPoplist' , value = 'View PDF' ) 
+	@name ( 'Click Go button' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'GoButton' ) 
+	@name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Lines' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "purchase_order_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform verify po created for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

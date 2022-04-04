@@ -1,0 +1,59 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = lmuser ) 
+@param ( name = empID ) 
+@param ( name = absensetype ) 
+@param ( name = absensereason ) 
+@param ( name = absensetypesickness ) 
+@param ( name = empName ) 
+@param ( name = emp ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=lmuser' , password #= '="Welcome123"' ) 
+web.switch ( session = session ) 
+@name ( 'LMbooksSickness' ) try {
+	@disabled @name ( 'NavigateLM' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Self-Service Manager"' , itemId #= '="RCUK Self-Service ManagerAll Actions Awaiting Your AttentionMy Employee Information"' , itemName #= '="Attendance Management"' ) 
+	action = control.evaluate ( expression = 'def action = "//*[text()=''"+emp+"'']//ancestor::td//following-sibling::td[4]/a"
+
+return action
+
+' ) 
+	@disabled action = control.evaluate ( expression = 'def action = "//*[text()=''"+empID+"'']//parent::td//following-sibling::td/a"
+
+return action' ) 
+	@name ( 'ClickAction' ) /EBSArea/lib/web/click/click.task ( xPath = action , scenario = scenario , session = session ) 
+	@name ( 'ClickEntitlementBalances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Entitlement Balances' ) 
+	@name ( 'ClickShowAccuralBalances' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Show Accrual Balances' ) 
+	@name ( 'ReadremainingAnnualleaves' ) readRemainingAnnualLeaves = /EBSArea/lib/web/text/read_table_text.task ( scenario = scenario , session = session , field = 'Annual leave remaining' , xPath = "//*[contains(text(),'Annual leave remaining')]//ancestor::tr[2]/td[3]//span" ) 
+	remainingAnnualLeaves = control.evaluate ( expression = 'def remainingAnnualLeaves = readRemainingAnnualLeaves as int
+
+return remainingAnnualLeaves' ) 
+	if ^remainingAnnualLeaves > 1^ {
+		@name ( 'ClickAbsenseSummary' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Absence Summary' ) 
+		@name ( 'ClickCreateAbsense' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Create Absence' ) 
+		@name ( 'SelectAbsensetype' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'HrAbsenceType' , value = absensetype ) 
+		@name ( 'SelectAbsensereason' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Sicknessreason' , xPath = 'HrAbsenceReason' , value = absensereason ) 
+		@name ( 'CalculateStartDate' ) startdate = control.evaluate ( expression = 'def StartDate = null
+use (groovy.time.TimeCategory) {
+  def today = new Date()
+  StartDate = today-1
+}
+StartDate = StartDate .format("dd-MMM-yyy")
+
+return StartDate ' ) 
+		@name ( 'SetStartdate' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'StartDate' , xPath = 'HrAbsenceStartDate' , value = startdate ) 
+		@name ( 'ClickCalculateButton' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Calculate Duration' ) 
+		@name ( 'SelectAbsensesickness' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'HrAbsenceDFF4' , value = absensetypesickness ) 
+		@name ( 'ClickNext' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'ClickSubmit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit' ) 
+		@name ( 'ReadConfirmation' ) Issubmit = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'submitted ' ) 
+		assert.true ( expression = 'Issubmit=="The changes have been submitted for approval."' ) 
+		@name ( 'ReadEmpnumber' ) Empnumber = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Name' , xPath = 'EmployeeNumber' ) 
+		@disabled assert.true ( expression = 'Empnumber=="176403"' ) 
+		@disabled @name ( 'ClickHome' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+	} 
+	@disabled @name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMUpdateSickness' ) 
+	error ^"Failed to perform LinemanagerUpdateSickness[" + scenario +"] with session ["+ session +"]"^ 
+} 

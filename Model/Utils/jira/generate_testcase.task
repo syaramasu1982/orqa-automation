@@ -1,0 +1,19 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+testCases = excel.read ( filePath = workbook , sheetName = sheet ) 
+@name ( 'Read headers' ) headers = control.evaluate ( expression = 'testCases.getHeader().join(",").toUpperCase()' ) 
+@name ( 'Initiate test cases' ) control.evaluate ( expression = 'testCases' ) 
+testCases = transform.columnrename ( columns = headers ) 
+control.iteration ( loopSource = ^=testCases^ , loopVar = 'testCase' , loopIndex = 'testCaseID' ) {
+	@name ( 'Handle [Launch]' ) if ^"LAUNCH".equalsIgnoreCase(sheet)^ {
+		control.evaluate ( expression = 'if(String.valueOf(testCase[''ITEM NAME''].trim().length() > 0)){
+	println("Navigate main menu with the item name " + testCase[''ITEM NAME''] + "")
+}' ) 
+	} 
+	@name ( 'Handle [P2P]' ) if ^"P2P".equalsIgnoreCase(sheet)^ {
+		control.evaluate ( expression = 'if(String.valueOf(testCase[''TESTCASENAME''].trim().length() > 0)){
+	println("Perform the test case " + testCase[''TESTCASENAME''] + "")
+}' ) 
+	} 
+} 

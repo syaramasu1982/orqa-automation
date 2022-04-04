@@ -1,0 +1,32 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = employeeNumber ) 
+@param ( name = salary ) 
+@param ( name = reasonForChange ) 
+web.switch ( session = session ) 
+'Add Salary Information' {
+	@name ( 'Enter Employee Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Employee Number' , value = employeeNumber , xPath = 'SearchEmployeeNumber' ) 
+	@name ( 'Click Go' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'GoButton' ) 
+	@name ( 'Select Radio Button' ) /EBSArea/lib/web/radiobutton/click_radio_button.task ( scenario = scenario , session = session , fullXPath = "*[@id='EmployeeResultsRN']//input[@id='N3:N20:0']" ) 
+	@name ( 'Click Manage Salary' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'CreateAllocation' ) 
+	@name ( 'Click Add New Salary' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'AddNewSalary_uixr' ) 
+	@name ( 'Calculate From Date' ) startDate = control.evaluate ( expression = 'def startDate = null
+
+def cal = Calendar.getInstance();
+cal.set(Calendar.DAY_OF_MONTH,cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+Date firstDayOfTheMonth = cal.getTime();
+
+startDate = firstDayOfTheMonth .format("dd-MMM-yyy").toUpperCase()
+
+return startDate' ) 
+	@name ( 'Enter From Date' ) /EBSArea/lib/web/text/set_table_text.task ( scenario = scenario , session = session , field = 'From' , id = 'RowLayoutRN' , xPath = 'From' , value = startDate ) 
+	@name ( 'Enter New Salary' ) /EBSArea/lib/web/text/set_table_text_tab.task ( scenario = scenario , session = session , field = 'From' , id = 'RowLayoutRN' , xPath = 'ProposedSalary' , value = salary ) 
+	@name ( 'Select Reason for Change' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Reason for Change' , xPath = 'Reason' , value = reasonForChange ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'salary_created_successfully' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "add_new_salary_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform add new salary for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

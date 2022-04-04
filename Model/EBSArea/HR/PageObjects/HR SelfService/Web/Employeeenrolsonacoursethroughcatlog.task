@@ -1,0 +1,65 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = empuser ) 
+@param ( name = coursecatlog ) 
+@param ( name = coursecategory ) 
+@param ( name = selectsubcategories ) 
+@param ( name = coursename ) 
+@param ( name = clickyes ) 
+@param ( name = enrollmentjustification ) 
+@param ( name = lmuser ) 
+@param ( name = empname ) 
+@param ( name = comments ) 
+@param ( name = selectsubcategoriesoption ) 
+@param ( name = coursenameoption ) 
+@disabled /EBSArea/Finance/PageObjects/login.task ( environment #= '="SIT"' , scenario #= '=scenario' , session #= '=session' , user #= '=empuser' , password #= '="Welcome123"' ) 
+@name ( 'Update Enrols CourseCatlog' ) try {
+	'Enroll Course Catlog' {
+		@disabled @name ( 'Navigate CourseCatlog' ) /EBSArea/Finance/PageObjects/navigateMenuItems.task ( scenario #= '=scenario' , session #= '=session' , mainMenu #= '="RCUK Learning Self-Service"' , subMenu #= '="Learning"' , itemName #= '="Learner Home"' , itemId #= '="LearningLearner Home"' ) 
+		@name ( 'Click CourseCatlog' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = coursecatlog ) 
+		@name ( 'Click CourseCategory' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = coursecategory ) 
+		@name ( 'Click SubCategories' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = selectsubcategories ) 
+		@name ( 'Choose Enroll Course' ) enroll = control.evaluate ( expression = 'def enroll="//*[text()=''"+coursename+"'']//parent::td//following-sibling::td/a/img"
+return enroll' ) 
+		@name ( 'Click Enroll' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = enroll ) 
+		@name ( 'ReadText Error' ) isError = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , xPath = 'FwkErrorBeanId' ) 
+		if isError {
+			@name ( 'Click CourseCatlog' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = coursecatlog ) 
+			@name ( 'Click CourseCategory' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = coursecategory ) 
+			@name ( 'Click SubCategoriesoption' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = selectsubcategoriesoption ) 
+			@name ( 'Choose Enroll Course' ) enroll = control.evaluate ( expression = 'def enroll="//*[text()=''"+coursenameoption+"'']//parent::td//following-sibling::td/a/img"
+return enroll' ) 
+			@name ( 'Click Enroll' ) /EBSArea/lib/web/click/click.task ( scenario = scenario , session = session , xPath = enroll ) 
+		} 
+		@name ( 'Read InformText' ) Isinform = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'LearnerHomeInformation' , xPath = 'want' ) 
+		if Isinform {
+			assert.true ( expression = 'Isinform=="Do you still want to enroll in this class?"' ) 
+		} 
+		@name ( 'Click Yes' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = clickyes ) 
+		@name ( 'Enter Enrollment Justification' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( scenario = scenario , session = session , xPath = 'EnrollmentJustificationLov' , value = enrollmentjustification ) 
+		@name ( 'Click Review' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Review_uixr' ) 
+		@name ( 'Enter Comments' ) /EBSArea/lib/web/textarea/set_text_area.task ( scenario = scenario , session = session , field = 'Comments' , parentId = 'CommentsRN' , xPath = 'Comments' , value = comments ) 
+		@name ( 'Click Submit' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Submit_uixr' ) 
+		@name ( 'Read Confirm' ) Isconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Confirmation' ) 
+		if Isconfirm {
+		} 
+		@name ( 'ReadTextConfirm' ) readconfirm = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirm' , xPath = 'FwkErrorBeanId' ) 
+		empenrcourse = control.evaluate ( expression = 'String C1=readconfirm;
+String[] enr=C1.split(" ");
+empenr=enr[26]
+
+' ) 
+		@disabled @name ( 'Click Home' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Home' ) 
+		@name ( 'ClickLogout' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Logout - EBSSIT' ) 
+	} 
+} 
+@name ( 'HandleFailure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'LMbooksAnnualleave' ) 
+	error ^"Failed to perform EmployeeEnrollsCourseCatlog[" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Create Result to Map' ) result = map.new ( ) 
+	@name ( 'Add Empname to Map' ) map.add ( map = result , key = 'EMPCOURSE' , value = ^=empenrcourse^ ) 
+	@name ( 'Return Result' ) result = control.evaluate ( expression = 'return result' ) 
+} 

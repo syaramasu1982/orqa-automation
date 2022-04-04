@@ -1,0 +1,17 @@
+@specification 1.1 
+@name ( 'List folders' ) folders = control.evaluate ( expression = 'return "EBSArea/tests/scenarios/regression,TestPacks/ROE/Finance/STFC"' ) 
+testCasesCount = recordset.create ( columns = 'Test Case, Count' ) 
+@name ( 'Process folder(s)' ) control.iteration ( loopSource = ^=folders.split(",")^ , loopVar = 'folder' , loopIndex = 'folderID' ) {
+	filesList = file.list ( sourcePath = folder ) 
+	@testcase @name ( 'Process files in folder [${folder}]' ) control.iteration ( loopSource = ^=filesList^ , loopVar = 'file' , loopIndex = 'fileID' ) {
+		@name ( 'Process XLSX' ) if ^file.getName().toUpperCase().endsWith(".XLSX")^ {
+			@name ( 'Resolve file name ' ) fileName = control.evaluate ( expression = 'return file.getName()' ) 
+			@name ( 'Process file' ) if ^fileName != null && String.valueOf(fileName).trim().length() > 0 && String.valueOf(fileName).endsWith(".xlsx") && !String.valueOf(fileName).startsWith("~")^ {
+				testsCount = '/Utils/generate task from excel/tools/get_test_count.task' ( filePath = file ) 
+				recordset.append ( values = "'${fileName}', ${testsCount}" ) 
+			} 
+		} 
+	} 
+} 
+@name ( 'Request for garbage collection' ) control.evaluate ( expression = 'System.gc()' ) 
+@name ( 'Print test cases count' ) control.evaluate ( expression = 'testCasesCount' ) 

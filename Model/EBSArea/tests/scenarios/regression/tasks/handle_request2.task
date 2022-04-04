@@ -1,0 +1,36 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = workbook ) 
+@param ( name = testDataSheet ) 
+@param ( name = rootTestCaseID ) 
+@param ( name = refTestCaseID ) 
+@param ( name = testCaseID ) 
+@param ( name = testCase ) 
+@param ( name = session ) 
+@param ( name = summaryTable ) 
+@param ( name = workbookSummary ) 
+@name ( 'Default execution status' ) defaultExecutionStatus = control.evaluate ( expression = 'return "Pass"' ) 
+@name ( 'Fail execution status' ) failExecutionStatus = control.evaluate ( expression = 'return "FAIL"' ) 
+'Handle request [${testDataSheet}]' {
+	@disabled @name ( 'Perform Navigation' ) if ^"NAV".equals(testDataSheet)^ {
+		@disabled @name ( 'Handle navigation' ) try {
+			@disabled @name ( 'Perform navigation with timeout of 2min' ) control.timeout ( timeout = 120 ) {
+				@disabled /EBSArea/tests/scenarios/regression/tasks/perform_navigation_web.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session ) 
+			} 
+		} 
+		@disabled @name ( 'Update failure' ) catch {
+		} 
+	} 
+	@name ( 'Perform AP Tests' ) if ^"AP".equals(testDataSheet)^ {
+		@name ( 'Handle navigation' ) try {
+			/EBSArea/tests/scenarios/regression/tasks/perform_ap_tests.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = session ) 
+		} 
+	} 
+	@name ( 'Perform Navigation Java' ) if ^"NAVOF".equals(testDataSheet)^ {
+		@name ( 'Handle navigation' ) try {
+			/EBSArea/tests/scenarios/regression/tasks/perform_navigation_java.task ( workbook = workbook , sheet = testDataSheet , testCase = testCaseID , scenario = testCase , session = ^session+"_OF"^ ) 
+		} 
+		@name ( 'Update failure' ) catch {
+		} 
+	} 
+} 

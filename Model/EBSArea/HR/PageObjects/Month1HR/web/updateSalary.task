@@ -1,0 +1,18 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = changeAmount ) 
+@param ( name = updateSalary ) 
+web.switch ( session = session ) 
+'Add salary - web' {
+	@name ( 'Click Correct' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Correct' ) 
+	@name ( 'Update Change Amount' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Change Amount' , xPath = 'SalaryCorrectTableRN:ChgValue:0' , value = changeAmount ) 
+	@name ( 'Update Salary' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Salary' , value = updateSalary , fullXPath = 'td//input[@id="SalaryCorrectTableRN:ProposedSalary1:0"]' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'updated_salary_success' ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( scenario = scenario , session = session , name = 'Apply_uixr' ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'updated_salary_success_apply' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "generate_payment_run_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform update salary for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

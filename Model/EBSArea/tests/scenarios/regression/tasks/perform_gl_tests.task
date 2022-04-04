@@ -1,0 +1,344 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = summaryTable ) 
+@param ( name = refTestCaseID ) 
+@param ( name = TestCaseTableDict ) 
+@param ( name = workbookSummary ) 
+writeResults = control.evaluate ( expression = 'return false' ) 
+@name ( 'Handle GL' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		cases = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'cases.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.columnrename ( columns = headers ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		cases = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^cases.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Initiate cases' ) control.evaluate ( expression = 'cases' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.trim()' ) 
+		cases = transform.expression ( expression = 'TESTCASENAME=TESTCASENAME.toUpperCase()' ) 
+		@name ( 'Read header columns' ) headerColumns = control.evaluate ( expression = 'return cases.getHeader()' ) 
+		headerColumns = transform.columnrename ( columns = 'columns' ) 
+		recordset.create ( columns = 'ID' ) 
+		results = recordset.save ( ) 
+		result = control.evaluate ( expression = 'return null' ) 
+		@name ( 'Handle GL Operations' ) control.iteration ( loopSource = ^=cases^ , loopVar = 'caseRef' , loopIndex = 'caseRefID' ) {
+			startTime = /EBSArea/lib/common/record_start_time.task ( scenario = testCase ) 
+			@name ( 'Resolve test case name' ) testCaseName = control.evaluate ( expression = 'return caseRef.TESTCASENAME' ) 
+			@testcase @name ( 'Perform test [${sheet}-${testCaseName}-${caseRef.ID}]' ) try {
+				@name ( 'Handle [CreateDailyCorporateRate]' ) if ^testCaseName.contains("CREATEDAILYCORPORATERATE")^ {
+					@name ( 'Calculate Start Date' ) startDate = control.evaluate ( expression = 'def startDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+startDate = today
+}
+startDate = startDate.format("dd-MMM-yyy")
+return startDate' ) 
+					@name ( 'Calculate End Date' ) endDate = control.evaluate ( expression = 'def endDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+endDate = today
+}
+endDate = endDate.format("dd-MMM-yyy")
+return endDate' ) 
+					@name ( 'Create Daily Rates [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/web/createDailyRates.task ( scenario = scenario , session = session , fromCurrency = ^caseRef['FROMCURRENCY']^ , toCurrency = ^caseRef['TOCURRENCY']^ , startDate = startDate , endDate = endDate , rateType = ^caseRef['RATETYPE']^ , rate = ^caseRef['RATE']^ ) 
+				} 
+				@name ( 'Handle [Foreign Currency Search for a Daily Rate]' ) if ^testCaseName.contains("FOREIGNCURRENCYSEARCH")^ {
+					@name ( 'Calculate Start Date' ) startDate = control.evaluate ( expression = 'def startDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+startDate = today
+}
+startDate = startDate.format("dd-MMM-yyy")
+return startDate' ) 
+					@name ( 'Calculate End Date' ) endDate = control.evaluate ( expression = 'def endDate = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+endDate = today
+}
+endDate = endDate.format("dd-MMM-yyy")
+return endDate' ) 
+					@name ( 'Foreign Currency Search for Daily Rate [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/web/fcSearchForDailyRate.task ( scenario = scenario , session = session , fromCurrency = ^caseRef['FROMCURRENCY']^ , toCurrency = ^caseRef['TOCURRENCY']^ , rateType = ^caseRef['RATETYPE']^ , startDate = startDate , endDate = endDate ) 
+				} 
+				@name ( 'Handle [Update Daily Corporate Rate]' ) if ^testCaseName.contains("UPDATEDAILYCORPORATERATE")^ {
+					@name ( 'Update Daily Rates [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/web/updateDailyRates.task ( scenario = scenario , session = session , inverseRate = ^caseRef['INVERSERATE']^ , fromCurrency = ^caseRef['UPDATEFROMCURRENCY']^ , toCurrency = ^caseRef['UPDATETOCURRENCY']^ , rateDate = ^caseRef['RATEDATE']^ , rateType = ^caseRef['RATETYPE']^ , rate = ^caseRef['RATE']^ ) 
+				} 
+				@name ( 'Handle [Amend Account Description]' ) if ^testCaseName.contains("AMENDACCOUNTDESCRIPTION") || testCaseName.contains("AMENDBACKACCOUNTDESCRIPTION")^ {
+					@name ( 'Amend Account Description [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/amendAccountDescription.task ( scenario = scenario , session = session , segment = ^caseRef['SEGMENT']^ , description = ^caseRef['DESCRIPTION']^ , screenShot = ^"amend_account_description_"+testCaseName^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Enter Journal Operations]' ) if ^testCaseName.contains("ENTERJOURNALWITHCONVERSIONROUNDINGDIFFERENCES") || testCaseName.contains("ENTERINGCURRENCYJOURNALS") || testCaseName.contains("ATTEMPTTOUSERESTRICTEDANALYSIS") || testCaseName.contains("CREATEMANUALJOURNALENTRY") || testCaseName.contains("CORRECTBATCHPOSTINGERRORS") || testCaseName.contains("ATTEMPTTOPOSTAJOURNALINANUNOPENEDFUTUREPERIOD")^ {
+					@name ( 'Calculate Journal Name' ) journalName = control.evaluate ( expression = 'def journalName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+journalName = today
+}
+journalName = "InitialsRoundingTest_"+journalName.format("ddhhmmss")
+return journalName
+' ) 
+					if ^session.contains("5")^ {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Enter Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/enterJournal.task ( scenario = scenario , session = session , journal = journalName , description = journalName , ledger = ^caseRef['LEDGER']^ , category = ^caseRef['CATEGORY']^ , period = period , currency = ^caseRef['CURRENCY']^ , type = ^caseRef['TYPE']^ , account = ^caseRef['ACCOUNT']^ , debit = ^caseRef['DEBIT']^ , reconRef = ^caseRef['RECONREF']^ , line2 = ^caseRef['LINE2']^ , account2 = ^caseRef['ACCOUNT2']^ , credit = ^caseRef['CREDIT']^ , reconRef2 = ^caseRef['RECONREF2']^ , line3 = ^caseRef['LINE3']^ , account3 = ^caseRef['ACCOUNT3']^ , credit3 = ^caseRef['CREDIT3']^ , reconRef3 = ^caseRef['RECONREF3']^ , decisionButton = ^caseRef['DECISIONBUTTON']^ , line1 = ^caseRef['LINE1']^ , costCentre = ^caseRef['COSTCENTRE']^ , accountCode = ^caseRef['ACCOUNTCODE']^ , controlTotal = ^caseRef['CONTROLTOTAL']^ , businessUnit = ^caseRef['BUSINESSUNIT']^ , restrictedAccount = ^caseRef['RESTRICTEDACCOUNT']^ , amendControlTotal = ^caseRef['AMENDCONTROLTOTAL']^ , clickPost = ^caseRef['CLICKPOST']^ , viewRequest = ^caseRef['VIEWREQUEST']^ , environment = environment ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Journal'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,journalName];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Create Recurring Journal Standard and Formula]' ) if ^testCaseName.contains("CREATERECURRINGJOURNALTEMPLATEFORMULA") || testCaseName.contains("CREATERECURRINGJOURNALTEMPLATESTANDARD")^ {
+					@name ( 'Calculate Batch Name' ) batchName = control.evaluate ( expression = 'def batchName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batchName = today
+}
+batchName = "Batch_"+batchName.format("ddhhmmss")
+return batchName
+' ) 
+					@name ( 'Calculate Journal Name' ) journalName = control.evaluate ( expression = 'def journalName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+journalName = today
+}
+journalName = "Standard_"+journalName.format("ddhhmmss")
+return journalName
+' ) 
+					if ^session.contains("5")^ {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Create Recurring Journal Template - Formula [${sheet}]: ID=${caseRef.ID}' ) result = /EBSArea/Finance/PageObjects/GL/java/createStdRecJournalTemp.task ( scenario = scenario , session = session , period = period , batch = batchName , description = batchName , journal = journalName , ledger = ^caseRef['LEDGER']^ , category = ^caseRef['CATEGORY']^ , line1 = ^caseRef['LINE1']^ , account1 = ^caseRef['ACCOUNT1']^ , step1 = ^caseRef['STEP1']^ , amount1 = ^caseRef['AMOUNT1']^ , line2 = ^caseRef['LINE2']^ , account2 = ^caseRef['ACCOUNT2']^ , step2 = ^caseRef['STEP2']^ , amount2 = ^caseRef['AMOUNT2']^ , screenshot = 'formula' , currency = ^caseRef['CURRENCY']^ , step2InLine1 = ^caseRef['STEP2INLINE1']^ , operator2InLine1 = ^caseRef['OPERATOR2INLINE1']^ , amount2InLine1 = ^caseRef['AMOUNT2INLINE1']^ , step2InLine2 = ^caseRef['STEP2INLINE2']^ , operator2InLine2 = ^caseRef['OPERATOR2INLINE2']^ , amount2InLine2 = ^caseRef['AMOUNT2INLINE2']^ , environment = environment ) 
+					'Write data summary table to excel and dictionary' {
+						dataColumnList = ^return ['Test Case','Test Case ID','Request ID'];^ 
+						dataValuesList = ^return [scenario,caseRef.ID,result.REQUESTID];^ 
+						/EBSArea/tests/scenarios/regression/tasks/write_data_summary_table_to_excel.task ( dataSummaryExcelPath = workbookSummary , dataSummarySheetName = ^environment.dataSummarySheetName^ , dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList ) 
+						/EBSArea/tests/scenarios/regression/tasks/create_table_with_keyvalues_add_to_inmemory_dict.task ( dataSummaryColumnList = dataColumnList , dataSummaryValuesList = dataValuesList , inputDictionary = TestCaseTableDict , ID = ^caseRef.ID^ ) 
+					} 
+				} 
+				@name ( 'Handle [Auto copy An Existing Journal]' ) if ^testCaseName.contains("AUTOCOPYANEXISTINGJOURNAL")^ {
+					@name ( 'Calculate Batch Name' ) batchName = control.evaluate ( expression = 'def batchName = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batchName = today
+}
+batchName = "Batch_"+batchName.format("ddhhmmss")
+return batchName
+' ) 
+					if ^session.contains("5")^ {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Auto Copy Existing Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/autoCopyExistingJournal.task ( scenario = scenario , session = session , posting = ^caseRef['POSTING']^ , batch = batchName , ledger = ^caseRef['LEDGER']^ , period = period , environment = environment ) 
+				} 
+				@name ( 'Handle [Change Period On Unposted Journal]' ) if ^testCaseName.contains("CHANGEPERIODONUNPOSTEDJOURNAL")^ {
+					@name ( 'Calculate Batch' ) batch = control.evaluate ( expression = 'def batch = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batch = today
+}
+batch = "batch"+batch.format("ddMMMyyy").toUpperCase()
+return batch' ) 
+					if ^session.contains("5")^ {
+						@name ( 'Calculate To Period' ) toPeriod = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today-1.month
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate To Period' ) toPeriod = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today-1.month
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Change Period On Unposted Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/changePeriodOnUnpostedJournal.task ( scenario = scenario , session = session , toPeriod = toPeriod , posting = ^caseRef['POSTING']^ , ledger = ^caseRef['LEDGER']^ , period = period , toEffectiveDate = ^caseRef['TOEFFECTIVEDATE']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Change Currency On Unposted Journal]' ) if ^testCaseName.contains("CHANGECURRENCYONUNPOSTEDJOURNAL")^ {
+					@name ( 'Calculate Batch' ) batch = control.evaluate ( expression = 'def batch = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+batch = today
+}
+batch = "batch"+batch.format("ddMMMyyy").toUpperCase()
+return batch' ) 
+					if ^session.contains("5")^ {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Change Currency On Unposted Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/changeCurrencyOnUnpostedJournal.task ( scenario = scenario , session = session , toCurrency = ^caseRef['TOCURRENCY']^ , toType = ^caseRef['TOTYPE']^ , ledger = ^caseRef['LEDGER']^ , period = period , posting = ^caseRef['POSTING']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Posting Journals]' ) if ^testCaseName.contains("POSTINGJOURNALS")^ {
+					@disabled if ^session.contains("5")^ {
+						@disabled @name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					@disabled else {
+						@disabled @name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Read Journal' ) journal = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Journal' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Posting Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/postingJournal.task ( scenario = scenario , session = session , environment = environment , batch = ^journal+"%"^ ) 
+				} 
+				@name ( 'Handle [Reverse Journals]' ) if ^testCaseName.contains("REVERSEJOURNALS")^ {
+					if ^session.contains("5")^ {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy").toUpperCase()
+return period' ) 
+					} 
+					else {
+						@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					} 
+					@name ( 'Read Journal' ) journal = /EBSArea/tests/scenarios/regression/tasks/get_value_from_inmemory_dict_table.task ( tableNameOrRefCaseName = refTestCaseID , tableColumnName = 'Journal' , testCaseTableDict = TestCaseTableDict ) 
+					@name ( 'Reverse Journal [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/reverseJournal.task ( scenario = scenario , session = session , reversalPeriod = period , posting = ^caseRef['POSTING']^ , ledger = ^caseRef['LEDGER']^ , period = period , category = ^caseRef['CATEGORY']^ , environment = environment , journal = journal ) 
+				} 
+				@name ( 'Handle [Generate Recurring Journals Manually]' ) if ^testCaseName.contains("GENERATERECURRINGJOURNALSMANUALLY")^ {
+					@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					@name ( 'Generate recurring journals manually [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/generateRecJournals.task ( scenario = scenario , session = session , period = period , environment = environment ) 
+				} 
+				@name ( 'Handle [Generate Report On Balance On Account]' ) if ^testCaseName.contains("GENERATEREPORTONBALANCEONACCOUNT")^ {
+					@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					@name ( 'Generate Report On Balance Account [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/generateReportOnBalanceAccount.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , ledgerCurrency = ^caseRef['LEDGERCURRENCY']^ , currencyType = ^caseRef['CURRENCYTYPE']^ , enteredCurrency = ^caseRef['ENTEREDCURRENCY']^ , type = ^caseRef['TYPE']^ , balanceType = ^caseRef['BALANCETYPE']^ , startingPeriod = period , endingPeriod = period , companyLow = ^caseRef['COMPANYLOW']^ , businessUnit = ^caseRef['BUSINESSUNIT']^ , costCentre = ^caseRef['COSTCENTRE']^ , accountCode = ^caseRef['ACCOUNTCODE']^ , analysisCode = ^caseRef['ANALYSISCODE']^ , orderBy = ^caseRef['ORDERBY']^ , spare = ^caseRef['SPARE']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Run Trial Balanc Report]' ) if ^testCaseName.contains("RUNTRIALBALANCEREPORT")^ {
+					@name ( 'Calculate Period' ) period = control.evaluate ( expression = 'def period = null
+use (groovy.time.TimeCategory) {
+def today = new Date()
+period = today
+}
+period = period.format("MMM-yyyy")
+return period' ) 
+					@name ( 'Run Trial Balance Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/runTrialBalanceReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , ledger = ^caseRef['LEDGER']^ , ledgerCurrency = ^caseRef['LEDGERCURRENCY']^ , currencyType = ^caseRef['CURRENCYTYPE']^ , enteredCurrency = ^caseRef['ENTEREDCURRENCY']^ , pagebreakSegment = ^caseRef['PAGEBREAKSEGMENT']^ , period = period , amountType = ^caseRef['AMOUNTTYPE']^ , companyLow = ^caseRef['COMPANYLOW']^ , environment = environment ) 
+				} 
+				@name ( 'Handle [Run Unposted Journals Report]' ) if ^testCaseName.contains("RUNUNPOSTEDJOURNALSREPORT")^ {
+					@name ( 'Run Unposted Journal Report [${sheet}]: ID=${caseRef.ID}' ) /EBSArea/Finance/PageObjects/GL/java/runUnpostedJournalReport.task ( scenario = scenario , session = session , name = ^caseRef['NAME']^ , type = ^caseRef['TYPE']^ , postingStatus = ^caseRef['POSTINGSTATUS']^ , currency = ^caseRef['CURRENCY']^ , environment = environment ) 
+				} 
+			} 
+			@name ( 'Handle failures' ) catch {
+				recordset.use ( recordset = results ) 
+				recordset.append ( values = "${caseRef.ID}, 'Failed'" ) 
+				results = recordset.save ( ) 
+				error ^"Failed to navigate for test case [" + testCase + "] "^ 
+			} 
+			/EBSArea/lib/common/calculate_duration.task ( scenario = testCase , startTime = startTime ) 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to navigate for test case [" + testCase + "] "^ 
+	} 
+} 
+control.evaluate ( expression = 'result' ) 

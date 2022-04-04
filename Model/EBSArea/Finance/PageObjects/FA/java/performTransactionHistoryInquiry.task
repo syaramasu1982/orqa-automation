@@ -1,0 +1,35 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = book ) 
+@param ( name = referenceNumber ) 
+@param ( name = assetNumbers ) 
+@param ( name = periodsFrom ) 
+@param ( name = periodsTo ) 
+@param ( name = transactionType ) 
+@param ( name = category ) 
+@param ( name = closeApp ) 
+@name ( 'Single Asset Retirement' ) try {
+	@name ( 'Launch Oracle Application' ) /EBSArea/lib/java/basic/launch_java_app.task ( session = session , environment = environment ) 
+	@name ( 'Wait For Find Transactions' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Transactions' ) 
+	@name ( 'Enter Book' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Book' , title = 'Find Transactions' , xPath = 'VTextField[1]' , value = book ) 
+	@name ( 'Enter Reference Number' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Reference Number' , title = 'Find Transactions' , xPath = 'VTextField[2]' , value = referenceNumber ) 
+	@name ( 'Enter Asset Numbers' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Asset Numbers' , title = 'Find Transactions' , xPath = 'VTextField[3]' , value = assetNumbers ) 
+	@name ( 'Enter Periods from' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Periods' , title = 'Find Transactions' , xPath = 'VTextField[5]' , value = periodsFrom ) 
+	@name ( 'Enter Periods to' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Periods' , title = 'Find Transactions' , xPath = 'VTextField[6]' , value = periodsTo ) 
+	@name ( 'Enter Transaction Type' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Transaction Type' , title = 'Find Transactions' , xPath = 'VTextField[7]' , value = transactionType ) 
+	@name ( 'Enter Category' ) /EBSArea/lib/java/text/set_text_tab_check.task ( scenario = scenario , session = session , field = 'Category' , title = 'Find Transactions' , xPath = 'VTextField[8]' , value = category ) 
+	@name ( 'Click Find button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Transaction History' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction History' ) 
+	@name ( 'Click Details button' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Details' ) 
+	@name ( 'Wait For Transaction Detail' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Transaction Detail' ) 
+	@name ( 'Capture Screen OF' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'transaction_details' ) 
+	@name ( 'Click Transaction Detail Close iCon' ) /EBSArea/lib/java/click/click_text.task ( scenario = scenario , session = session , title = 'Transaction Detail' , xPath = 'ToolBar/ToolBarButton[3]' , field = 'Close icon' ) 
+	if ^closeApp != null && String.valueOf(closeApp).trim().length() > 0^ {
+		@name ( 'Close Application' ) /EBSArea/lib/java/basic/close_java_app.task ( session = session ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ scenario+"_perform_transaction_history_inquiry_fail"^ ) 
+} 

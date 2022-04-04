@@ -1,0 +1,14 @@
+@specification 1.1 
+@param ( name = summaryTable ) 
+@param ( name = workbookDataSummary ) 
+@param ( name = columnCellSize ) 
+@param ( name = rowToStartWriting ) 
+@param ( name = dataSummarySheetName ) 
+'Write Data Summary' {
+	columnCellChar = ^ return columnCellSize > 0 && columnCellSize  < 27 ? String.valueOf((char)(columnCellSize  + 64)) : null;^ 
+	style.font ( cellRange = 'A${rowToStartWriting}:${columnCellChar}${rowToStartWriting}' , bold = true , table = ^=summaryTable^ ) 
+	style.background ( color = 'YELLOW' , cellRange = 'A${rowToStartWriting}:${columnCellChar}${rowToStartWriting}' ) 
+	style.columnwidth ( columnRange = 'A${rowToStartWriting}:${columnCellChar}${rowToStartWriting}' , columnWidth = 15 ) 
+	style.borders ( cellRange = 'A${rowToStartWriting}:${columnCellChar}${rowToStartWriting}' , arrangement = 'GRID' ) 
+	excel.write ( filePath = workbookDataSummary , sheetName = dataSummarySheetName , append = true , includeHeader = false , cellName = 'A${rowToStartWriting}' ) 
+} 

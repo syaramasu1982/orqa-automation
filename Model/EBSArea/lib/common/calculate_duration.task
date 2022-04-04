@@ -1,0 +1,29 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = startTime ) 
+@name ( 'Resolve duration' ) timeResolved = control.evaluate ( expression = 'import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.TimeZone
+import java.util.GregorianCalendar
+
+long duration = System.currentTimeMillis() - startTime
+
+Calendar cal = new GregorianCalendar()
+
+long dstSavings = cal.getTimeZone().getDSTSavings()
+
+if(dstSavings > 0){
+	duration = duration - dstSavings //Deducting to adjust day light
+}
+
+return duration' ) 
+@name ( 'Format current time' ) formattedValue = control.evaluate ( expression = 'import java.text.SimpleDateFormat
+
+Calendar cal = new GregorianCalendar()
+
+SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss")
+
+cal.setTimeInMillis(timeResolved)
+
+String formattedVal = sdf.format(cal.getTime())' ) 
+console.write ( data = ^="Run time for test case [" + scenario + "] execution [" + formattedValue +"]"^ ) 

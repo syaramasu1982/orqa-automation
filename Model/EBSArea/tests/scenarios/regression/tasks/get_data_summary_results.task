@@ -1,0 +1,81 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = inputDictionary ) 
+@param ( name = refTestCase ) 
+'Get data summary results to rerun from stopping point' {
+	dataSummaryPartialResult = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ , hasHeader = false ) 
+	control.setvariable ( name = 'isNextRowValues' , expression = 'false' , outputType = 'BOOLEAN' ) 
+	control.setvariable ( name = 'isTableReady' , expression = 'false' , outputType = 'BOOLEAN' ) 
+	control.iteration ( loopSource = ^=dataSummaryPartialResult^ , loopVar = 'currentItem' , loopIndex = 'currNum' ) {
+		cellValue = ^currentItem[1]^ 
+		if isNextRowValues {
+			refTestCase = ^currentItem[2]^ 
+			strValues = control.evaluate ( expression = 'def strValues
+for(i=1;i<10;i++)
+{
+	try	{
+ 		def val = currentItem[i]
+
+		if(val!=null && val!="")
+			{
+				if(i==1)
+				{
+					strValues= val			
+				}
+				else if (i>1)
+				{
+				 	strValues= strValues+ '','' + val
+				}
+			}
+		}
+	catch(Exception ex)
+		{
+		return strValues
+		}
+}
+
+return strValues
+
+' ) 
+			control.setvariable ( name = 'isTableReady' , expression = 'true' , outputType = 'BOOLEAN' ) 
+			control.setvariable ( name = 'isNextRowValues' , expression = 'false' , outputType = 'BOOLEAN' ) 
+		} 
+		if ^cellValue.toUpperCase()=="TEST CASE"^ {
+			strColumns = control.evaluate ( expression = 'def strColumns;
+for(i=1;i<10;i++)
+{
+	try	{
+ 		def val = currentItem[i]
+
+		if(val!=null && val!="")
+			{
+				if(i==1)
+				{
+					strColumns= val			
+				}
+				else if (i>1)
+				{
+				 	strColumns= strColumns+ '','' + val
+				}
+			}
+		}
+	catch(Exception ex)
+		{
+		return strColumns
+		}
+}
+
+return strColumns;
+
+' ) 
+			control.setvariable ( name = 'isNextRowValues' , expression = 'true' , outputType = 'BOOLEAN' ) 
+		} 
+		if isTableReady {
+			dataSummaryTestCaseTable = recordset.create ( columns = strColumns ) 
+			recordset.append ( values = strValues ) 
+			map.add ( map = ^=inputDictionary^ , key = ^=refTestCase^ , value = ^=dataSummaryTestCaseTable^ ) 
+			control.setvariable ( name = 'isTableReady' , expression = 'false' , outputType = 'BOOLEAN' ) 
+		} 
+	} 
+} 

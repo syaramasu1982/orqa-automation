@@ -1,0 +1,119 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = organizationName ) 
+@param ( name = taxCountry ) 
+@param ( name = type ) 
+@param ( name = addressLine1 ) 
+@param ( name = addressLine2 ) 
+@param ( name = townOrCity ) 
+@param ( name = postalCode ) 
+@param ( name = addressName ) 
+@param ( name = phoneAreaCode ) 
+@param ( name = phoneNumber ) 
+@param ( name = invoiceCurrency ) 
+@param ( name = paymentCurrency ) 
+@param ( name = deliveryMethod ) 
+@param ( name = country ) 
+@param ( name = bankName ) 
+@param ( name = branchName ) 
+@param ( name = accountNumber ) 
+@param ( name = accountName ) 
+@param ( name = currency ) 
+@param ( name = notificationMethod ) 
+@param ( name = email ) 
+@param ( name = matchApprovalLevel ) 
+@param ( name = operatingUnit ) 
+web.switch ( session = session ) 
+@name ( 'Setup New Supplier' ) try {
+	@name ( 'Click Supplier' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create Supplier' , scenario = scenario ) 
+	@name ( 'Enter the Organization Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = organizationName , field = 'Organization Name' , xPath = 'organization_name' ) 
+	@name ( 'Search Tax Country' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Tax Country' , value = taxCountry , xPath = 'taxCountry' , scenario = scenario ) 
+	@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	@name ( 'Check supplier exists' ) isSupplierExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = '*' , text = 'supplier master must have a unique supplier' ) 
+	@name ( 'Is supplier exists' ) if isSupplierExists {
+		@name ( 'Generate Organization Name' ) organizationName = control.evaluate ( expression = 'organizationName = "AutoSupplier "+new java.text.SimpleDateFormat("ddHHMMSS").format(java.util.Calendar.getInstance().getTime())' ) 
+		@name ( 'Enter the Organization Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = organizationName , field = 'Organization Name' , xPath = 'organization_name' ) 
+		@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	} 
+	'Organization' {
+		@name ( 'Click on Organization' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Organization' ) 
+		@name ( 'Search Type' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Type' , value = type , xPath = 'Type' , scenario = scenario ) 
+		@name ( 'Click Save' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'saveBtn' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) confMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Changes to Organization' ) 
+		assert.true ( expression = 'confMessage=="Changes to Organization have been saved"' ) 
+	} 
+	'Address Book' {
+		@name ( 'Click on Address Book' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Address Book' ) 
+		@name ( 'Click Create' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create' , scenario = scenario ) 
+		@name ( 'Enter Address Line 1' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = addressLine1 , field = 'Address Line 1' , xPath = 'HzAddressStyleFlex1' ) 
+		@name ( 'Enter Address Line 2' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = addressLine2 , field = 'Address Line 2' , xPath = 'HzAddressStyleFlex2' ) 
+		@name ( 'Enter Town/City' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = townOrCity , field = 'Town/City' , xPath = 'HzAddressStyleFlex4' ) 
+		@name ( 'Enter Post Code' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = postalCode , field = 'Postal Code' , xPath = 'HzAddressStyleFlex6' ) 
+		@name ( 'Enter Address Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = addressName , field = 'Address Name' , xPath = 'hzPartySiteName' ) 
+		@name ( 'Enter Phone Area Code' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = phoneAreaCode , field = 'Phone Area Code' , xPath = 'phAreaCode' ) 
+		@name ( 'Enter Phone Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = phoneNumber , field = 'Phone Number' , xPath = 'phNumber' ) 
+		@name ( 'Click Continue' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Continue' , scenario = scenario ) 
+		/EBSArea/lib/web/checkbox/click_ou_checkbox.task ( scenario = scenario , session = session , operatingUnit = operatingUnit ) 
+		@name ( 'Click Apply' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) addressConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'added to the Address Book' ) 
+		@disabled assert.true ( expression = 'addressConfMessage=="${addressName} has been added to the Address Book for ${organizationName}"' ) 
+	} 
+	'Invoice Management' {
+		@name ( 'Click on Invoice Management' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Invoice Management' ) 
+		@name ( 'Select Invoice Currency' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Invoice Currency' , xPath = 'invCurr' , value = invoiceCurrency ) 
+		@name ( 'Click on Payment tab' ) /EBSArea/lib/web/launchform/click_launch_form.task ( scenario = scenario , session = session , id = 'SubTabRN' , name = 'Payment' ) 
+		@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) invoiceManagementConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Changes to Invoice Management have been saved' ) 
+	} 
+	'Payment Details' {
+		@name ( 'Click on Payment Details' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Payment Details' ) 
+		@name ( 'Click on Separate Remittance Advice Delivery' ) /EBSArea/lib/web/launchform/click_launch_form.task ( scenario = scenario , session = session , id = 'subTabBar' , name = 'Separate Remittance Advice Delivery' ) 
+		@name ( 'Select Delivery Method' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Delivery Method' , xPath = 'DlvryMthds' , value = deliveryMethod ) 
+		@disabled @name ( 'Enter Email' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , value = email , field = 'E-mail' , xPath = 'email' ) 
+		@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) paymentConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'The payment methods and payment attributes have been saved' ) 
+		assert.true ( expression = 'paymentConfMessage=="The payment methods and payment attributes have been saved."' ) 
+	} 
+	'Bank Details' {
+		@name ( 'Click on Banking Details' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Banking Details' ) 
+		@name ( 'Click Create Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Create' , scenario = scenario ) 
+		@name ( 'Select Country' ) /EBSArea/lib/web/dropdown/search_select_dropdown.task ( session = session , field = 'Country' , value = country , xPath = 'Country' , scenario = scenario ) 
+		@name ( 'Select Allow International Payments Checkbox' ) /EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , id = 'ForeignPaymentsFlag__xc_' , name = 'ForeignPaymentsFlag' , expectedVal = 'Y' ) 
+		@name ( 'Select Bank Name' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Bank Name' , xPath = 'BankNameSelect' , value = bankName , id = 'BankMasterRN' ) 
+		@name ( 'Select Branch Name' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Branch Name' , xPath = 'BranchNameSelect' , value = branchName , id = 'BranchMasterRN' ) 
+		@name ( 'Enter Account Number' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Account Number' , xPath = 'AcctNumber' , value = accountNumber ) 
+		@name ( 'Enter Account Name' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Account Name' , xPath = 'AcctName' , value = accountName ) 
+		@name ( 'Select Currency' ) /EBSArea/lib/web/dropdown/search_select_table_dropdown.task ( scenario = scenario , session = session , field = 'Currency' , xPath = 'Currency' , value = currency , id = 'BankAcctContainerRN' ) 
+		@name ( 'Click Apply Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+		@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) bankingConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'The changes to the Banking Details have been saved.' ) 
+		assert.true ( expression = 'bankingConfMessage=="The changes to the Banking Details have been saved."' ) 
+	} 
+	'Payment Details' {
+		@name ( 'Click on Payment Details' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Payment Details' ) 
+		@name ( 'Select Bacs Payment Checkbox' ) /EBSArea/lib/web/checkbox/populate_checkbox.task ( scenario = scenario , session = session , id = 'PmtMthdAssignmentsRN:Defaultitem:0__xc_' , name = 'PmtMthdAssignmentsRN:Defaultitem:0' , expectedVal = 'Y' ) 
+		@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) paymentConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'The payment methods and payment attributes have been saved.' ) 
+		assert.true ( expression = 'paymentConfMessage=="The payment methods and payment attributes have been saved."' ) 
+	} 
+	'Address Book' {
+		@name ( 'Click on Address Book' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Address Book' ) 
+		@name ( 'Click on Manage Sites' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'N32:mngSites:0' ) 
+		@name ( 'Click onCommunication tab' ) /EBSArea/lib/web/launchform/click_launch_form.task ( scenario = scenario , session = session , id = 'N45' , name = 'Communication' ) 
+		@name ( 'Select Notification Method' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Notification Method' , xPath = 'N20:ntfMethod:0' , value = notificationMethod ) 
+		@name ( 'Click Apply Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Apply' , scenario = scenario ) 
+	} 
+	'Receiving' {
+		@name ( 'Click on Receiving' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Receiving' ) 
+		@name ( 'Select Match Approval Level' ) /EBSArea/lib/web/dropdown/select_dropdown.task ( scenario = scenario , session = session , field = 'Match Appoval Level' , xPath = 'mtchLvl' , value = matchApprovalLevel ) 
+		/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = 'set_up_new_supplier' ) 
+		@name ( 'Click Save Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Save' , scenario = scenario ) 
+		@name ( 'Read Confirmation Message' ) receiveConfMessage = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Confirmation' , xPath = 'Changes to Receiving have been saved' ) 
+		assert.true ( expression = 'receiveConfMessage=="Changes to Receiving have been saved"' ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "login_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform set up new supplier for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

@@ -1,0 +1,17 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = name ) 
+java.switch ( session = session ) 
+@name ( 'Click button [${name}]' ) try {
+	@name ( 'Perform action' ) control.retry ( maxAttempts = 3 ) {
+		java.waitforcomponent ( target = ^"//Button[@text = '"+ name +"']"^ , timeout = 5 ) 
+		width = java.getvalue ( target = ^"//Button[@text = '"+ name +"']/@width"^ ) 
+		height = java.getvalue ( target = ^"//Button[@text = '"+ name +"']/@height"^ ) 
+		java.click ( target = ^"//Button[@text='" +name+ "']"^ , x = ^ Integer.valueOf(width)/2^ , y = ^ Integer.valueOf(height)/2^ ) 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "click_button_"+name+"_fail"^ ) 
+	error ^"Failed to click button [" + name + "] on session [" + session + "]"^ 
+} 

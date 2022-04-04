@@ -1,0 +1,7 @@
+@specification 1.1 
+@param ( name = fileName ) 
+@param ( name = message ) 
+@name ( 'Write message in text file' ) try {
+	logFile = file.path ( filePath = ^"artefacts/executionresults/" + fileName^ ) 
+	@name ( 'Return file path' ) filePath = control.evaluate ( expression = 'return String.valueOf(logFile)' ) 
+} 

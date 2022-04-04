@@ -1,0 +1,103 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = title ) 
+@param ( name = mainMenu ) 
+@param ( name = subMenu1 ) 
+@param ( name = subMenu2 ) 
+@param ( name = subMenu3 ) 
+@param ( name = itemName ) 
+@param ( name = index ) 
+@param ( name = switchResponsibility ) 
+@param ( name = responsibilityName ) 
+java.switch ( session = session ) 
+@name ( 'Click Button [${name}]' ) try {
+	@name ( 'Read title value' ) titleValue = /EBSArea/lib/java/basic/get_title.task ( scenario = scenario , session = session , field = 'Title' ) 
+	@name ( 'Is title value not navigator' ) while ^!titleValue.contains("Navigator")^ {
+		if ^titleValue.equals("Error")^ {
+			@name ( 'Click Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , xPath = "LWLabel[contains(text(),'Error')]//ancestor::TitleBar//ToolBar/ToolBarButton[1]" ) 
+			@name ( 'Wait for title' ) sleep 5 
+			@name ( 'Read title value' ) titleValue = /EBSArea/lib/java/basic/get_title.task ( scenario = scenario , session = session , field = 'Title' ) 
+		} 
+		@name ( 'Check toolbar button' ) isToolBarExist = java.exists ( target = '//FlexWindow[1]//ToolBar/ToolBarButton[3] | //ExtendedFrame[1]//ToolBar/ToolBarButton[3] | //ChoiceBox[1]//ToolBar/ToolBarButton[3]' ) 
+		if ^!isToolBarExist^ {
+			@name ( 'Click Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = titleValue , xPath = 'ToolBar/ToolBarButton[1]' ) 
+			@name ( 'Wait for title' ) sleep 5 
+			@name ( 'Read title value' ) titleValue = /EBSArea/lib/java/basic/get_title.task ( scenario = scenario , session = session , field = 'Title' ) 
+		} 
+		else {
+			@name ( 'Click Close iCon' ) /EBSArea/lib/java/click/click_close.task ( scenario = scenario , session = session , field = 'Close icon' , title = titleValue , xPath = 'ToolBar/ToolBarButton[3]' ) 
+			@name ( 'Wait for title' ) sleep 5 
+			@name ( 'Read title value' ) titleValue = /EBSArea/lib/java/basic/get_title.task ( scenario = scenario , session = session , field = 'Title' ) 
+		} 
+	} 
+	@name ( 'Handle[Switch Responsibility]' ) if ^!titleValue.contains(title)^ {
+		@name ( 'Click Tool Bar Switch Responsibility Button' ) /EBSArea/lib/java/button/click_toolbar_button.task ( scenario = scenario , session = session , name = 'Switch Responsibility' ) 
+		'Select Responsibility' {
+			@name ( 'Wait For Responsibilities Popup' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Responsibilities' ) 
+			@name ( 'Enter Responsibility Name' ) /EBSArea/lib/java/text/set_lw_text_field.task ( scenario = scenario , session = session , field = 'Responsibilities' , xPath = '%' , value = responsibilityName ) 
+			@name ( 'Click on Find button' ) /EBSArea/lib/java/button/click_push_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+		} 
+	} 
+	java.waitforcomponent ( target = ^"//LWLabel[contains(text(),'"+ title +"')]"^ , timeout = 15 ) 
+	java.click ( target = '//VButton[4]' , clickType = 'DOUBLE_CLICK' ) 
+	@name ( 'Handle[Root Menu]' ) if ^mainMenu != null && String.valueOf(mainMenu).trim().length() > 0^ {
+		@name ( 'Click Main Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//Entry[starts-with(text(),'+') and contains(text(),'" + mainMenu + "')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//Entry[starts-with(text(),'+') and contains(text(),'" + mainMenu + "')]"^ ) 
+				java.click ( target = ^"//Entry[starts-with(text(),'+') and contains(text(),'" + mainMenu + "')]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle[Sub Menu]' ) if ^subMenu1 != null && String.valueOf(subMenu1).trim().length() > 0^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu1 + "')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu1 + "')]"^ ) 
+				java.click ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu1 + "')]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle[Sub Menu 2]' ) if ^subMenu2 != null && String.valueOf(subMenu2).trim().length() > 0^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu2 + "')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu2 + "')]"^ ) 
+				java.click ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu2 + "')]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle [SubMenu 3]' ) if ^subMenu3 != null && String.valueOf(subMenu3).trim().length() > 0^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu3 + "')]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu3 + "')]"^ ) 
+				java.click ( target = ^"//Entry[contains(text(),'+') and contains(text(),'" + subMenu3 + "')]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle [Item Name]' ) if ^itemName != null && String.valueOf(itemName).trim().length() > 0^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//*[contains(text(),'" + mainMenu + "')]/following-sibling::Entry[contains(text(),'       ') and contains(text(),'" + itemName + "')][" + index + "]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//*[contains(text(),'" + mainMenu + "')]/following-sibling::Entry[contains(text(),'       ') and contains(text(),'" + itemName + "')][" + index + "]"^ ) 
+				java.click ( target = ^"//*[contains(text(),'" + mainMenu + "')]/following-sibling::Entry[contains(text(),'       ') and contains(text(),'" + itemName + "')][" + index + "]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+	@name ( 'Handle [Item Name] when no main menu' ) if ^itemName != null && String.valueOf(itemName).trim().length() > 0 && mainMenu.equals("")^ {
+		@name ( 'Click Sub Menu' ) control.retry ( maxAttempts = 5 ) {
+			isToExpand = java.exists ( target = ^"//Entry[contains(text(),'" + itemName + "')][" + index + "]"^ ) 
+			@name ( 'Expand' ) if isToExpand {
+				java.waitforcomponent ( timeout = 5 , target = ^"//Entry[contains(text(),'" + itemName + "')][" + index + "]"^ ) 
+				java.click ( target = ^"//Entry[contains(text(),'" + itemName + "')][" + index + "]"^ , clickType = 'DOUBLE_CLICK' ) 
+			} 
+		} 
+	} 
+} 
+/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "navigate_"+itemName+"from_oracleform_success"^ ) 
+@name ( 'Handle Failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^ "navigate_menu_"+itemName+"_fail"^ ) 
+	error ^"Failed to navigate [" + itemName + "] on session [" + session + "]"^ 
+} 

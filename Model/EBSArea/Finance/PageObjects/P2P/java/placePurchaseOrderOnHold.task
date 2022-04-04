@@ -1,0 +1,30 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = environment ) 
+@param ( name = number ) 
+@param ( name = reason ) 
+@name ( 'Place Purchase Order On Hold' ) try {
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Find Purchase Orders' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Find Purchase Orders' ) 
+	@name ( 'Enter Purchase Order Number' ) /EBSArea/lib/java/text/set_text_tab_java.task ( scenario = scenario , session = session , field = 'Number' , xPath = 'VTextField8' , value = number ) 
+	@name ( 'Click Find' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'Find' ) 
+	@name ( 'Wait For Purchase Order Headers' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Purchase Order Headers' ) 
+	@name ( 'Click on main menu Tools' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Tools' , menu = 'LWMenuBar' , menuItem = 'LWMenu[5]' ) 
+	@name ( 'Click on Control' ) /EBSArea/lib/java/click/click_main_menu.task ( scenario = scenario , session = session , name = 'Cancel' , menu = 'LWPopupMenu' , menuItem = 'LWMenuItem[2]' ) 
+	@name ( 'Wait For Control Document' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Control Document' ) 
+	@name ( 'Select Place On Hold' ) /EBSArea/lib/java/click/click.task ( scenario = scenario , session = session , name = 'Place on Hold' ) 
+	@name ( 'Enter Reason' ) /EBSArea/lib/java/text/set_text.task ( scenario = scenario , session = session , field = 'Reason' , title = 'Control Document' , xPath = 'VTextField[1]' , value = reason ) 
+	@name ( 'Capture Screen' ) /EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'place_purchase_order_onhold_screen' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	@name ( 'Wait For Note' ) /EBSArea/lib/java/basic/wait_for_title.task ( scenario = scenario , session = session , title = 'Note' ) 
+	@name ( 'Read Control Action Confirmation Message' ) confirmationMessage = /EBSArea/lib/java/text/read_text.task ( scenario = scenario , session = session , field = 'Note' , xPath = 'Control Action is completed successfully.' ) 
+	assert.true ( expression = 'confirmationMessage =="Control Action is completed successfully.  Please requery to\nsee the changes."' ) 
+	@name ( 'Click OK' ) /EBSArea/lib/java/button/click_form_button.task ( scenario = scenario , session = session , name = 'OK' ) 
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = ^"place_purchase_order_onhold_"+number^ ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/java/basic/capture_screen_java.task ( scenario = scenario , session = session , name = 'place_purchase_order_on_hold_fail' ) 
+	error ^"Failed to perform place purchase order on hold for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 

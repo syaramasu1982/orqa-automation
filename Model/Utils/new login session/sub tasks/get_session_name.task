@@ -1,0 +1,16 @@
+@specification 1.1 
+@param ( name = environment ) 
+@param ( name = session ) 
+@param ( name = name ) 
+@name ( 'Resolve session name' ) session = control.evaluate ( expression = 'if( name == null || name.trim().length() == 0){
+	session = environment.shortName.toUpperCase() + "_" + session
+} 
+else {	
+	session = environment.shortName.toUpperCase() + "_" + name + "_" + session
+}
+
+session = session.replaceAll("__","_") 
+
+
+return session' ) 
+session = control.evaluate ( expression = 'return session' ) 

@@ -1,0 +1,60 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = requisition ) 
+@param ( name = poNumber ) 
+@param ( name = fullQuantity ) 
+@param ( name = partialQuantity ) 
+web.switch ( session = session ) 
+@name ( 'Define receipt number' ) receiptNo = control.evaluate ( expression = 'return null' ) 
+@name ( 'Receipt Request' ) try {
+	@name ( 'Check receiving tab exists' ) isReceivingTabExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , xPath = "[@id='ICXPOR_RECEIVING_HOME']" ) 
+	if isReceivingTabExists {
+		@name ( 'Click on Receiving tab' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'ICXPOR_RECEIVING_HOME' ) 
+		@name ( 'Click on Full List' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'ReqsFullListButton' , scenario = scenario ) 
+	} 
+	@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisition ) 
+	while ^!requsitionExists^ {
+		@name ( 'Click on Next' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Next' ) 
+		@name ( 'Check Requisition exists' ) requsitionExists = /EBSArea/lib/web/basic/element_exists.task ( scenario = scenario , session = session , element = 'a' , text = requisition ) 
+	} 
+	@name ( 'Click on Requisition' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = requisition ) 
+	@name ( 'Click Receive' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Receive' , scenario = scenario ) 
+	@name ( 'Select Check Box' ) /EBSArea/lib/web/checkbox/click_checkbox.task ( scenario = scenario , session = session , requisition = requisition ) 
+	if ^fullQuantity != null && String.valueOf(fullQuantity).trim().length() > 0^ {
+		@name ( 'Enter Full Quantity' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Receipt Quantity' , xPath = 'ReceiptQuantity' , value = fullQuantity ) 
+	} 
+	if ^partialQuantity != null && String.valueOf(partialQuantity).trim().length() > 0^ {
+		@name ( 'Enter Partial Quantity' ) /EBSArea/lib/web/text/set_text.task ( scenario = scenario , session = session , field = 'Receipt Quantity' , xPath = 'ReceiptQuantity' , value = partialQuantity ) 
+	} 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Next' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'Next' , scenario = scenario ) 
+	@name ( 'Click Submit Button' ) /EBSArea/lib/web/button/click_button.task ( session = session , name = 'SubmitButton' , scenario = scenario ) 
+	'Read Receipt Number' {
+		@name ( 'Get Receipt Number' ) receiptNo = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Receipt' , xPath = 'Receipt' ) 
+		@name ( 'Receipt number' ) receiptNo = control.evaluate ( expression = 'String s1 = receiptNo;
+String[] sp =  s1.split(" ");
+receiptNo = sp[1];' ) 
+	} 
+	@name ( 'Capture Screen' ) /EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "receipt_success_"+receiptNo^ ) 
+	@name ( 'Click Return to Receiving' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Receiving' ) 
+	@name ( 'Click on View Receipts' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'View Receipts' ) 
+	@name ( 'Click on Receipt Number' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = receiptNo ) 
+	'Read Net Quantity Received' {
+		@name ( 'Get Net Quantity Received' ) netQuantityReceived = /EBSArea/lib/web/text/read_text.task ( scenario = scenario , session = session , field = 'Net Quantity Received' , xPath = 'NetQuantity__xc' ) 
+		@name ( 'Read quantity received' ) netQuantityReceived = control.evaluate ( expression = 'def myList = netQuantityReceived
+
+netQuantityReceived = myList [2];' ) 
+	} 
+	@name ( 'Click Return to Receiving' ) /EBSArea/lib/web/click/click_link.task ( scenario = scenario , session = session , name = 'Return to Receiving' ) 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "receipt_"+scenario+"_fail"^ ) 
+	error ^"Failed to perform receipt request for scenario [" + scenario +"] with session ["+ session +"]"^ 
+} 
+'Return Result' {
+	@name ( 'Print Receipt Number' ) console.write ( data = ^="Receipt [" + receiptNo + "] created for test case [" + scenario +"]"^ ) 
+	@name ( 'Create Result Map' ) result = map.new ( ) 
+	@name ( 'Add Receipt to Map' ) map.add ( map = result , key = 'RECEIPTNUMBER' , value = ^=receiptNo^ ) 
+	@name ( 'Return receipt number' ) result = control.evaluate ( expression = 'return result' ) 
+} 

@@ -1,0 +1,25 @@
+@specification 1.1 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@param ( name = id ) 
+@param ( name = name ) 
+web.switch ( session = session ) 
+@name ( 'Click [${name}]' ) try {
+	@name ( 'Handle unexpted error' ) /EBSArea/lib/web/basic/error_exists.task ( scenario = scenario , session = session , element = 'td' , text = 'You have encountered an unexpected error' ) 
+	if ^name != null && String.valueOf(name).trim().length() > 0^ {
+		@name ( 'Perform Operation' ) control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//*[contains(@id,'" + id + "')]//a[contains(@id,'" + name + "')] | //*[contains(@id,'" + id + "')]//a[contains(@title,'" + name + "')]"^ , timeout = 5 ) 
+			web.click ( target = ^"//*[contains(@id,'" + id + "')]//a[contains(@id,'" + name + "')] | //*[contains(@id,'" + id + "')]//a[contains(@title,'" + name + "')]"^ ) 
+		} 
+	} 
+	else {
+		control.retry ( maxAttempts = 3 ) {
+			web.wait ( target = ^"//*[contains(@id,'" + id + "')]//a"^ , timeout = 5 ) 
+			web.click ( target = ^"//*[contains(@id,'" + id + "')]//a"^ , clickType = 'DOUBLE_CLICK' ) 
+		} 
+	} 
+} 
+@name ( 'Handle failure' ) catch {
+	/EBSArea/lib/web/basic/capture_screen_web.task ( scenario = scenario , session = session , name = ^ "click_"+name+"_fail"^ ) 
+	error ^"Failed to click [" + name + "] on session [" + session + "]"^ 
+} 

@@ -1,0 +1,31 @@
+@specification 1.1 
+@param ( name = workbook ) 
+@param ( name = sheet ) 
+@param ( name = environment ) 
+@param ( name = testCase ) 
+@param ( name = scenario ) 
+@param ( name = session ) 
+@name ( 'Process session' ) if ^sheet != null && testCase != null && String.valueOf(sheet).trim().length() > 0 && String.valueOf(testCase).trim().length() > 0^ {
+	@name ( 'Processing sheet [${sheet}]' ) try {
+		users = excel.read ( filePath = ^ workbook^ , sheetName = ^ sheet^ ) 
+		@name ( 'Read headers' ) headers = control.evaluate ( expression = 'users.getHeader().join(",").toUpperCase()' ) 
+		@name ( 'Initiate users' ) control.evaluate ( expression = 'users' ) 
+		users = transform.columnrename ( columns = headers ) 
+		users = filter.comparison ( columns = 'ID' , operation = 'GREATER' , value = '0' ) 
+		users = filter.comparison ( columns = 'ID' , operation = 'EQUAL' , value = testCase ) 
+		@name ( 'Raise test case not found error' ) if ^users.size() < 2^ {
+			error ^"Test case [" + testCase + "] not found on sheet [" + sheet + "] in workbook [" + workbook + "]"^ 
+		} 
+		@name ( 'Create new session' ) for user in ^=users^ {
+			@name ( 'Create new session' ) try {
+				session = '/Utils/new login session/sub tasks/create_session.task' ( environment = environment , user = ^user['USER']^ , password = ^user['PASSWORD']^ , session = session , testCaseUser = ^user['ID']^ , scenario = scenario ) 
+			} 
+			@name ( 'Report failure' ) catch {
+				error ^"Failed to create new session for test case [" + testCase + "] "^ 
+			} 
+		} 
+	} 
+	@name ( 'Report failure' ) catch {
+		error ^"Failed to create new session for test case [" + testCase + "] "^ 
+	} 
+} 
